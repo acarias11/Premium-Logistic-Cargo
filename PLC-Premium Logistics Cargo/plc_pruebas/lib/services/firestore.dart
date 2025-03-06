@@ -37,5 +37,29 @@ class FirestoreService {
     return paquestream;
   }
 
+  //UPDATE: actualizar paquete
+  Future<void> updatePaquete(String paqueteId, String nombre, String warehouseId, double peso, String tipo, String modalidadEnvio) {
+    return paquetes.doc(paqueteId).update({
+      'nombre': nombre,
+      'warehouse_id': warehouseId,
+      'peso': peso,
+      'tipo': tipo,
+      'modalidad_envio': modalidadEnvio
+    }).then((_) {
+      print('Paquete actualizado exitosamente');
+    }).catchError((e) {
+      print('Error al actualizar paquete: $e');
+    });
+  }
+
+  //DELETE: eliminar paquete
+  Future<void> deletePaquete(String paqueteId) {
+    return paquetes.doc(paqueteId).delete().then((_) {
+      print('Paquete eliminado exitosamente');
+    }).catchError((e) {
+      print('Error al eliminar paquete: $e');
+    });
+  }
+
 
 }
