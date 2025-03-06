@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "309994557690",
+    "project_id": "premium-logistics",
+    "storage_bucket": "premium-logistics.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:309994557690:android:00ce29695430ed682cb943",
+        "android_client_info": {
+          "package_name": "com.example.plc_pruebas"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBerPa69Ue3hao5N9x7j6OacsZsTJAcWts"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
