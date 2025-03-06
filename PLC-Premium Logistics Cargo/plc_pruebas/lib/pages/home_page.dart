@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:plc_pruebas/services/firestore.dart';
-
+import 'package:plc_pruebas/controllers/controladores.dart';
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -13,11 +13,8 @@ class _HomePageState extends State<HomePage> {
   //Firestore data service
   final FirestoreService firestoreService = FirestoreService();
 
-  // Controllers for TextFields
-  final TextEditingController nombreController = TextEditingController();
-  final TextEditingController warehouseIdController = TextEditingController();
-  final TextEditingController pesoController = TextEditingController();
-  final TextEditingController tipoController = TextEditingController();
+  // Controladores
+  final Controladores controladores = Controladores();
 
   // Variable para modalidad de envío
   String modalidadEnvio = 'Marítimo';
@@ -32,20 +29,20 @@ class _HomePageState extends State<HomePage> {
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
             TextField(
-              controller: nombreController,
+              controller: controladores.nombreController,
               decoration: const InputDecoration(labelText: 'Nombre'),
             ),
             TextField(
-              controller: warehouseIdController,
+              controller: controladores.warehouseIdController,
               decoration: const InputDecoration(labelText: 'Warehouse ID'),
             ),
             TextField(
-              controller: pesoController,
+              controller: controladores.pesoController,
               decoration: const InputDecoration(labelText: 'Peso'),
               keyboardType: TextInputType.number,
             ),
             TextField(
-              controller: tipoController,
+              controller: controladores.tipoController,
               decoration: const InputDecoration(labelText: 'Tipo'),
             ),
             DropdownButton<String>(
@@ -75,7 +72,7 @@ class _HomePageState extends State<HomePage> {
           TextButton(
             onPressed: () {
               // Validar que el peso sea un número mayor que 0
-              double peso = double.tryParse(pesoController.text) ?? -1;
+              double peso = double.tryParse(controladores.pesoController.text) ?? -1;
               if (peso <= 0) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(content: Text('El peso debe ser un número mayor que 0')),
@@ -85,17 +82,17 @@ class _HomePageState extends State<HomePage> {
 
               //LLAMAR A LA FUNCIÓN DE FIRESTORE PARA AGREGAR EL PAQUETE
               firestoreService.addPaquete(
-                nombreController.text,
-                warehouseIdController.text,
+                controladores.nombreController.text,
+                controladores.warehouseIdController.text,
                 peso,
-                tipoController.text,
+                controladores.tipoController.text,
                 modalidadEnvio,
               );
               // Limpiar los controladores después de agregar el paquete
-              nombreController.clear();
-              warehouseIdController.clear();
-              pesoController.clear();
-              tipoController.clear();
+              controladores.nombreController.clear();
+              controladores.warehouseIdController.clear();
+              controladores.pesoController.clear();
+              controladores.tipoController.clear();
               modalidadEnvio = 'Marítimo';
               Navigator.of(context).pop();
             },
@@ -131,7 +128,26 @@ class _HomePageState extends State<HomePage> {
               return ListTile(
                 title: Text(data['nombre']),
                 subtitle: Text(data['warehouse_id']),
-                trailing: Text(data['peso'].toString()),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    IconButton(
+                      icon: const Icon(Icons.edit),
+                      onPressed: () {
+                        // Lógica para editar el paquete
+                        // Puedes abrir un diálogo similar al de nuevoPaquete para editar los datos
+                      },
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.delete),
+                      onPressed: () {
+                        // Lógica para eliminar el paquete
+                        firestoreService.deletePaquete(document.id);
+                      },
+                    ),
+                    Text(data['peso'].toString()),
+                  ],
+                ),
               );
             }).toList(),
           );
