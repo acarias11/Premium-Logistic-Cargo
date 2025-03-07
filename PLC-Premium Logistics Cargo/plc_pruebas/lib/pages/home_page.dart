@@ -14,7 +14,7 @@ class _HomePageState extends State<HomePage> {
   final FirestoreService firestoreService = FirestoreService();
 
   // Controladores
-  final Controladores controladores = Controladores();
+  final ControladorPaquetes controladorPaquete = ControladorPaquetes();
 
   // Variable para modalidad de envío
   String modalidadEnvio = 'Marítimo';
@@ -29,20 +29,20 @@ class _HomePageState extends State<HomePage> {
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
             TextField(
-              controller: controladores.nombreController,
-              decoration: const InputDecoration(labelText: 'Nombre'),
+              controller: controladorPaquete.traking_numberController,
+              decoration: const InputDecoration(labelText: 'Traking Number'),
             ),
             TextField(
-              controller: controladores.warehouseIdController,
+              controller: controladorPaquete.warehouseIDController,
               decoration: const InputDecoration(labelText: 'Warehouse ID'),
             ),
             TextField(
-              controller: controladores.pesoController,
+              controller: controladorPaquete.pesoController,
               decoration: const InputDecoration(labelText: 'Peso'),
               keyboardType: TextInputType.number,
             ),
             TextField(
-              controller: controladores.tipoController,
+              controller: controladorPaquete.tipoController,
               decoration: const InputDecoration(labelText: 'Tipo'),
             ),
             DropdownButton<String>(
@@ -52,7 +52,7 @@ class _HomePageState extends State<HomePage> {
                   modalidadEnvio = newValue!;
                 });
               },
-              items: <String>['Marítimo', 'Terrestre', 'Aéreo']
+              items: <String>['Marítimo', 'Aéreo']
                   .map<DropdownMenuItem<String>>((String value) {
                 return DropdownMenuItem<String>(
                   value: value,
@@ -72,7 +72,7 @@ class _HomePageState extends State<HomePage> {
           TextButton(
             onPressed: () {
               // Validar que el peso sea un número mayor que 0
-              double peso = double.tryParse(controladores.pesoController.text) ?? -1;
+              double peso = double.tryParse(controladorPaquete.pesoController.text) ?? -1;
               if (peso <= 0) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(content: Text('El peso debe ser un número mayor que 0')),
@@ -82,17 +82,18 @@ class _HomePageState extends State<HomePage> {
 
               //LLAMAR A LA FUNCIÓN DE FIRESTORE PARA AGREGAR EL PAQUETE
               firestoreService.addPaquete(
-                controladores.nombreController.text,
-                controladores.warehouseIdController.text,
-                peso,
-                controladores.tipoController.text,
+                controladorPaquete.traking_numberController.text,
+                controladorPaquete.warehouseIDController.text,
+                controladorPaquete.direccionController.text,
+                double.parse(controladorPaquete.pesoController.text),
+                controladorPaquete.tipoController.text,
                 modalidadEnvio,
               );
               // Limpiar los controladores después de agregar el paquete
-              controladores.nombreController.clear();
-              controladores.warehouseIdController.clear();
-              controladores.pesoController.clear();
-              controladores.tipoController.clear();
+              controladorPaquete.traking_numberController.clear();
+              controladorPaquete.warehouseIDController.clear();
+              controladorPaquete.pesoController.clear();
+              controladorPaquete.tipoController.clear();
               modalidadEnvio = 'Marítimo';
               Navigator.of(context).pop();
             },

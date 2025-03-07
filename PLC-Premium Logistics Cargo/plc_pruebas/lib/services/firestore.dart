@@ -3,26 +3,23 @@ import 'package:uuid/uuid.dart';
 
 class FirestoreService {
   //get collection reference
-  final CollectionReference paquetes =
-   FirebaseFirestore.instance.collection('paquetes');
+  final CollectionReference paquetes = FirebaseFirestore.instance.collection('Paquetes');
 
   //CREATE: agregar nuevo paquete
-  Future<void> addPaquete(String nombre, String warehouseId, double peso, String tipo, String modalidadEnvio) {
-    var uuid = const Uuid();
-    String paqueteId = uuid.v4(); // Generar un paquete_id único
-    //Generar un tracking unico
-    String tracking = uuid.v4();
+  Future<void> addPaquete(String trakingNumber, String warehouseId, String direccion, double peso, String tipo, String modalidadEnvio) async {
+    String paqueteId = await _getNextPaqueteId(); // Obtener el siguiente paquete_id
     DateTime fecha = DateTime.now(); // Obtener la fecha y hora actual
 
     return paquetes.add({
       'paquete_id': paqueteId,
-      'nombre': nombre,
-      'fecha': fecha,
-      'warehouse_id': warehouseId,
-      'tracking': tracking,
-      'peso': peso,
-      'tipo': tipo,
-      'modalidad_envio': modalidadEnvio
+      'TrakingNumber': trakingNumber,
+      'Fecha': fecha,
+      'WarehouseID': warehouseId,
+      'Peso': peso,
+      'Tipo': tipo,
+      'Modalidad': modalidadEnvio,
+      'Direccion': direccion,
+      'EstatusID': 'EST1'
     }).then((_) {
       print('Paquete agregado exitosamente');
     }).catchError((e) {
@@ -30,21 +27,33 @@ class FirestoreService {
     });
   }
 
+  // Función para obtener el siguiente paquete_id
+  Future<String> _getNextPaqueteId() async {
+    QuerySnapshot querySnapshot = await paquetes.orderBy('paquete_id', descending: true).limit(1).get();
+    if (querySnapshot.docs.isNotEmpty) {
+      String lastPaqueteId = querySnapshot.docs.first['paquete_id'];
+      int nextId = int.parse(lastPaqueteId.replaceAll('PKG', '')) + 1;
+      return 'PKG$nextId';
+    } else {
+      return 'PKG1';
+    }
+  }
+
   //READ: obtener todos los paquetes
   Stream<QuerySnapshot> getPaquetes() {
-    final paquestream =
-    paquetes.orderBy('fecha', descending: true).snapshots();
+    final paquestream = paquetes.orderBy('fecha', descending: true).snapshots();
     return paquestream;
   }
 
   //UPDATE: actualizar paquete
-  Future<void> updatePaquete(String paqueteId, String nombre, String warehouseId, double peso, String tipo, String modalidadEnvio) {
+  Future<void> updatePaquete(String paqueteId, String trakingNumber, String warehouseId, String direccion, double peso, String tipo, String modalidadEnvio) {
     return paquetes.doc(paqueteId).update({
-      'nombre': nombre,
-      'warehouse_id': warehouseId,
-      'peso': peso,
-      'tipo': tipo,
-      'modalidad_envio': modalidadEnvio
+      'TrakingNumber': trakingNumber,
+      'WarehouseID': warehouseId,
+      'Peso': peso,
+      'Tipo': tipo,
+      'Modalidad': modalidadEnvio,
+      'Direccion': direccion
     }).then((_) {
       print('Paquete actualizado exitosamente');
     }).catchError((e) {
@@ -60,6 +69,4 @@ class FirestoreService {
       print('Error al eliminar paquete: $e');
     });
   }
-
-
 }
