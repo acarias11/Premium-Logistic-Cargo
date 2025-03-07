@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:plc_pruebas/services/firestore.dart';
 import 'package:plc_pruebas/controllers/controladores.dart';
+
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -16,8 +17,34 @@ class _HomePageState extends State<HomePage> {
   // Controladores
   final ControladorPaquetes controladorPaquete = ControladorPaquetes();
 
-  // Variable para modalidad de envío
-  String modalidadEnvio = 'Marítimo';
+  // Variables para modalidad de envío y tipo de paquete
+  String? modalidadEnvio;
+  String? tipoPaquete;
+  List<String> modalidades = [];
+  List<String> tipos = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadModalidades();
+    _loadTipos();
+  }
+
+  Future<void> _loadModalidades() async {
+    QuerySnapshot snapshot = await firestoreService.modalidad.get();
+    setState(() {
+      modalidades = snapshot.docs.map((doc) => doc['Nombre'].toString()).toList();
+      modalidadEnvio = modalidades.isNotEmpty ? modalidades[0] : null;
+    });
+  }
+
+  Future<void> _loadTipos() async {
+    QuerySnapshot snapshot = await firestoreService.tipo.get();
+    setState(() {
+      tipos = snapshot.docs.map((doc) => doc['Nombre'].toString()).toList();
+      tipoPaquete = tipos.isNotEmpty ? tipos[0] : null;
+    });
+  }
 
   //box para agregar un nuevo paquete
   void nuevoPaquete() {
@@ -37,13 +64,27 @@ class _HomePageState extends State<HomePage> {
               decoration: const InputDecoration(labelText: 'Warehouse ID'),
             ),
             TextField(
+              controller: controladorPaquete.direccionController,
+              decoration: const InputDecoration(labelText: 'Dirección'),
+            ),
+            TextField(
               controller: controladorPaquete.pesoController,
               decoration: const InputDecoration(labelText: 'Peso'),
               keyboardType: TextInputType.number,
             ),
-            TextField(
-              controller: controladorPaquete.tipoController,
-              decoration: const InputDecoration(labelText: 'Tipo'),
+            DropdownButton<String>(
+              value: tipoPaquete,
+              onChanged: (String? newValue) {
+                setState(() {
+                  tipoPaquete = newValue!;
+                });
+              },
+              items: tipos.map<DropdownMenuItem<String>>((String value) {
+                return DropdownMenuItem<String>(
+                  value: value,
+                  child: Text(value),
+                );
+              }).toList(),
             ),
             DropdownButton<String>(
               value: modalidadEnvio,
@@ -52,8 +93,7 @@ class _HomePageState extends State<HomePage> {
                   modalidadEnvio = newValue!;
                 });
               },
-              items: <String>['Marítimo', 'Aéreo']
-                  .map<DropdownMenuItem<String>>((String value) {
+              items: modalidades.map<DropdownMenuItem<String>>((String value) {
                 return DropdownMenuItem<String>(
                   value: value,
                   child: Text(value),
@@ -85,16 +125,20 @@ class _HomePageState extends State<HomePage> {
                 controladorPaquete.traking_numberController.text,
                 controladorPaquete.warehouseIDController.text,
                 controladorPaquete.direccionController.text,
-                double.parse(controladorPaquete.pesoController.text),
-                controladorPaquete.tipoController.text,
-                modalidadEnvio,
+                peso,
+                tipoPaquete!,
+                modalidadEnvio!,
+                controladorPaquete.estatusIDController.text,
               );
               // Limpiar los controladores después de agregar el paquete
               controladorPaquete.traking_numberController.clear();
               controladorPaquete.warehouseIDController.clear();
+              controladorPaquete.direccionController.clear();
               controladorPaquete.pesoController.clear();
-              controladorPaquete.tipoController.clear();
-              modalidadEnvio = 'Marítimo';
+              setState(() {
+                modalidadEnvio = modalidades.isNotEmpty ? modalidades[0] : null;
+                tipoPaquete = tipos.isNotEmpty ? tipos[0] : null;
+              });
               Navigator.of(context).pop();
             },
             child: const Text('Agregar'),
