@@ -24,8 +24,7 @@ class FirestoreService {
   Future<void> addPaquete(String trakingNumber, String warehouseId, String direccion, double peso, String tipo, String modalidadEnvio, String estatusID) async {
     String paqueteId = await _getNextPaqueteId(); // Obtener el siguiente paquete_id
     DateTime fecha = DateTime.now(); // Obtener la fecha y hora actual
-
-    return paquetes.add({
+    return paquetes.doc(paqueteId).set({
       'paquete_id': paqueteId,
       'TrakingNumber': trakingNumber,
       'Fecha': fecha,
@@ -100,7 +99,7 @@ class FirestoreService {
   Future<void> addCliente(String nombre, String apellido, String numeroIdentidad, String email, String telefono, String direccion, String cuidad, String departamento, String pais) async {
     String clienteId = await _getNextClienteId(); // Obtener el siguiente cliente_id
     DateTime fecha = DateTime.now(); // Obtener la fecha y hora actual
-    return clientes.add({
+    return clientes.doc(clienteId).set({
       'cliente_id': clienteId,
       'nombre': nombre,
       'apellido': apellido,
@@ -169,7 +168,7 @@ class FirestoreService {
   Future<void> addCarga(String entregaInicial, String entregaFinal, String estatusID, String fechaInicial, String fechaFinal, String modalidad, double peso, int piezas) async {
     String cargaId = await _getNextCargaId(); // Obtener el siguiente carga_id
     DateTime fecha = DateTime.now(); // Obtener la fecha y hora actual
-    return cargas.add({
+    return cargas.doc(cargaId).set({
       'carga_id': cargaId,
       'entrega_inicial': entregaInicial,
       'entrega_final': entregaFinal,
@@ -254,7 +253,7 @@ class FirestoreService {
   Future<void> addWarehouse(String cargaID, String clienteID, String direccion, String estatusID, String modalidad, double pesoTotal, num piezas) async {
     String warehouseID = await _getNextWarehouseId(); // Obtener el siguiente warehouse_id
     DateTime fecha = DateTime.now(); // Obtener la fecha y hora actual
-    return warehouse.add({
+    return warehouse.doc(warehouseID).set({
       'warehouse_id': warehouseID,
       'carga_id': cargaID,
       'cliente_id': clienteID,

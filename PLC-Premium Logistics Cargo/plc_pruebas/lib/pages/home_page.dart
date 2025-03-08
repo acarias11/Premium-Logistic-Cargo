@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:plc_pruebas/widgets/sidebar.dart';
 import 'package:sidebarx/sidebarx.dart';
+import 'package:plc_pruebas/pages/clientes_page.dart';
 import 'package:plc_pruebas/pages/paquetes_page.dart';
 import 'package:plc_pruebas/pages/warehouse_page.dart';
 import 'package:plc_pruebas/pages/cargas_page.dart';
@@ -122,7 +123,11 @@ class HomePage extends StatelessWidget {
                     minimumSize: const Size(150, 150), // Tamaño cuadrado
                   ),
                   onPressed: () {
-                    // Funcionalidad vacía para Cliente
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const ClientesPage()),
+                    );
                   },
                   child: const Text('Cliente'),
                   // child: Column(

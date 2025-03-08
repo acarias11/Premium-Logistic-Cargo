@@ -6,9 +6,6 @@ import 'package:plc_pruebas/services/firestore.dart';
 import 'package:plc_pruebas/widgets/sidebar.dart';
 import 'package:sidebarx/sidebarx.dart';
 
-import '../services/firestore.dart';
-import '../widgets/sidebar.dart';
-
 class WarehousePage extends StatefulWidget {
   const WarehousePage({super.key});
 
@@ -58,9 +55,8 @@ class _WarehousePageState extends State<WarehousePage> {
       Map<String, dynamic> clientData = snapshot.data() as Map<String, dynamic>;
       String nombre = clientData['nombre'] ?? clientData['Nombre'] ?? '';
       String apellido = clientData['apellido'] ?? clientData['Apellido'] ?? '';
-      return '$nombre $apellido'.trim().isEmpty
-          ? 'Desconocido'
-          : '$nombre $apellido';
+      String fullName = ('$nombre $apellido').trim();
+      return fullName.isEmpty ? 'Desconocido' : fullName;
     }
     return 'Desconocido';
   }
@@ -151,15 +147,16 @@ class _WarehousePageState extends State<WarehousePage> {
                             .map((DocumentSnapshot document) {
                           Map<String, dynamic>? data =
                               document.data() as Map<String, dynamic>?;
-                          if (data == null)
+                          if (data == null) {
                             return const DataRow(cells: [
                               DataCell(Text('Error al cargar datos'))
                             ]);
+                          }
 
                           return DataRow(
                             cells: [
                               DataCell(Text(document['warehouse_id'])),
-                              DataCell(Text(data['CargaID']?.toString() ??
+                              DataCell(Text(data['carga_id']?.toString() ??
                                   'Desconocido')),
                               DataCell(FutureBuilder(
                                 future:

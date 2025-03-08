@@ -27,11 +27,13 @@ class CargoPage extends StatelessWidget {
 
     List<DropdownMenuItem<String>> estatusItems = [];
     List<DropdownMenuItem<String>> modalidadItems = [];
+    List<DropdownMenuItem<String>> clientItems = [];
 
     // Fetch Estatus and Modalidad from Firestore
     QuerySnapshot estatusSnapshot = await firestoreService.getEstatus().first;
     QuerySnapshot modalidadSnapshot =
         await firestoreService.getModalidades().first;
+    QuerySnapshot clientsSnapshot = await firestoreService.getClientes('').first;
 
     estatusItems = estatusSnapshot.docs.map((DocumentSnapshot document) {
       return DropdownMenuItem<String>(
@@ -47,107 +49,118 @@ class CargoPage extends StatelessWidget {
       );
     }).toList();
 
+    clientItems = clientsSnapshot.docs.map((DocumentSnapshot document) {
+      String nombre = document['nombre'] ?? 'Desconocido';
+      String apellido = document['apellido'] ?? '';
+      String numeroIdentidad = document['numero_identidad'] ?? '';
+      return DropdownMenuItem<String>(
+        value: document.id,
+        child: Text('$nombre $apellido ($numeroIdentidad)'),
+      );
+    }).toList();
+
     await showDialog(
       context: context,
       builder: (context) {
-        return AlertDialog(
-          title: const Text('Crear Warehouse'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Autocomplete<String>(
-                optionsBuilder: (TextEditingValue textEditingValue) async {
-                  if (textEditingValue.text.isEmpty) {
-                    return const Iterable<String>.empty();
-                  }
-                  QuerySnapshot clientsSnapshot = await firestoreService
-                      .getClientes(textEditingValue.text)
-                      .first;
-                  return clientsSnapshot.docs.map((DocumentSnapshot document) {
-                    String nombre = document['Nombre'] ?? 'Desconocido';
-                    String apellido = document['Apellido'] ?? '';
-                    String numeroIdentidad = document['NumeroIdentidad'] ?? '';
-                    return '$nombre $apellido ($numeroIdentidad) - ${document.id}';
-                  });
-                },
-                onSelected: (String selection) {
-                  selectedClientId = selection.split(' - ').last;
-                },
-                fieldViewBuilder: (BuildContext context,
-                    TextEditingController textEditingController,
-                    FocusNode focusNode,
-                    VoidCallback onFieldSubmitted) {
-                  return TextField(
-                    controller: textEditingController,
-                    focusNode: focusNode,
-                    decoration: const InputDecoration(labelText: 'Cliente'),
-                  );
-                },
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: const Text('Crear Warehouse'),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    DropdownButtonFormField<String>(
+                      decoration: const InputDecoration(labelText: 'Cliente'),
+                      items: clientItems,
+                      value: selectedClientId,
+                      onChanged: (newValue) {
+                        setState(() {
+                          selectedClientId = newValue;
+                        });
+                      },
+                    ),
+                    TextField(
+                      controller: direccionController,
+                      decoration: const InputDecoration(labelText: 'Direccion'),
+                    ),
+                    TextField(
+                      controller: pesoController,
+                      decoration: const InputDecoration(labelText: 'Peso'),
+                      keyboardType: TextInputType.number,
+                    ),
+                    TextField(
+                      controller: piezasController,
+                      decoration: const InputDecoration(labelText: 'Paquetes'),
+                      keyboardType: TextInputType.number,
+                    ),
+                    DropdownButtonFormField<String>(
+                      decoration: const InputDecoration(labelText: 'Estatus'),
+                      items: estatusItems,
+                      value: selectedEstatus,
+                      onChanged: (newValue) {
+                        setState(() {
+                          selectedEstatus = newValue;
+                        });
+                      },
+                    ),
+                    DropdownButtonFormField<String>(
+                      decoration: const InputDecoration(labelText: 'Modalidad'),
+                      items: modalidadItems,
+                      value: selectedModalidad,
+                      onChanged: (newValue) {
+                        setState(() {
+                          selectedModalidad = newValue;
+                        });
+                      },
+                    ),
+                  ],
+                ),
               ),
-              TextField(
-                controller: direccionController,
-                decoration: const InputDecoration(labelText: 'Direccion'),
-              ),
-              TextField(
-                controller: pesoController,
-                decoration: const InputDecoration(labelText: 'Peso'),
-                keyboardType: TextInputType.number,
-              ),
-              TextField(
-                controller: piezasController,
-                decoration: const InputDecoration(labelText: 'Paquetes'),
-                keyboardType: TextInputType.number,
-              ),
-              DropdownButtonFormField<String>(
-                decoration: const InputDecoration(labelText: 'Estatus'),
-                items: estatusItems,
-                onChanged: (newValue) {
-                  selectedEstatus = newValue;
-                },
-              ),
-              DropdownButtonFormField<String>(
-                decoration: const InputDecoration(labelText: 'Modalidad'),
-                items: modalidadItems,
-                onChanged: (newValue) {
-                  selectedModalidad = newValue;
-                },
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text('Cancelar'),
-            ),
-            TextButton(
-              onPressed: () async {
-                if (selectedEstatus != null &&
-                    selectedModalidad != null &&
-                    selectedClientId != null) {
-                  await firestoreService.addWarehouse(
-                    cargaId,
-                    selectedClientId!,
-                    direccionController.text,
-                    selectedEstatus!,
-                    selectedModalidad!,
-                    double.tryParse(pesoController.text) ?? 0,
-                    int.tryParse(piezasController.text) ?? 0,
-                  );
-                  Navigator.of(context).pop();
-                } else {
-                  // Show error message if estatus, modalidad, or client is not selected
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                        content: Text(
-                            'Por favor seleccione Estatus, Modalidad y Cliente')),
-                  );
-                }
-              },
-              child: const Text('Crear'),
-            ),
-          ],
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: const Text('Cancelar'),
+                ),
+                TextButton(
+                  onPressed: () async {
+                    if (selectedEstatus != null &&
+                        selectedModalidad != null &&
+                        selectedClientId != null) {
+                      await firestoreService.addWarehouse(
+                        cargaId,
+                        selectedClientId!,
+                        direccionController.text,
+                        selectedEstatus!,
+                        selectedModalidad!,
+                        double.tryParse(pesoController.text) ?? 0,
+                        int.tryParse(piezasController.text) ?? 0,
+                      );
+                      setState(() {
+                        selectedModalidad = null;
+                        selectedClientId = null;
+                        selectedEstatus = null;
+                        piezasController.clear();
+                        pesoController.clear();
+                        direccionController.clear();
+                      });
+                      Navigator.of(context).pop();
+                    } else {
+                      // Show error message if estatus, modalidad, or client is not selected
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                            content: Text(
+                                'Por favor seleccione Estatus, Modalidad y Cliente')),
+                      );
+                    }
+                  },
+                  child: const Text('Crear'),
+                ),
+              ],
+            );
+          },
         );
       },
     );
@@ -180,8 +193,8 @@ class CargoPage extends StatelessWidget {
   Future<String> getClientFullName(DocumentReference ref) async {
     DocumentSnapshot snapshot = await ref.get();
     if (snapshot.exists) {
-      String nombre = snapshot['Nombre'] ?? 'Desconocido';
-      String apellido = snapshot['Apellido'] ?? '';
+      String nombre = snapshot['nombre'] ?? 'Desconocido';
+      String apellido = snapshot['apellido'] ?? '';
       return '$nombre $apellido'.trim();
     }
     return 'Desconocido';
@@ -216,8 +229,8 @@ class CargoPage extends StatelessWidget {
     DocumentSnapshot snapshot =
         await FirebaseFirestore.instance.collection('Clientes').doc(id).get();
     if (snapshot.exists) {
-      String nombre = snapshot['Nombre'] ?? 'Desconocido';
-      String apellido = snapshot['Apellido'] ?? '';
+      String nombre = snapshot['nombre'] ?? 'Desconocido';
+      String apellido = snapshot['apellido'] ?? '';
       return '$nombre $apellido'.trim();
     }
     return 'Desconocido';
@@ -282,9 +295,9 @@ class CargoPage extends StatelessWidget {
                         : Future.value('Desconocido');
 
                     Future<String> modalidadFuture =
-                        data['modalidad'] is DocumentReference
+                        data['Modalidad'] is DocumentReference
                             ? getModalidadName(
-                                data['modalidad'] as DocumentReference)
+                                data['Modalidad'] as DocumentReference)
                             : (data['modalidad'] is String
                                 ? getModalidadNameById(data['modalidad'])
                                 : Future.value('Desconocido'));
