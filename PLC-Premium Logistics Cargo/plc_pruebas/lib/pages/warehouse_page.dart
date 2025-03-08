@@ -3,6 +3,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:data_table_2/data_table_2.dart';
 import 'package:intl/intl.dart';
 import 'package:plc_pruebas/services/firestore.dart';
+import 'package:plc_pruebas/widgets/sidebar.dart';
+import 'package:sidebarx/sidebarx.dart';
 
 class WarehousePage extends StatefulWidget {
   const WarehousePage({super.key});
@@ -13,6 +15,7 @@ class WarehousePage extends StatefulWidget {
 
 class _WarehousePageState extends State<WarehousePage> {
   final FirestoreService firestoreService = FirestoreService();
+  final SidebarXController _sidebarXController = SidebarXController(selectedIndex: 0);
 
   Stream<QuerySnapshot> getWare() {
     return firestoreService.getWarehouses();
@@ -36,7 +39,10 @@ class _WarehousePageState extends State<WarehousePage> {
     return 'Desconocido';
   }
 
-  String formatDate(Timestamp timestamp) {
+  String formatDate(Timestamp? timestamp) {
+    if (timestamp == null) {
+      return 'Sujeta a cambio';
+    }
     DateTime date = timestamp.toDate();
     return DateFormat('dd/MM/yyyy').format(date);
   }
@@ -47,6 +53,7 @@ class _WarehousePageState extends State<WarehousePage> {
       appBar: AppBar(
         title: const Text('Warehouse'),
       ),
+      drawer: Sidebar(selectedIndex: 2, controller: _sidebarXController),
       body: StreamBuilder<QuerySnapshot>(
         stream: getWare(),
         builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {

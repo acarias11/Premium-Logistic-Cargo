@@ -3,6 +3,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:data_table_2/data_table_2.dart';
 import 'package:intl/intl.dart';
 import 'package:plc_pruebas/services/firestore.dart';
+import 'package:sidebarx/sidebarx.dart';
+import 'package:plc_pruebas/widgets/sidebar.dart';
 
 class CargasPage extends StatefulWidget {
   const CargasPage({super.key});
@@ -12,7 +14,7 @@ class CargasPage extends StatefulWidget {
 
 class _CargasPageState extends State<CargasPage> {
   final FirestoreService firestoreService = FirestoreService();
-
+  final SidebarXController _sidebarXController = SidebarXController(selectedIndex: 0);
   Stream<QuerySnapshot> getcar() {
     return firestoreService.getCargas();
   }
@@ -36,6 +38,7 @@ class _CargasPageState extends State<CargasPage> {
       appBar: AppBar(
         title: const Text('Cargas'),
       ),
+      drawer: Sidebar(selectedIndex: 1, controller: _sidebarXController),
       body: StreamBuilder<QuerySnapshot>(
         stream: getcar(),
         builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {

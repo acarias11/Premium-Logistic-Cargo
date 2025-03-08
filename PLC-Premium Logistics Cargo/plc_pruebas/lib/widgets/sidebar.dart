@@ -1,11 +1,12 @@
 //importas todas las pages para las rutas
 import 'package:plc_pruebas/pages/home_page.dart';
 import 'package:plc_pruebas/pages/paquetes_page.dart';
+import 'package:plc_pruebas/pages/quejas_page.dart';
 //import 'package:plc_pruebas/pages/usuarios_page.dart';
 import 'package:plc_pruebas/pages/warehouse_page.dart';
 import 'package:flutter/material.dart';
 import 'package:sidebarx/sidebarx.dart';
-
+import 'package:plc_pruebas/pages/cargas_page.dart';
 //rehacerlo integrando la dependencia sidebarx
 
 class Sidebar extends StatelessWidget {
@@ -86,10 +87,22 @@ class Sidebar extends StatelessWidget {
               debugPrint('Home');
               Navigator.pushReplacement(
                 context,
-                MaterialPageRoute(builder: (context) => const HomePage()),
+                MaterialPageRoute(builder: (context) =>HomePage()),
               );
             },
           ),
+          SidebarXItem(
+            icon: Icons.send_time_extension_rounded,
+            label: 'Cargas',
+            onTap: () {
+              debugPrint('Cargas');
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => const CargasPage()),
+              );
+            },
+          ),
+
           SidebarXItem(
             icon: Icons.store,
             label: 'Warehouse',
@@ -110,6 +123,17 @@ class Sidebar extends StatelessWidget {
                 context,
                 MaterialPageRoute(builder: (context) => const PaquetesPage()),
               );
+            },
+          ),
+          SidebarXItem(
+            icon: Icons.troubleshoot_sharp,
+            label: 'Quejas',
+            onTap: () {
+              debugPrint('Quejas');
+               Navigator.pushReplacement(
+                 context,
+                 MaterialPageRoute(builder: (context) => const QuejasPage()),
+               );
             },
           ),
         ],
