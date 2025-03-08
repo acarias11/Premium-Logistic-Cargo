@@ -10,6 +10,8 @@ class PaquetesPage extends StatefulWidget {
 
 class _PaquetesPageState extends State<PaquetesPage> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final TextEditingController _searchController = TextEditingController();
+  String _searchText = '';
 
   Stream<QuerySnapshot> getPaq() {
     return _firestore.collection('Paquetes').snapshots();
@@ -18,7 +20,29 @@ class _PaquetesPageState extends State<PaquetesPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Paquetes')),
+      appBar: AppBar(
+        //* Se agrega un campo de texto para buscar por paquete_id o warehouse_id
+        title: const Text('Paquetes'),
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(48.0),
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: TextField(
+              controller: _searchController,
+              decoration: const InputDecoration(
+                hintText: 'Buscar por paquete_id o warehouse_id',
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.search),
+              ),
+              onChanged: (value) {
+                setState(() {
+                  _searchText = value.toUpperCase();
+                });
+              },
+            ),
+          ),
+        ),
+      ),
       body: StreamBuilder<QuerySnapshot>(
         stream: getPaq(),
         builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
@@ -32,11 +56,21 @@ class _PaquetesPageState extends State<PaquetesPage> {
             return const Center(child: Text('No hay paquetes disponibles'));
           }
 
+          var filteredDocs = snapshot.data!.docs.where((DocumentSnapshot document) {
+            Map<String, dynamic>? data = document.data() as Map<String, dynamic>?;
+            if (data == null) return false;
+
+            String paqueteId = data['paquete_id']?.toString() ?? '';
+            String warehouseId = data['WarehouseID']?.toString() ?? '';
+
+            return paqueteId.contains(_searchText) || warehouseId.contains(_searchText);
+          }).toList();
+
           return SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Padding(
               padding: const EdgeInsets.all(8.0),
-              child: Container(
+              child: SizedBox(
                 width: MediaQuery.of(context).size.width, // Asegura que el DataTable2 tenga un ancho adecuado
                 child: DataTable2(
                   columnSpacing: 12,
@@ -47,10 +81,10 @@ class _PaquetesPageState extends State<PaquetesPage> {
                     DataColumn(label: Text('Warehouse ID')),
                     DataColumn(label: Text('Peso')),
                   ],
-                  rows: snapshot.data!.docs.map((DocumentSnapshot document) {
+                  rows: filteredDocs.map((DocumentSnapshot document) {
                     Map<String, dynamic>? data = document.data() as Map<String, dynamic>?;
 
-                    if (data == null) return DataRow(cells: [DataCell(Text('Error al cargar datos'))]);
+                    if (data == null) return const DataRow(cells: [DataCell(Text('Error al cargar datos'))]);
 
                     String warehouseId = "Desconocido";
                     if (data['WarehouseID'] is DocumentReference) {
@@ -62,7 +96,7 @@ class _PaquetesPageState extends State<PaquetesPage> {
                     return DataRow(cells: [
                       DataCell(Text(data['paquete_id']?.toString() ?? 'Sin ID')),
                       DataCell(Text(warehouseId)),
-                      DataCell(Text('${data['Peso']?.toString() ?? 'Sin peso'} kg')),
+                      DataCell(Text('${data['Peso']?.toString() ?? 'Sin peso'} lb')),
                     ]);
                   }).toList(),
                 ),

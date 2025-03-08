@@ -160,19 +160,22 @@ class _HomePageState extends State<HomePage> {
       ),
       body: StreamBuilder(
         stream: firestoreService.getPaquetes(),
-        builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
+        builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
           if (snapshot.hasError) {
             return const Text('Error al obtener los paquetes');
           }
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
+          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+            return const Center(child: Text('No hay paquetes disponibles'));
+          }
           return ListView(
-            children: snapshot.data.docs.map<Widget>((DocumentSnapshot document) {
+            children: snapshot.data!.docs.map<Widget>((DocumentSnapshot document) {
               Map<String, dynamic> data = document.data() as Map<String, dynamic>;
               return ListTile(
-                title: Text(data['nombre']),
-                subtitle: Text(data['warehouse_id']),
+                title: Text(data['TrakingNumber']),
+                subtitle: Text(data['WarehouseID']),
                 trailing: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: <Widget>[
@@ -190,7 +193,7 @@ class _HomePageState extends State<HomePage> {
                         firestoreService.deletePaquete(document.id);
                       },
                     ),
-                    Text(data['peso'].toString()),
+                    Text(data['Peso'].toString()),
                   ],
                 ),
               );

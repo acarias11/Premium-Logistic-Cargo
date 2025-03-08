@@ -64,7 +64,7 @@ class _WarehousePageState extends State<WarehousePage> {
             scrollDirection: Axis.horizontal,
             child: Padding(
               padding: const EdgeInsets.all(8.0),
-              child: Container(
+              child: SizedBox(
                 width: MediaQuery.of(context).size.width, // Asegura que el DataTable2 tenga un ancho adecuado
                 child: DataTable2(
                   columnSpacing: 12,
@@ -84,7 +84,7 @@ class _WarehousePageState extends State<WarehousePage> {
                   rows: snapshot.data!.docs.map((DocumentSnapshot document) {
                     Map<String, dynamic>? data = document.data() as Map<String, dynamic>?;
 
-                    if (data == null) return DataRow(cells: [DataCell(Text('Error al cargar datos'))]);
+                    if (data == null) return const DataRow(cells: [DataCell(Text('Error al cargar datos'))]);
 
                     Future<String> estatusFuture = data['EstatusID'] is DocumentReference
                         ? getDocumentName(data['EstatusID'] as DocumentReference)

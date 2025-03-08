@@ -10,6 +10,16 @@ class FirestoreService {
   final CollectionReference modalidad = FirebaseFirestore.instance.collection('Modalidad');
   final CollectionReference tipo = FirebaseFirestore.instance.collection('Tipo_Paquetes');
 
+  //READ: obtener todos los estatus
+  Stream<QuerySnapshot> getEstatus() {
+    return estatus.snapshots();
+  }
+
+  //READ: obtener todas las modalidades
+  Stream<QuerySnapshot> getModalidades() {
+    return modalidad.snapshots();
+  }
+
   //CREATE: agregar nuevo paquete
   Future<void> addPaquete(String trakingNumber, String warehouseId, String direccion, double peso, String tipo, String modalidadEnvio, String estatusID) async {
     String paqueteId = await _getNextPaqueteId(); // Obtener el siguiente paquete_id
@@ -44,10 +54,9 @@ class FirestoreService {
     }
   }
 
-  //READ: obtener todos los paquetes
+  //READ: obtener todos los paquetes por el id del documento
   Stream<QuerySnapshot> getPaquetes() {
-    final paquestream = paquetes.orderBy('fecha', descending: true).snapshots();
-    return paquestream;
+    return paquetes.orderBy('paquete_id', descending: true).snapshots();
   }
 
   //UPDATE: actualizar paquete
@@ -226,18 +235,18 @@ class FirestoreService {
   Future<double> _calculateTotalWeight(String warehouseID) async {
     QuerySnapshot querySnapshot = await paquetes.where('WarehouseID', isEqualTo: warehouseID).get();
     double totalWeight = 0;
-    querySnapshot.docs.forEach((doc) {
+    for (var doc in querySnapshot.docs) {
       totalWeight += doc['Peso'];
-    });
+    }
     return totalWeight;
   }
 
   Future<num> _calculateTotalPieces(String warehouseID) async {
      QuerySnapshot querySnapshot = await paquetes.where('WarehouseID', isEqualTo: warehouseID).get();
      num totalPieces = 0;
-     querySnapshot.docs.forEach((doc) {
+     for (var doc in querySnapshot.docs) {
        totalPieces += doc['Piezas'];
-     });
+     }
      return totalPieces;
    }
 
@@ -253,8 +262,8 @@ class FirestoreService {
       'estatus_id': estatusID,
       'fecha': fecha,
       'modalidad': modalidad,
-      'peso_total': '${await _calculateTotalWeight(warehouseID)} lbs', //calcular el peso total en el warehouse y sumarlo automáticamente en la creación del warehouse
-      'piezas': '${await _calculateTotalPieces(warehouseID)} paquetes'//calcular el total de piezas en el warehouse y sumarlas automáticamente en la creación del warehouse
+      'peso_total': pesoTotal,
+      'piezas': piezas
     }).then((_) {
       print('Warehouse agregado exitosamente');
     }).catchError((e) {

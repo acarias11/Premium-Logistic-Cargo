@@ -97,7 +97,7 @@ class Sidebar extends StatelessWidget {
               debugPrint('Warehouse');
               Navigator.pushReplacement(
                 context,
-                MaterialPageRoute(builder: (context) => WarehousePage()),
+                MaterialPageRoute(builder: (context) => const WarehousePage()),
               );
             },
           ),
@@ -108,7 +108,7 @@ class Sidebar extends StatelessWidget {
               debugPrint('Paquetes');
               Navigator.pushReplacement(
                 context,
-                MaterialPageRoute(builder: (context) => PaquetesPage()),
+                MaterialPageRoute(builder: (context) => const PaquetesPage()),
               );
             },
           ),
