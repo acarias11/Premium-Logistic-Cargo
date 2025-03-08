@@ -192,7 +192,7 @@ class FirestoreService {
 
   //READ: obtener todas las cargas
   Stream<QuerySnapshot> getCargas() {
-    final cargastream = cargas.orderBy('fecha', descending: true).snapshots();
+    final cargastream = cargas.snapshots();
     return cargastream;
   }
 
@@ -276,7 +276,7 @@ class FirestoreService {
 
   //READ: obtener todos los warehouses
   Stream<QuerySnapshot> getWarehouses() {
-    final warehousestream = warehouse.orderBy('fecha', descending: true).snapshots();
+    final warehousestream = warehouse.snapshots();
     return warehousestream;
   }
 

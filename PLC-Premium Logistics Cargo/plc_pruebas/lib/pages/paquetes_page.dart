@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:data_table_2/data_table_2.dart';
 
 class PaquetesPage extends StatefulWidget {
+  const PaquetesPage({super.key});
   @override
   _PaquetesPageState createState() => _PaquetesPageState();
 }

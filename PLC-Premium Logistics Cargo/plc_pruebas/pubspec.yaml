@@ -16,6 +16,7 @@ dependencies:
   sidebarx: ^0.17.1
   faker: ^2.0.0
   printing: ^5.11.3
+  intl: ^0.20.2
   pdf: ^3.11.3
   flutter:
     sdk: flutter
