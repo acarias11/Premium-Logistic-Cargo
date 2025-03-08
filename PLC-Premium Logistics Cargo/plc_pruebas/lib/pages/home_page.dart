@@ -5,10 +5,16 @@ import 'package:plc_pruebas/pages/paquetes_page.dart';
 import 'package:plc_pruebas/pages/warehouse_page.dart';
 import 'package:plc_pruebas/pages/cargas_page.dart';
 
+import '../widgets/sidebar.dart';
+import 'cargas_page.dart';
+import 'paquetes_page.dart';
+import 'warehouse_page.dart';
+
 class HomePage extends StatelessWidget {
   HomePage({super.key});
 
-  final SidebarXController _sidebarXController = SidebarXController(selectedIndex: 0);
+  final SidebarXController _sidebarXController =
+      SidebarXController(selectedIndex: 0);
 
   @override
   Widget build(BuildContext context) {
@@ -37,7 +43,8 @@ class HomePage extends StatelessWidget {
                   onPressed: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => const PaquetesPage()),
+                      MaterialPageRoute(
+                          builder: (context) => const PaquetesPage()),
                     );
                   },
                   child: const Text('Paquetes'),
@@ -63,7 +70,8 @@ class HomePage extends StatelessWidget {
                   onPressed: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => const WarehousePage()),
+                      MaterialPageRoute(
+                          builder: (context) => const WarehousePage()),
                     );
                   },
                   child: const Text('Warehouse'),
@@ -89,7 +97,8 @@ class HomePage extends StatelessWidget {
                   onPressed: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => const CargasPage()),
+                      MaterialPageRoute(
+                          builder: (context) => const CargasPage()),
                     );
                   },
                   child: const Text('Cargas'),

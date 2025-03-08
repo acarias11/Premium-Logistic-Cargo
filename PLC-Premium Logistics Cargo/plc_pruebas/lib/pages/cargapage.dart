@@ -4,6 +4,8 @@ import 'package:data_table_2/data_table_2.dart';
 import 'package:intl/intl.dart';
 import 'package:plc_pruebas/services/firestore.dart';
 
+import '../services/firestore.dart';
+
 class CargoPage extends StatelessWidget {
   final String cargaId;
 
@@ -28,7 +30,8 @@ class CargoPage extends StatelessWidget {
 
     // Fetch Estatus and Modalidad from Firestore
     QuerySnapshot estatusSnapshot = await firestoreService.getEstatus().first;
-    QuerySnapshot modalidadSnapshot = await firestoreService.getModalidades().first;
+    QuerySnapshot modalidadSnapshot =
+        await firestoreService.getModalidades().first;
 
     estatusItems = estatusSnapshot.docs.map((DocumentSnapshot document) {
       return DropdownMenuItem<String>(
@@ -57,7 +60,9 @@ class CargoPage extends StatelessWidget {
                   if (textEditingValue.text.isEmpty) {
                     return const Iterable<String>.empty();
                   }
-                  QuerySnapshot clientsSnapshot = await firestoreService.getClientes(textEditingValue.text).first;
+                  QuerySnapshot clientsSnapshot = await firestoreService
+                      .getClientes(textEditingValue.text)
+                      .first;
                   return clientsSnapshot.docs.map((DocumentSnapshot document) {
                     String nombre = document['Nombre'] ?? 'Desconocido';
                     String apellido = document['Apellido'] ?? '';
@@ -68,7 +73,10 @@ class CargoPage extends StatelessWidget {
                 onSelected: (String selection) {
                   selectedClientId = selection.split(' - ').last;
                 },
-                fieldViewBuilder: (BuildContext context, TextEditingController textEditingController, FocusNode focusNode, VoidCallback onFieldSubmitted) {
+                fieldViewBuilder: (BuildContext context,
+                    TextEditingController textEditingController,
+                    FocusNode focusNode,
+                    VoidCallback onFieldSubmitted) {
                   return TextField(
                     controller: textEditingController,
                     focusNode: focusNode,
@@ -115,7 +123,9 @@ class CargoPage extends StatelessWidget {
             ),
             TextButton(
               onPressed: () async {
-                if (selectedEstatus != null && selectedModalidad != null && selectedClientId != null) {
+                if (selectedEstatus != null &&
+                    selectedModalidad != null &&
+                    selectedClientId != null) {
                   await firestoreService.addWarehouse(
                     cargaId,
                     selectedClientId!,
@@ -129,7 +139,9 @@ class CargoPage extends StatelessWidget {
                 } else {
                   // Show error message if estatus, modalidad, or client is not selected
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Por favor seleccione Estatus, Modalidad y Cliente')),
+                    const SnackBar(
+                        content: Text(
+                            'Por favor seleccione Estatus, Modalidad y Cliente')),
                   );
                 }
               },
@@ -183,7 +195,8 @@ class CargoPage extends StatelessWidget {
 
 // Agregar funciones helper para obtener nombres por ID
   Future<String> getEstatusNameById(String id) async {
-    DocumentSnapshot snapshot = await FirebaseFirestore.instance.collection('Estatus').doc(id).get();
+    DocumentSnapshot snapshot =
+        await FirebaseFirestore.instance.collection('Estatus').doc(id).get();
     if (snapshot.exists) {
       return snapshot['Nombre'] ?? 'Desconocido';
     }
@@ -191,7 +204,8 @@ class CargoPage extends StatelessWidget {
   }
 
   Future<String> getModalidadNameById(String id) async {
-    DocumentSnapshot snapshot = await FirebaseFirestore.instance.collection('Modalidad').doc(id).get();
+    DocumentSnapshot snapshot =
+        await FirebaseFirestore.instance.collection('Modalidad').doc(id).get();
     if (snapshot.exists) {
       return snapshot['Nombre'] ?? 'Desconocido';
     }
@@ -199,7 +213,8 @@ class CargoPage extends StatelessWidget {
   }
 
   Future<String> getClientFullNameById(String id) async {
-    DocumentSnapshot snapshot = await FirebaseFirestore.instance.collection('Clientes').doc(id).get();
+    DocumentSnapshot snapshot =
+        await FirebaseFirestore.instance.collection('Clientes').doc(id).get();
     if (snapshot.exists) {
       String nombre = snapshot['Nombre'] ?? 'Desconocido';
       String apellido = snapshot['Apellido'] ?? '';
@@ -254,20 +269,25 @@ class CargoPage extends StatelessWidget {
                     DataColumn2(label: Text('Paquetes')),
                   ],
                   rows: snapshot.data!.docs.map((DocumentSnapshot document) {
-                    Map<String, dynamic>? data = document.data() as Map<String, dynamic>?;
+                    Map<String, dynamic>? data =
+                        document.data() as Map<String, dynamic>?;
 
-                    if (data == null) return const DataRow(cells: [DataCell(Text('Error al cargar datos'))]);
+                    if (data == null)
+                      return const DataRow(
+                          cells: [DataCell(Text('Error al cargar datos'))]);
 
                     // Se utilizan los campos "estatus_id" y "modalidad_id" para obtener los nombres
                     Future<String> estatusFuture = data['estatus_id'] != null
                         ? getEstatusNameById(data['estatus_id'])
                         : Future.value('Desconocido');
-                    
-                    Future<String> modalidadFuture = data['modalidad'] is DocumentReference
-                        ? getModalidadName(data['modalidad'] as DocumentReference)
-                        : (data['modalidad'] is String
-                            ? getModalidadNameById(data['modalidad'])
-                            : Future.value('Desconocido'));
+
+                    Future<String> modalidadFuture =
+                        data['modalidad'] is DocumentReference
+                            ? getModalidadName(
+                                data['modalidad'] as DocumentReference)
+                            : (data['modalidad'] is String
+                                ? getModalidadNameById(data['modalidad'])
+                                : Future.value('Desconocido'));
 
                     Future<String> clientFuture = data['cliente_id'] != null
                         ? getClientFullNameById(data['cliente_id'])
@@ -275,11 +295,13 @@ class CargoPage extends StatelessWidget {
 
                     return DataRow(
                       cells: [
-                        DataCell(Text(document['warehouse_id']?.toString() ?? '')),
+                        DataCell(
+                            Text(document['warehouse_id']?.toString() ?? '')),
                         DataCell(FutureBuilder<String>(
                           future: clientFuture,
                           builder: (context, snapshot) {
-                            if (snapshot.connectionState == ConnectionState.waiting) {
+                            if (snapshot.connectionState ==
+                                ConnectionState.waiting) {
                               return const Text('Cargando...');
                             }
                             return Text(snapshot.data ?? 'Desconocido');
@@ -289,7 +311,8 @@ class CargoPage extends StatelessWidget {
                         DataCell(FutureBuilder<String>(
                           future: estatusFuture,
                           builder: (context, snapshot) {
-                            if (snapshot.connectionState == ConnectionState.waiting) {
+                            if (snapshot.connectionState ==
+                                ConnectionState.waiting) {
                               return const Text('Cargando...');
                             }
                             return Text(snapshot.data ?? 'Desconocido');
@@ -299,7 +322,8 @@ class CargoPage extends StatelessWidget {
                         DataCell(FutureBuilder<String>(
                           future: modalidadFuture,
                           builder: (context, snapshot) {
-                            if (snapshot.connectionState == ConnectionState.waiting) {
+                            if (snapshot.connectionState ==
+                                ConnectionState.waiting) {
                               return const Text('Cargando...');
                             }
                             return Text(snapshot.data ?? 'Desconocido');
@@ -319,5 +343,3 @@ class CargoPage extends StatelessWidget {
     );
   }
 }
-
-

@@ -21,7 +21,8 @@ class _PaquetesPageState extends State<PaquetesPage> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirestoreService firestoreService = FirestoreService();
   final ControladorPaquetes controladorPaquete = ControladorPaquetes();
-  final SidebarXController _sidebarXController = SidebarXController(selectedIndex: 0);
+  final SidebarXController _sidebarXController =
+      SidebarXController(selectedIndex: 0);
   final TextEditingController _searchController = TextEditingController();
   String _searchText = '';
 
@@ -42,7 +43,8 @@ class _PaquetesPageState extends State<PaquetesPage> {
   Future<void> _loadModalidades() async {
     QuerySnapshot snapshot = await firestoreService.modalidad.get();
     setState(() {
-      modalidades = snapshot.docs.map((doc) => doc['Nombre'].toString()).toList();
+      modalidades =
+          snapshot.docs.map((doc) => doc['Nombre'].toString()).toList();
       modalidadEnvio = modalidades.isNotEmpty ? modalidades[0] : null;
     });
   }
@@ -60,25 +62,38 @@ class _PaquetesPageState extends State<PaquetesPage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Nuevo Paquete'),
+        title:
+            const Text('Nuevo Paquete', style: TextStyle(color: Colors.blue)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
             TextField(
               controller: controladorPaquete.traking_numberController,
-              decoration: const InputDecoration(labelText: 'Traking Number'),
+              decoration: const InputDecoration(
+                labelText: 'Traking Number',
+                labelStyle: TextStyle(color: Colors.orange),
+              ),
             ),
             TextField(
               controller: controladorPaquete.warehouseIDController,
-              decoration: const InputDecoration(labelText: 'Warehouse ID'),
+              decoration: const InputDecoration(
+                labelText: 'Warehouse ID',
+                labelStyle: TextStyle(color: Colors.orange),
+              ),
             ),
             TextField(
               controller: controladorPaquete.direccionController,
-              decoration: const InputDecoration(labelText: 'Dirección'),
+              decoration: const InputDecoration(
+                labelText: 'Dirección',
+                labelStyle: TextStyle(color: Colors.orange),
+              ),
             ),
             TextField(
               controller: controladorPaquete.pesoController,
-              decoration: const InputDecoration(labelText: 'Peso'),
+              decoration: const InputDecoration(
+                labelText: 'Peso',
+                labelStyle: TextStyle(color: Colors.orange),
+              ),
               keyboardType: TextInputType.number,
             ),
             DropdownButton<String>(
@@ -91,7 +106,8 @@ class _PaquetesPageState extends State<PaquetesPage> {
               items: tipos.map<DropdownMenuItem<String>>((String value) {
                 return DropdownMenuItem<String>(
                   value: value,
-                  child: Text(value),
+                  child:
+                      Text(value, style: const TextStyle(color: Colors.blue)),
                 );
               }).toList(),
             ),
@@ -105,7 +121,8 @@ class _PaquetesPageState extends State<PaquetesPage> {
               items: modalidades.map<DropdownMenuItem<String>>((String value) {
                 return DropdownMenuItem<String>(
                   value: value,
-                  child: Text(value),
+                  child:
+                      Text(value, style: const TextStyle(color: Colors.blue)),
                 );
               }).toList(),
             ),
@@ -116,20 +133,20 @@ class _PaquetesPageState extends State<PaquetesPage> {
             onPressed: () {
               Navigator.of(context).pop();
             },
-            child: const Text('Cancelar'),
+            child:
+                const Text('Cancelar', style: TextStyle(color: Colors.orange)),
           ),
           TextButton(
             onPressed: () {
-              // Validar que el peso sea un número mayor que 0
-              double peso = double.tryParse(controladorPaquete.pesoController.text) ?? -1;
+              double peso =
+                  double.tryParse(controladorPaquete.pesoController.text) ?? -1;
               if (peso <= 0) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('El peso debe ser un número mayor que 0')),
+                  const SnackBar(
+                      content: Text('El peso debe ser un número mayor que 0')),
                 );
                 return;
               }
-
-              //LLAMAR A LA FUNCIÓN DE FIRESTORE PARA AGREGAR EL PAQUETE
               firestoreService.addPaquete(
                 controladorPaquete.traking_numberController.text,
                 controladorPaquete.warehouseIDController.text,
@@ -139,7 +156,6 @@ class _PaquetesPageState extends State<PaquetesPage> {
                 modalidadEnvio!,
                 controladorPaquete.estatusIDController.text,
               );
-              // Limpiar los controladores después de agregar el paquete
               controladorPaquete.traking_numberController.clear();
               controladorPaquete.warehouseIDController.clear();
               controladorPaquete.direccionController.clear();
@@ -150,7 +166,7 @@ class _PaquetesPageState extends State<PaquetesPage> {
               });
               Navigator.of(context).pop();
             },
-            child: const Text('Agregar'),
+            child: const Text('Agregar', style: TextStyle(color: Colors.blue)),
           ),
         ],
       ),
@@ -188,10 +204,10 @@ class _PaquetesPageState extends State<PaquetesPage> {
               ),
               pw.SizedBox(height: 20),
               pw.Text(
-                'Durante el mes de $monthName, se llevó a cabo el registro y creación de paquetes dentro del sistema,' 
-                'con un total de ${paquetes.size} paquetes generados en este período. \n' 
-                'Este reporte detalla la cantidad de paquetes creados, permitiendo un mejor control y' 
-                'seguimiento de la logística y gestión operativa. La información recopilada servirá para' 
+                'Durante el mes de $monthName, se llevó a cabo el registro y creación de paquetes dentro del sistema,'
+                'con un total de ${paquetes.size} paquetes generados en este período. \n'
+                'Este reporte detalla la cantidad de paquetes creados, permitiendo un mejor control y'
+                'seguimiento de la logística y gestión operativa. La información recopilada servirá para'
                 'evaluar el rendimiento y la eficiencia en la administración de paquetes, así como para '
                 'identificar posibles mejoras en los procesos de almacenamiento y distribución.',
                 style: const pw.TextStyle(fontSize: 12),
@@ -287,14 +303,17 @@ class _PaquetesPageState extends State<PaquetesPage> {
             return const Center(child: Text('No hay paquetes disponibles'));
           }
 
-          var filteredDocs = snapshot.data!.docs.where((DocumentSnapshot document) {
-            Map<String, dynamic>? data = document.data() as Map<String, dynamic>?;
+          var filteredDocs =
+              snapshot.data!.docs.where((DocumentSnapshot document) {
+            Map<String, dynamic>? data =
+                document.data() as Map<String, dynamic>?;
             if (data == null) return false;
 
             String paqueteId = data['paquete_id']?.toString() ?? '';
             String warehouseId = data['WarehouseID']?.toString() ?? '';
 
-            return paqueteId.contains(_searchText) || warehouseId.contains(_searchText);
+            return paqueteId.contains(_searchText) ||
+                warehouseId.contains(_searchText);
           }).toList();
 
           return SingleChildScrollView(
@@ -302,7 +321,9 @@ class _PaquetesPageState extends State<PaquetesPage> {
             child: Padding(
               padding: const EdgeInsets.all(8.0),
               child: SizedBox(
-                width: MediaQuery.of(context).size.width, // Asegura que el DataTable2 tenga un ancho adecuado
+                width: MediaQuery.of(context)
+                    .size
+                    .width, // Asegura que el DataTable2 tenga un ancho adecuado
                 child: DataTable2(
                   columnSpacing: 12,
                   horizontalMargin: 12,
@@ -313,21 +334,27 @@ class _PaquetesPageState extends State<PaquetesPage> {
                     DataColumn(label: Text('Peso')),
                   ],
                   rows: filteredDocs.map((DocumentSnapshot document) {
-                    Map<String, dynamic>? data = document.data() as Map<String, dynamic>?;
+                    Map<String, dynamic>? data =
+                        document.data() as Map<String, dynamic>?;
 
-                    if (data == null) return const DataRow(cells: [DataCell(Text('Error al cargar datos'))]);
+                    if (data == null)
+                      return const DataRow(
+                          cells: [DataCell(Text('Error al cargar datos'))]);
 
                     String warehouseId = "Desconocido";
                     if (data['WarehouseID'] is DocumentReference) {
-                      warehouseId = (data['WarehouseID'] as DocumentReference).id;
+                      warehouseId =
+                          (data['WarehouseID'] as DocumentReference).id;
                     } else if (data['WarehouseID'] is String) {
                       warehouseId = data['WarehouseID'];
                     }
 
                     return DataRow(cells: [
-                      DataCell(Text(data['paquete_id']?.toString() ?? 'Sin ID')),
+                      DataCell(
+                          Text(data['paquete_id']?.toString() ?? 'Sin ID')),
                       DataCell(Text(warehouseId)),
-                      DataCell(Text('${data['Peso']?.toString() ?? 'Sin peso'} kg')),
+                      DataCell(
+                          Text('${data['Peso']?.toString() ?? 'Sin peso'} kg')),
                     ]);
                   }).toList(),
                 ),

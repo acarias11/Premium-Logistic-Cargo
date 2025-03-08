@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:sidebarx/sidebarx.dart';
 import 'package:plc_pruebas/widgets/sidebar.dart';
 
+import '../widgets/sidebar.dart';
+
 class QuejasPage extends StatefulWidget {
   const QuejasPage({super.key});
 
@@ -10,7 +12,8 @@ class QuejasPage extends StatefulWidget {
 }
 
 class _QuejasPageState extends State<QuejasPage> {
-  final SidebarXController _sidebarXController = SidebarXController(selectedIndex: 0);
+  final SidebarXController _sidebarXController =
+      SidebarXController(selectedIndex: 0);
   @override
   Widget build(BuildContext context) {
     return Scaffold(

@@ -6,6 +6,9 @@ import 'package:plc_pruebas/controllers/controladores.dart';
 import 'package:plc_pruebas/widgets/sidebar.dart';
 import 'package:sidebarx/sidebarx.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import '../controllers/controladores.dart';
+import '../services/firestore.dart';
+import '../widgets/sidebar.dart';
 
 class ClientesPage extends StatefulWidget {
   const ClientesPage({super.key});
@@ -17,17 +20,16 @@ class _ClientesPageState extends State<ClientesPage> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirestoreService firestoreService = FirestoreService();
   final ControladorClientes controladorCliente = ControladorClientes();
-  final SidebarXController _sidebarXController = SidebarXController(selectedIndex: 0);
+  final SidebarXController _sidebarXController =
+      SidebarXController(selectedIndex: 0);
   final TextEditingController _searchController = TextEditingController();
   String _searchText = '';
 
   @override
   void initState() {
     super.initState();
-    initializeDateFormatting('es', null);
   }
 
-  //box para agregar un nuevo cliente
   void nuevoCliente() {
     showDialog(
       context: context,
@@ -37,54 +39,42 @@ class _ClientesPageState extends State<ClientesPage> {
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
             TextField(
-              controller: controladorCliente.nombreController,
-              decoration: const InputDecoration(labelText: 'Nombre'),
-            ),
+                controller: controladorCliente.nombreController,
+                decoration: const InputDecoration(labelText: 'Nombre')),
             TextField(
-              controller: controladorCliente.apellidoController,
-              decoration: const InputDecoration(labelText: 'Apellido'),
-            ),
+                controller: controladorCliente.apellidoController,
+                decoration: const InputDecoration(labelText: 'Apellido')),
             TextField(
-              controller: controladorCliente.emailController,
-              decoration: const InputDecoration(labelText: 'Email'),
-            ),
+                controller: controladorCliente.emailController,
+                decoration: const InputDecoration(labelText: 'Email')),
             TextField(
-              controller: controladorCliente.numero_identidadController,
-              decoration: const InputDecoration(labelText: 'Número de Identidad'),
-            ),
+                controller: controladorCliente.numero_identidadController,
+                decoration:
+                    const InputDecoration(labelText: 'Número de Identidad')),
             TextField(
-              controller: controladorCliente.telefonoController,
-              decoration: const InputDecoration(labelText: 'Teléfono'),
-            ),
+                controller: controladorCliente.telefonoController,
+                decoration: const InputDecoration(labelText: 'Teléfono')),
             TextField(
-              controller: controladorCliente.direccionController,
-              decoration: const InputDecoration(labelText: 'Dirección'),
-            ),
+                controller: controladorCliente.direccionController,
+                decoration: const InputDecoration(labelText: 'Dirección')),
             TextField(
-              controller: controladorCliente.ciudadController,
-              decoration: const InputDecoration(labelText: 'Ciudad'),
-            ),
+                controller: controladorCliente.ciudadController,
+                decoration: const InputDecoration(labelText: 'Ciudad')),
             TextField(
-              controller: controladorCliente.departamentoController,
-              decoration: const InputDecoration(labelText: 'Departamento'),
-            ),
+                controller: controladorCliente.departamentoController,
+                decoration: const InputDecoration(labelText: 'Departamento')),
             TextField(
-              decoration: const InputDecoration(labelText: 'País'),
-              enabled: false,
-              controller: TextEditingController(text: 'Honduras'),
-            ),
+                decoration: const InputDecoration(labelText: 'País'),
+                enabled: false,
+                controller: TextEditingController(text: 'Honduras')),
           ],
         ),
         actions: <Widget>[
           TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-            child: const Text('Cancelar'),
-          ),
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancelar')),
           TextButton(
             onPressed: () {
-              // Validar que los campos no estén vacíos
               if (controladorCliente.nombreController.text.isEmpty ||
                   controladorCliente.apellidoController.text.isEmpty ||
                   controladorCliente.emailController.text.isEmpty ||
@@ -93,13 +83,10 @@ class _ClientesPageState extends State<ClientesPage> {
                   controladorCliente.direccionController.text.isEmpty ||
                   controladorCliente.ciudadController.text.isEmpty ||
                   controladorCliente.departamentoController.text.isEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Todos los campos son obligatorios')),
-                );
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                    content: Text('Todos los campos son obligatorios')));
                 return;
               }
-
-              //LLAMAR A LA FUNCIÓN DE FIRESTORE PARA AGREGAR EL CLIENTE
               firestoreService.addCliente(
                 controladorCliente.nombreController.text,
                 controladorCliente.apellidoController.text,
@@ -111,7 +98,6 @@ class _ClientesPageState extends State<ClientesPage> {
                 controladorCliente.departamentoController.text,
                 'Honduras',
               );
-              // Limpiar los controladores después de agregar el cliente
               controladorCliente.nombreController.clear();
               controladorCliente.apellidoController.clear();
               controladorCliente.emailController.clear();
@@ -136,99 +122,139 @@ class _ClientesPageState extends State<ClientesPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Clientes'),
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(48.0),
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: TextField(
-              controller: _searchController,
-              decoration: const InputDecoration(
-                hintText: 'Buscar por nombre o apellido',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.search),
-              ),
-              onChanged: (value) {
-                setState(() {
-                  _searchText = value.toUpperCase();
-                });
-              },
-            ),
-          ),
-        ),
-      ),
       drawer: Sidebar(selectedIndex: 3, controller: _sidebarXController),
-      floatingActionButton: FloatingActionButton(
-        onPressed: nuevoCliente,
-        child: const Icon(Icons.add),
-      ),
-      body: StreamBuilder<QuerySnapshot>(
-        stream: getClientes(),
-        builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-          if (snapshot.hasError) {
-            return const Center(child: Text('Error al obtener los clientes'));
-          }
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-            return const Center(child: Text('No hay clientes disponibles'));
-          }
-
-          var filteredDocs = snapshot.data!.docs.where((DocumentSnapshot document) {
-            Map<String, dynamic>? data = document.data() as Map<String, dynamic>?;
-            if (data == null) return false;
-
-            String nombre = data['nombre']?.toString() ?? '';
-            String apellido = data['apellido']?.toString() ?? '';
-
-            return nombre.toUpperCase().contains(_searchText) || apellido.toUpperCase().contains(_searchText);
-          }).toList();
-
-          return SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: SizedBox(
-                width: MediaQuery.of(context).size.width,
-                child: DataTable2(
-                  columnSpacing: 12,
-                  horizontalMargin: 12,
-                  minWidth: 600,
-                  columns: const [
-                    DataColumn(label: Text('Nombre')),
-                    DataColumn(label: Text('Apellido')),
-                    DataColumn(label: Text('Email')),
-                    DataColumn(label: Text('Número de Identidad')),
-                    DataColumn(label: Text('Teléfono')),
-                    DataColumn(label: Text('Dirección')),
-                    DataColumn(label: Text('Ciudad')),
-                    DataColumn(label: Text('Departamento')),
-                    DataColumn(label: Text('País')),
-                  ],
-                  rows: filteredDocs.map((DocumentSnapshot document) {
-                    Map<String, dynamic>? data = document.data() as Map<String, dynamic>?;
-
-                    if (data == null) return const DataRow(cells: [DataCell(Text('Error al cargar datos'))]);
-
-                    return DataRow(cells: [
-                      DataCell(Text(data['nombre']?.toString() ?? 'Sin Nombre')),
-                      DataCell(Text(data['apellido']?.toString() ?? 'Sin Apellido')),
-                      DataCell(Text(data['email']?.toString() ?? 'Sin Email')),
-                      DataCell(Text(data['numero_identidad']?.toString() ?? 'Sin Número de Identidad')),
-                      DataCell(Text(data['telefono']?.toString() ?? 'Sin Teléfono')),
-                      DataCell(Text(data['direccion']?.toString() ?? 'Sin Dirección')),
-                      DataCell(Text(data['ciudad']?.toString() ?? 'Sin Ciudad')),
-                      DataCell(Text(data['departamento']?.toString() ?? 'Sin Departamento')),
-                      DataCell(Text(data['pais']?.toString() ?? 'Honduras')),
-                    ]);
-                  }).toList(),
+      body: Column(
+        children: [
+          AppBar(
+            title:
+                const Text('Clientes', style: TextStyle(color: Colors.white)),
+            backgroundColor: Colors.orange.shade700,
+            bottom: PreferredSize(
+              preferredSize: const Size.fromHeight(48.0),
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: TextField(
+                  controller: _searchController,
+                  decoration: const InputDecoration(
+                    hintText: 'Buscar por nombre o apellido',
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.search),
+                  ),
+                  onChanged: (value) {
+                    setState(() {
+                      _searchText = value.toUpperCase();
+                    });
+                  },
                 ),
               ),
             ),
-          );
-        },
+          ),
+          Expanded(
+            child: StreamBuilder<QuerySnapshot>(
+              stream: getClientes(),
+              builder: (BuildContext context,
+                  AsyncSnapshot<QuerySnapshot> snapshot) {
+                if (snapshot.hasError) {
+                  return const Center(
+                      child: Text('Error al obtener los clientes'));
+                }
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                  return const Center(
+                      child: Text('No hay clientes disponibles'));
+                }
+                var filteredDocs =
+                    snapshot.data!.docs.where((DocumentSnapshot document) {
+                  Map<String, dynamic>? data =
+                      document.data() as Map<String, dynamic>?;
+                  if (data == null) return false;
+                  String nombre = data['nombre']?.toString() ?? '';
+                  String apellido = data['apellido']?.toString() ?? '';
+                  return nombre.toUpperCase().contains(_searchText) ||
+                      apellido.toUpperCase().contains(_searchText);
+                }).toList();
+                return SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: SizedBox(
+                      width: MediaQuery.of(context).size.width,
+                      child: DataTable2(
+                        columnSpacing: 12,
+                        horizontalMargin: 12,
+                        minWidth: 600,
+                        headingRowColor:
+                            WidgetStateProperty.all(Colors.blue.shade100),
+                        dataRowColor: WidgetStateProperty.resolveWith(
+                            (states) => states.contains(WidgetState.selected)
+                                ? Colors.blue.shade50
+                                : Colors.white),
+                        columns: const [
+                          DataColumn(
+                              label: Text('Nombre',
+                                  style:
+                                      TextStyle(fontWeight: FontWeight.bold))),
+                          DataColumn(
+                              label: Text('Apellido',
+                                  style:
+                                      TextStyle(fontWeight: FontWeight.bold))),
+                          DataColumn(
+                              label: Text('Email',
+                                  style:
+                                      TextStyle(fontWeight: FontWeight.bold))),
+                          DataColumn(
+                              label: Text('Número de Identidad',
+                                  style:
+                                      TextStyle(fontWeight: FontWeight.bold))),
+                          DataColumn(
+                              label: Text('Teléfono',
+                                  style:
+                                      TextStyle(fontWeight: FontWeight.bold))),
+                          DataColumn(
+                              label: Text('Dirección',
+                                  style:
+                                      TextStyle(fontWeight: FontWeight.bold))),
+                          DataColumn(
+                              label: Text('Ciudad',
+                                  style:
+                                      TextStyle(fontWeight: FontWeight.bold))),
+                          DataColumn(
+                              label: Text('Departamento',
+                                  style:
+                                      TextStyle(fontWeight: FontWeight.bold))),
+                          DataColumn(
+                              label: Text('País',
+                                  style:
+                                      TextStyle(fontWeight: FontWeight.bold))),
+                        ],
+                        rows: filteredDocs.map((DocumentSnapshot document) {
+                          Map<String, dynamic>? data =
+                              document.data() as Map<String, dynamic>?;
+                          return DataRow(cells: [
+                            DataCell(Text(data?['nombre'] ?? 'Sin Nombre')),
+                            DataCell(Text(data?['apellido'] ?? 'Sin Apellido')),
+                            DataCell(Text(data?['email'] ?? 'Sin Email')),
+                            DataCell(Text(data?['numero_identidad'] ??
+                                'Sin Número de Identidad')),
+                            DataCell(Text(data?['telefono'] ?? 'Sin Teléfono')),
+                            DataCell(
+                                Text(data?['direccion'] ?? 'Sin Dirección')),
+                            DataCell(Text(data?['ciudad'] ?? 'Sin Ciudad')),
+                            DataCell(Text(
+                                data?['departamento'] ?? 'Sin Departamento')),
+                            DataCell(Text(data?['pais'] ?? 'Honduras')),
+                          ]);
+                        }).toList(),
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -7,19 +7,21 @@ import 'package:plc_pruebas/pages/warehouse_page.dart';
 import 'package:flutter/material.dart';
 import 'package:sidebarx/sidebarx.dart';
 import 'package:plc_pruebas/pages/cargas_page.dart';
+
+import '../pages/cargas_page.dart';
+import '../pages/home_page.dart';
+import '../pages/paquetes_page.dart';
+import '../pages/quejas_page.dart';
+import '../pages/warehouse_page.dart';
 //rehacerlo integrando la dependencia sidebarx
 
 class Sidebar extends StatelessWidget {
   final int selectedIndex;
   final SidebarXController controller;
-  
-  const Sidebar({
-    super.key, 
-    required this.selectedIndex, 
-    required this.controller
-    });   
-  
-  
+
+  const Sidebar(
+      {super.key, required this.selectedIndex, required this.controller});
+
   @override
   Widget build(BuildContext context) {
     return SizedBox(
@@ -38,56 +40,54 @@ class Sidebar extends StatelessWidget {
           hoverTextStyle: const TextStyle(
             color: Colors.white,
             fontWeight: FontWeight.w500,
+          ),
+          itemTextPadding: const EdgeInsets.only(left: 30),
+          selectedItemTextPadding: const EdgeInsets.only(left: 30),
+          itemDecoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: const Color(0xFF2E2E48)),
+          ),
+          selectedItemDecoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(
+              color: const Color(0xFF5F5FA7).withOpacity(0.6).withOpacity(0.37),
             ),
-             itemTextPadding: const EdgeInsets.only(left: 30),
-        selectedItemTextPadding: const EdgeInsets.only(left: 30),
-        itemDecoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: const Color(0xFF2E2E48)),
-        ),
-        selectedItemDecoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(
-            color: const Color(0xFF5F5FA7).withOpacity(0.6).withOpacity(0.37),
+            gradient: const LinearGradient(
+              colors: [Color(0xFF3E3E61), Color(0xFF2E2E48)],
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.28),
+                blurRadius: 30,
+              )
+            ],
           ),
-          gradient: const LinearGradient(
-            colors: [Color(0xFF3E3E61), Color(0xFF2E2E48)],
+          iconTheme: IconThemeData(
+            color: Colors.white.withOpacity(0.7),
+            size: 20,
           ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.28),
-              blurRadius: 30,
-            )
-          ],
+          selectedIconTheme: const IconThemeData(
+            color: Colors.white,
+            size: 20,
+          ),
         ),
-        iconTheme: IconThemeData(
-          color: Colors.white.withOpacity(0.7),
-          size: 20,
-        ),
-        selectedIconTheme: const IconThemeData(
-          color: Colors.white,
-          size: 20,
-        ),
-      ),
-      extendedTheme: SidebarXTheme(
-        margin: const EdgeInsets.symmetric(horizontal: 0),
-        width: 950,
-        decoration: BoxDecoration(
-          color: const Color(0xFF2E2E48),
-          borderRadius: BorderRadius.circular(20),
-
-        )
-      ),
+        extendedTheme: SidebarXTheme(
+            margin: const EdgeInsets.symmetric(horizontal: 0),
+            width: 950,
+            decoration: BoxDecoration(
+              color: const Color(0xFF2E2E48),
+              borderRadius: BorderRadius.circular(20),
+            )),
         //Aqui se agregan los items del sidebar
         items: [
-          SidebarXItem( 
+          SidebarXItem(
             icon: Icons.home,
             label: 'Home',
             onTap: () {
               debugPrint('Home');
               Navigator.pushReplacement(
                 context,
-                MaterialPageRoute(builder: (context) =>HomePage()),
+                MaterialPageRoute(builder: (context) => HomePage()),
               );
             },
           ),
@@ -102,7 +102,6 @@ class Sidebar extends StatelessWidget {
               );
             },
           ),
-
           SidebarXItem(
             icon: Icons.store,
             label: 'Warehouse',
@@ -130,10 +129,10 @@ class Sidebar extends StatelessWidget {
             label: 'Quejas',
             onTap: () {
               debugPrint('Quejas');
-               Navigator.pushReplacement(
-                 context,
-                 MaterialPageRoute(builder: (context) => const QuejasPage()),
-               );
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => const QuejasPage()),
+              );
             },
           ),
         ],

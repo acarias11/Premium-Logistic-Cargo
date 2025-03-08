@@ -4,9 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:plc_pruebas/widgets/sidebar.dart';
 import 'package:sidebarx/sidebarx.dart';
 
+import '../widgets/sidebar.dart';
+
 class PruebaSidebar extends StatelessWidget {
 //agregar el controlador del sidebar
-  final SidebarXController _sidebarXController = SidebarXController(selectedIndex: 0);
+  final SidebarXController _sidebarXController =
+      SidebarXController(selectedIndex: 0);
 
   PruebaSidebar({super.key});
 
