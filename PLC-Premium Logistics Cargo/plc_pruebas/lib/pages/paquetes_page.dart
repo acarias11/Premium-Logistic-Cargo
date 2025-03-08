@@ -183,7 +183,7 @@ class _PaquetesPageState extends State<PaquetesPage> {
                     child: pw.Center(child: pw.Text('Logo')),
                   ),
                   pw.SizedBox(width: 10),
-                  pw.Text('PLC', style: pw.TextStyle(fontSize: 20)),
+                  pw.Text('PLC', style: const pw.TextStyle(fontSize: 20)),
                 ],
               ),
               pw.SizedBox(height: 20),

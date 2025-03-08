@@ -20,112 +20,114 @@ class HomePage extends StatelessWidget {
         selectedIndex: 0,
         controller: _sidebarXController,
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8.0),
+      body: SingleChildScrollView(
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8.0),
+                    ),
+                    minimumSize: const Size(150, 150), // Tamaño cuadrado
                   ),
-                  minimumSize: const Size(150, 150), // Tamaño cuadrado
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const PaquetesPage()),
+                    );
+                  },
+                  child: const Text('Paquetes'),
+                  // child: Column(
+                  //   mainAxisAlignment: MainAxisAlignment.center,
+                  //   children: [
+                  //     Image.asset('assets/paquetes.png', height: 80), // Imagen
+                  //     const SizedBox(height: 8),
+                  //     const Text('Paquetes'),
+                  //   ],
+                  // ),
                 ),
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const PaquetesPage()),
-                  );
-                },
-                child: const Text('Paquetes'),
-                // child: Column(
-                //   mainAxisAlignment: MainAxisAlignment.center,
-                //   children: [
-                //     Image.asset('assets/paquetes.png', height: 80), // Imagen
-                //     const SizedBox(height: 8),
-                //     const Text('Paquetes'),
-                //   ],
-                // ),
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8.0),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8.0),
+                    ),
+                    minimumSize: const Size(150, 150), // Tamaño cuadrado
                   ),
-                  minimumSize: const Size(150, 150), // Tamaño cuadrado
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const WarehousePage()),
+                    );
+                  },
+                  child: const Text('Warehouse'),
+                  // child: Column(
+                  //   mainAxisAlignment: MainAxisAlignment.center,
+                  //   children: [
+                  //     Image.asset('assets/warehouse.png', height: 80), // Imagen
+                  //     const SizedBox(height: 8),
+                  //     const Text('Warehouse'),
+                  //   ],
+                  // ),
                 ),
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const WarehousePage()),
-                  );
-                },
-                child: const Text('Warehouse'),
-                // child: Column(
-                //   mainAxisAlignment: MainAxisAlignment.center,
-                //   children: [
-                //     Image.asset('assets/warehouse.png', height: 80), // Imagen
-                //     const SizedBox(height: 8),
-                //     const Text('Warehouse'),
-                //   ],
-                // ),
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8.0),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8.0),
+                    ),
+                    minimumSize: const Size(150, 150), // Tamaño cuadrado
                   ),
-                  minimumSize: const Size(150, 150), // Tamaño cuadrado
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const CargasPage()),
+                    );
+                  },
+                  child: const Text('Cargas'),
+                  // child: Column(
+                  //   mainAxisAlignment: MainAxisAlignment.center,
+                  //   children: [
+                  //     Image.asset('assets/cargas.png', height: 80), // Imagen
+                  //     const SizedBox(height: 8),
+                  //     const Text('Cargas'),
+                  //   ],
+                  // ),
                 ),
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const CargasPage()),
-                  );
-                },
-                child: const Text('Cargas'),
-                // child: Column(
-                //   mainAxisAlignment: MainAxisAlignment.center,
-                //   children: [
-                //     Image.asset('assets/cargas.png', height: 80), // Imagen
-                //     const SizedBox(height: 8),
-                //     const Text('Cargas'),
-                //   ],
-                // ),
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8.0),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8.0),
+                    ),
+                    minimumSize: const Size(150, 150), // Tamaño cuadrado
                   ),
-                  minimumSize: const Size(150, 150), // Tamaño cuadrado
+                  onPressed: () {
+                    // Funcionalidad vacía para Cliente
+                  },
+                  child: const Text('Cliente'),
+                  // child: Column(
+                  //   mainAxisAlignment: MainAxisAlignment.center,
+                  //   children: [
+                  //     Image.asset('assets/cliente.png', height: 80), // Imagen
+                  //     const SizedBox(height: 8),
+                  //     const Text('Cliente'),
+                  //   ],
+                  // ),
                 ),
-                onPressed: () {
-                  // Funcionalidad vacía para Cliente
-                },
-                child: const Text('Cliente'),
-                // child: Column(
-                //   mainAxisAlignment: MainAxisAlignment.center,
-                //   children: [
-                //     Image.asset('assets/cliente.png', height: 80), // Imagen
-                //     const SizedBox(height: 8),
-                //     const Text('Cliente'),
-                //   ],
-                // ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

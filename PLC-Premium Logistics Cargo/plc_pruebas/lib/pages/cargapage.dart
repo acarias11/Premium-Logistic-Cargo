@@ -7,7 +7,7 @@ import 'package:plc_pruebas/services/firestore.dart';
 class CargoPage extends StatelessWidget {
   final String cargaId;
 
-  CargoPage({required this.cargaId});
+  CargoPage({super.key, required this.cargaId});
 
   final FirestoreService firestoreService = FirestoreService();
 
@@ -21,6 +21,7 @@ class CargoPage extends StatelessWidget {
     TextEditingController piezasController = TextEditingController();
     String? selectedEstatus;
     String? selectedModalidad;
+    String? selectedClientId;
 
     List<DropdownMenuItem<String>> estatusItems = [];
     List<DropdownMenuItem<String>> modalidadItems = [];
@@ -51,6 +52,30 @@ class CargoPage extends StatelessWidget {
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+              Autocomplete<String>(
+                optionsBuilder: (TextEditingValue textEditingValue) async {
+                  if (textEditingValue.text.isEmpty) {
+                    return const Iterable<String>.empty();
+                  }
+                  QuerySnapshot clientsSnapshot = await firestoreService.getClientes(textEditingValue.text).first;
+                  return clientsSnapshot.docs.map((DocumentSnapshot document) {
+                    String nombre = document['Nombre'] ?? 'Desconocido';
+                    String apellido = document['Apellido'] ?? '';
+                    String numeroIdentidad = document['NumeroIdentidad'] ?? '';
+                    return '$nombre $apellido ($numeroIdentidad) - ${document.id}';
+                  });
+                },
+                onSelected: (String selection) {
+                  selectedClientId = selection.split(' - ').last;
+                },
+                fieldViewBuilder: (BuildContext context, TextEditingController textEditingController, FocusNode focusNode, VoidCallback onFieldSubmitted) {
+                  return TextField(
+                    controller: textEditingController,
+                    focusNode: focusNode,
+                    decoration: const InputDecoration(labelText: 'Cliente'),
+                  );
+                },
+              ),
               TextField(
                 controller: direccionController,
                 decoration: const InputDecoration(labelText: 'Direccion'),
@@ -90,10 +115,10 @@ class CargoPage extends StatelessWidget {
             ),
             TextButton(
               onPressed: () async {
-                if (selectedEstatus != null && selectedModalidad != null) {
+                if (selectedEstatus != null && selectedModalidad != null && selectedClientId != null) {
                   await firestoreService.addWarehouse(
                     cargaId,
-                    'CLR1',
+                    selectedClientId!,
                     direccionController.text,
                     selectedEstatus!,
                     selectedModalidad!,
@@ -102,9 +127,9 @@ class CargoPage extends StatelessWidget {
                   );
                   Navigator.of(context).pop();
                 } else {
-                  // Show error message if estatus or modalidad is not selected
+                  // Show error message if estatus, modalidad, or client is not selected
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Por favor seleccione Estatus y Modalidad')),
+                    const SnackBar(content: Text('Por favor seleccione Estatus, Modalidad y Cliente')),
                   );
                 }
               },
@@ -173,6 +198,16 @@ class CargoPage extends StatelessWidget {
     return 'Desconocido';
   }
 
+  Future<String> getClientFullNameById(String id) async {
+    DocumentSnapshot snapshot = await FirebaseFirestore.instance.collection('Clientes').doc(id).get();
+    if (snapshot.exists) {
+      String nombre = snapshot['Nombre'] ?? 'Desconocido';
+      String apellido = snapshot['Apellido'] ?? '';
+      return '$nombre $apellido'.trim();
+    }
+    return 'Desconocido';
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -234,9 +269,9 @@ class CargoPage extends StatelessWidget {
                             ? getModalidadNameById(data['modalidad'])
                             : Future.value('Desconocido'));
 
-                    Future<String> clientFuture = data['cliente_id'] is DocumentReference
-                        ? getClientFullName(data['cliente_id'] as DocumentReference)
-                        : Future.value(data['cliente_id'] ?? 'Desconocido');
+                    Future<String> clientFuture = data['cliente_id'] != null
+                        ? getClientFullNameById(data['cliente_id'])
+                        : Future.value('Desconocido');
 
                     return DataRow(
                       cells: [

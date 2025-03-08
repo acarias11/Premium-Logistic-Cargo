@@ -19,7 +19,7 @@ class ControladorClientes {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController telefonoController = TextEditingController();
   final TextEditingController direccionController = TextEditingController();
-  final TextEditingController cuidadController = TextEditingController();
+  final TextEditingController ciudadController = TextEditingController();
   final TextEditingController departamentoController = TextEditingController();
   final TextEditingController paisController = TextEditingController();
   final TextEditingController fechaController = TextEditingController();

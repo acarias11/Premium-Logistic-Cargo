@@ -21,23 +21,6 @@ class _WarehousePageState extends State<WarehousePage> {
     return firestoreService.getWarehouses();
   }
 
-  Future<String> getDocumentName(DocumentReference ref) async {
-    DocumentSnapshot snapshot = await ref.get();
-    if (snapshot.exists) {
-      return snapshot['Nombre'] ?? 'Desconocido';
-    }
-    return 'Desconocido';
-  }
-
-  Future<String> getClientFullName(DocumentReference ref) async {
-    DocumentSnapshot snapshot = await ref.get();
-    if (snapshot.exists) {
-      String nombre = snapshot['Nombre'] ?? 'Desconocido';
-      String apellido = snapshot['Apellido'] ?? '';
-      return '$nombre $apellido'.trim();
-    }
-    return 'Desconocido';
-  }
 
   String formatDate(Timestamp? timestamp) {
     if (timestamp == null) {
@@ -45,6 +28,34 @@ class _WarehousePageState extends State<WarehousePage> {
     }
     DateTime date = timestamp.toDate();
     return DateFormat('dd/MM/yyyy').format(date);
+  }
+
+  Future<String> getEstatusNameById(String id) async {
+    DocumentSnapshot snapshot = await FirebaseFirestore.instance.collection('Estatus').doc(id).get();
+    if (snapshot.exists) {
+      return snapshot['Nombre'] ?? 'Desconocido';
+    }
+    return 'Desconocido';
+  }
+
+  Future<String> getModalidadNameById(String id) async {
+    DocumentSnapshot snapshot = await FirebaseFirestore.instance.collection('Modalidad').doc(id).get();
+    if (snapshot.exists) {
+      return snapshot['Nombre'] ?? 'Desconocido';
+    }
+    return 'Desconocido';
+  }
+
+  Future<String> getClientFullName(String clientId) async {
+    DocumentSnapshot snapshot = await FirebaseFirestore.instance.collection('Clientes').doc(clientId).get();
+    if (snapshot.exists && snapshot.data() != null) {
+      Map<String, dynamic> clientData = snapshot.data() as Map<String, dynamic>;
+      String nombre = clientData['nombre'] ?? clientData['Nombre'] ?? '';
+      String apellido = clientData['apellido'] ?? clientData['Apellido'] ?? '';
+      String fullName = '$nombre $apellido'.trim();
+      return fullName.isEmpty ? 'Desconocido' : fullName;
+    }
+    return 'Desconocido';
   }
 
   @override
@@ -72,7 +83,7 @@ class _WarehousePageState extends State<WarehousePage> {
             child: Padding(
               padding: const EdgeInsets.all(8.0),
               child: SizedBox(
-                width: MediaQuery.of(context).size.width, // Asegura que el DataTable2 tenga un ancho adecuado
+                width: MediaQuery.of(context).size.width,
                 child: DataTable2(
                   columnSpacing: 12,
                   horizontalMargin: 12,
@@ -93,39 +104,46 @@ class _WarehousePageState extends State<WarehousePage> {
 
                     if (data == null) return const DataRow(cells: [DataCell(Text('Error al cargar datos'))]);
 
-                    Future<String> estatusFuture = data['EstatusID'] is DocumentReference
-                        ? getDocumentName(data['EstatusID'] as DocumentReference)
-                        : Future.value(data['EstatusID'] ?? 'Desconocido');
+                    Future<String> estatusFuture = data['estatus_id'] != null
+                        ? getEstatusNameById(data['estatus_id'])
+                        : Future.value('Desconocido');
+                    
+                    Future<String> modalidadFuture = data['modalidad'] is DocumentReference
+                        ? getModalidadNameById((data['modalidad'] as DocumentReference).id)
+                        : (data['modalidad'] is String
+                            ? getModalidadNameById(data['modalidad'])
+                            : Future.value('Desconocido'));
 
-                    Future<String> modalidadFuture = data['Modalidad'] is DocumentReference
-                        ? getDocumentName(data['Modalidad'] as DocumentReference)
-                        : Future.value(data['Modalidad'] ?? 'Desconocido');
-
-                    Future<String> clientFuture = data['ClienteID'] is DocumentReference
-                        ? getClientFullName(data['ClienteID'] as DocumentReference)
-                        : Future.value(data['ClienteID'] ?? 'Desconocido');
+                    Future<String> clientFuture = data['cliente_id'] != null
+                        ? (data['cliente_id'] is DocumentReference
+                            ? getClientFullName((data['cliente_id'] as DocumentReference).id)
+                            : getClientFullName(data['cliente_id']))
+                        : Future.value('Desconocido');
 
                     String cargaId = "Desconocido";
                     if (data['CargaID'] is DocumentReference) {
                       cargaId = (data['CargaID'] as DocumentReference).id;
-                    } else if (data['CargaID'] is String) {
-                      cargaId = data['CargaID'];
+                    } else if (data['carga_id'] is String) {
+                      cargaId = data['carga_id'];
                     }
 
                     return DataRow(
                       cells: [
-                        DataCell(Text(document.id)),
+                        DataCell(Text(document['warehouse_id'])),
                         DataCell(Text(cargaId)),
                         DataCell(FutureBuilder<String>(
                           future: clientFuture,
                           builder: (context, snapshot) {
-                            if (snapshot.connectionState == ConnectionState.waiting) {
+                            if (snapshot.connectionState != ConnectionState.done) {
                               return const Text('Cargando...');
                             }
-                            return Text(snapshot.data ?? 'Desconocido');
+                            if (snapshot.hasError || !snapshot.hasData || snapshot.data == null) {
+                              return const Text('Desconocido');
+                            }
+                            return Text(snapshot.data!);
                           },
                         )),
-                        DataCell(Text(data['Direccion'] ?? 'Desconocido')),
+                        DataCell(Text(data['direccion'] ?? 'Desconocido')),
                         DataCell(FutureBuilder<String>(
                           future: estatusFuture,
                           builder: (context, snapshot) {
@@ -135,7 +153,7 @@ class _WarehousePageState extends State<WarehousePage> {
                             return Text(snapshot.data ?? 'Desconocido');
                           },
                         )),
-                        DataCell(Text(formatDate(data['Fecha']))),
+                        DataCell(Text(formatDate(data['fecha']))),
                         DataCell(FutureBuilder<String>(
                           future: modalidadFuture,
                           builder: (context, snapshot) {
@@ -145,8 +163,8 @@ class _WarehousePageState extends State<WarehousePage> {
                             return Text(snapshot.data ?? 'Desconocido');
                           },
                         )),
-                        DataCell(Text(data['PesoTotal'].toString())),
-                        DataCell(Text(data['Piezas'].toString())),
+                        DataCell(Text(data['peso_total'].toString())),
+                        DataCell(Text(data['piezas'].toString())),
                       ],
                     );
                   }).toList(),

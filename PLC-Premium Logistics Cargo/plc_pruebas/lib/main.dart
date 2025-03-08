@@ -2,6 +2,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:plc_pruebas/firebase_options.dart';
 import 'package:plc_pruebas/pages/cargas_page.dart';
+import 'package:plc_pruebas/pages/clientes_page.dart';
 import 'package:plc_pruebas/pages/paquetes_page.dart';
 import 'package:plc_pruebas/pages/quejas_page.dart';
 import 'package:plc_pruebas/pages/warehouse_page.dart';
@@ -30,7 +31,7 @@ class MyApp extends StatelessWidget {
         '/paquetes': (BuildContext context) => const PaquetesPage(),
         '/WarehousePage': (BuildContext context) => const WarehousePage(),
         '/Quejas': (BuildContext context) => const QuejasPage(),
-        //'Clientes': (BuildContext context) => const ClientesPage(),
+        'Clientes': (BuildContext context) => const ClientesPage(),
         '/prueba_sidebar': (BuildContext context) => PruebaSidebar(),
 
       },

@@ -132,8 +132,8 @@ class FirestoreService {
   }
 
   //READ: obtener todos los clientes
-  Stream<QuerySnapshot> getClientes() {
-    final clientestream = clientes.orderBy('fecha', descending: true).snapshots();
+  Stream<QuerySnapshot> getClientes(String text) {
+    final clientestream = clientes.orderBy('cliente_id', descending: true).snapshots();
     return clientestream;
   }
 
@@ -146,7 +146,7 @@ class FirestoreService {
       'email': email,
       'telefono': telefono,
       'direccion': direccion,
-      'cuidad': cuidad,
+      'ciudad': cuidad,
       'departamento': departamento,
       'pais': 'Honduras'
     }).then((_) {
