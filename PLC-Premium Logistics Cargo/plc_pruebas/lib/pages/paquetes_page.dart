@@ -59,7 +59,7 @@ class _PaquetesPageState extends State<PaquetesPage> {
                     }
 
                     return DataRow(cells: [
-                      DataCell(Text(document.id)),
+                      DataCell(Text(data['paquete_id']?.toString() ?? 'Sin ID')),
                       DataCell(Text(warehouseId)),
                       DataCell(Text('${data['Peso']?.toString() ?? 'Sin peso'} kg')),
                     ]);
