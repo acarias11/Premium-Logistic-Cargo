@@ -23,7 +23,7 @@ class _PaquetesPageState extends State<PaquetesPage> {
   final FirestoreService firestoreService = FirestoreService();
   final ControladorPaquetes controladorPaquete = ControladorPaquetes();
   final SidebarXController _sidebarXController =
-      SidebarXController(selectedIndex: 0);
+      SidebarXController(selectedIndex: 3);
   final TextEditingController _searchController = TextEditingController();
   String _searchText = '';
  int _rowsPerPage = 10;

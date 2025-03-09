@@ -23,7 +23,7 @@ class _WarehousePageState extends State<WarehousePage> {
   final FirestoreService firestoreService = FirestoreService();
   final TextEditingController _searchController = TextEditingController();
   final SidebarXController _sidebarXController =
-      SidebarXController(selectedIndex: 0);
+      SidebarXController(selectedIndex: 2);
   String _searchTerm = '';
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   int _rowsPerPage = PaginatedDataTable.defaultRowsPerPage;

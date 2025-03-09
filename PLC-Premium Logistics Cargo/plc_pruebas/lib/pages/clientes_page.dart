@@ -15,7 +15,6 @@ import 'package:flutter/services.dart' show rootBundle;
 class ClientesPage extends StatefulWidget {
   const ClientesPage({super.key});
   @override
-  // ignore: library_private_types_in_public_api
   _ClientesPageState createState() => _ClientesPageState();
 }
 
@@ -24,9 +23,10 @@ class _ClientesPageState extends State<ClientesPage> {
   final FirestoreService firestoreService = FirestoreService();
   final ControladorClientes controladorCliente = ControladorClientes();
   final SidebarXController _sidebarXController =
-      SidebarXController(selectedIndex: 0);
+      SidebarXController(selectedIndex: 4);
   final TextEditingController _searchController = TextEditingController();
   String _searchText = '';
+  int _rowsPerPage = PaginatedDataTable.defaultRowsPerPage;
 
   @override
   void initState() {
@@ -132,89 +132,91 @@ class _ClientesPageState extends State<ClientesPage> {
 
       final clientes = await _firestore.collection('Clientes').get();
 
-      final monthName = DateFormat.MMMM('es').format(DateTime.now());
-      final currentMonth = DateTime.now().month;
+      final headers = [
+        'Nombre',
+        'Apellido',
+        'Número de Identidad',
+        'Email',
+        'Teléfono',
+        'Dirección',
+        'Ciudad',
+        'Departamento',
+        'País'
+      ];
 
-      final imageLogo = pw.MemoryImage(
-        (await rootBundle.load('assets/logo_PLC.jpg')).buffer.asUint8List(),
-      );
-
-      final clientesFiltrados = clientes.docs.where((doc) {
+      final data = clientes.docs.map((doc) {
         final data = doc.data();
-        final fecha = (data['fecha'] as Timestamp).toDate();
-        return fecha.month == currentMonth;
+        return [
+          data['nombre'] ?? 'Sin Nombre',
+          data['apellido'] ?? 'Sin Apellido',
+          data['email'] ?? 'Sin Email',
+          data['numero_identidad'] ?? 'Sin Número de Identidad',
+          data['telefono'] ?? 'Sin Teléfono',
+          data['direccion'] ?? 'Sin Dirección',
+          data['ciudad'] ?? 'Sin Ciudad',
+          data['departamento'] ?? 'Sin Departamento',
+          data['pais'] ?? 'Honduras',
+        ];
       }).toList();
 
       pdf.addPage(
-        pw.Page(
+        pw.MultiPage(
+          pageFormat: PdfPageFormat.a3,
+          margin: const pw.EdgeInsets.all(16),
           build: (pw.Context context) {
-            return pw.Column(
-              children: [
-                pw.Row(
-                  mainAxisAlignment: pw.MainAxisAlignment.center,
-                  children: [
-                    pw.Image(imageLogo, height: 100, width: 70),
-                  ],
-                ),
-                pw.SizedBox(height: 20),
-                pw.Text(
-                  'Clientes creados en el mes de $monthName',
-                  style: pw.TextStyle(
-                      fontSize: 18, fontWeight: pw.FontWeight.bold),
-                ),
-                pw.SizedBox(height: 10),
-                pw.Text(
-                  'Total de clientes creados: ${clientesFiltrados.length}',
-                  style: const pw.TextStyle(fontSize: 14),
-                ),
-                pw.SizedBox(height: 20),
-                // ignore: deprecated_member_use
-                pw.Table.fromTextArray(
-                  headers: [
-                    'Nombre',
-                    'Apellido',
-                    'Email',
-                    'Número de Identidad',
-                    'Teléfono',
-                    'Dirección',
-                    'Ciudad',
-                    'Departamento',
-                    'País'
-                  ],
-                  data: clientesFiltrados.map((doc) {
-                    final data = doc.data();
-                    return [
-                      data['nombre'] ?? 'Sin Nombre',
-                      data['apellido'] ?? 'Sin Apellido',
-                      data['email'] ?? 'Sin Email',
-                      data['numero_identidad'] ?? 'Sin Número de Identidad',
-                      data['telefono'] ?? 'Sin Teléfono',
-                      data['direccion'] ?? 'Sin Dirección',
-                      data['ciudad'] ?? 'Sin Ciudad',
-                      data['departamento'] ?? 'Sin Departamento',
-                      data['pais'] ?? 'Honduras',
-                    ];
-                  }).toList(),
-                ),
-                pw.Spacer(),
-                pw.Container(
-                  color: PdfColors.blue,
-                  height: 50,
-                  child: pw.Center(
-                    child: pw.Text(
-                      'Premium Logistics Cargo',
-                      style: const pw.TextStyle(color: PdfColors.white),
-                    ),
+            return [
+              pw.Text(
+                "Reporte de clientes",
+                style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold),
+              ),
+              pw.SizedBox(height: 10),
+              pw.Table(
+                columnWidths: {
+                  0: const pw.FixedColumnWidth(60),  // Nombre
+                  1: const pw.FixedColumnWidth(80),  // Apellido
+                  2: const pw.FixedColumnWidth(80),  // Email
+                  3: const pw.FixedColumnWidth(80),  // Número de Identidad
+                  4: const pw.FixedColumnWidth(60),  // Teléfono
+                  5: const pw.FixedColumnWidth(60),  // Dirección
+                  6: const pw.FixedColumnWidth(60),  // Ciudad
+                  7: const pw.FixedColumnWidth(40),  // Departamento
+                  8: const pw.FixedColumnWidth(40),  // País
+                },
+                border: pw.TableBorder.all(color: PdfColors.grey),
+                children: [
+                  pw.TableRow(
+                    decoration: const pw.BoxDecoration(color: PdfColors.blue),
+                    children: headers.map((header) => pw.Container(
+                      padding: const pw.EdgeInsets.all(5),
+                      child: pw.Text(
+                        header,
+                        style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold),
+                        softWrap: true,
+                      ),
+                    )).toList(),
                   ),
-                ),
-              ],
-            );
+                  ...data.map((row) {
+                    return pw.TableRow(
+                      children: row.map((cell) => pw.Container(
+                        padding: const pw.EdgeInsets.all(5),
+                        child: pw.Text(
+                          cell.toString(),
+                          style: const pw.TextStyle(fontSize: 8),
+                          softWrap: true,
+                        ),
+                      )).toList(),
+                    );
+                  }).toList(),
+                ],
+              )
+            ];
           },
         ),
       );
 
       await Printing.layoutPdf(
-        onLayout: (PdfPageFormat format) async => pdf.save(),
+        onLayout: (format) async => pdf.save(),
+        name: 'Reporte_de_Clientes.pdf',
       );
     } catch (e) {
       print('Error generating PDF: $e');
@@ -224,7 +226,7 @@ class _ClientesPageState extends State<ClientesPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      drawer: Sidebar(selectedIndex: 3, controller: _sidebarXController),
+      drawer: Sidebar(selectedIndex: 4, controller: _sidebarXController),
       appBar: AppBar(
         backgroundColor: Colors.blue.shade900,
         title: const Text(
@@ -315,47 +317,33 @@ class _ClientesPageState extends State<ClientesPage> {
                       padding: const EdgeInsets.all(8.0),
                       child: SizedBox(
                         width: MediaQuery.of(context).size.width,
-                        child: DataTable2(
+                        child: PaginatedDataTable2(
                           columnSpacing: 12,
                           horizontalMargin: 12,
                           minWidth: 600,
+                          dataRowHeight: 60,
+                          headingRowHeight: 40,
                           headingTextStyle: const TextStyle(
-                              fontWeight: FontWeight.bold, color: Colors.white),
-                          dataRowColor:
-                              WidgetStateProperty.resolveWith<Color>(
-                                  (states) =>
-                                      Colors.orange.shade700.withOpacity(0.2)),
+                              fontWeight: FontWeight.bold, color: Colors.black),
                           columns: const [
                             DataColumn2(label: Text('Nombre')),
                             DataColumn2(label: Text('Apellido')),
-                            DataColumn2(label: Text('Email')),
                             DataColumn2(label: Text('Número de Identidad')),
+                            DataColumn2(label: Text('Email')),
                             DataColumn2(label: Text('Teléfono')),
                             DataColumn2(label: Text('Dirección')),
                             DataColumn2(label: Text('Ciudad')),
                             DataColumn2(label: Text('Departamento')),
                             DataColumn2(label: Text('País')),
                           ],
-                          rows: filteredDocs.map((DocumentSnapshot document) {
-                            Map<String, dynamic>? data =
-                                document.data() as Map<String, dynamic>?;
-                            return DataRow(cells: [
-                              DataCell(Text(data?['nombre'] ?? 'Sin Nombre')),
-                              DataCell(
-                                  Text(data?['apellido'] ?? 'Sin Apellido')),
-                              DataCell(Text(data?['email'] ?? 'Sin Email')),
-                              DataCell(Text(data?['numero_identidad'] ??
-                                  'Sin Número de Identidad')),
-                              DataCell(
-                                  Text(data?['telefono'] ?? 'Sin Teléfono')),
-                              DataCell(
-                                  Text(data?['direccion'] ?? 'Sin Dirección')),
-                              DataCell(Text(data?['ciudad'] ?? 'Sin Ciudad')),
-                              DataCell(Text(
-                                  data?['departamento'] ?? 'Sin Departamento')),
-                              DataCell(Text(data?['pais'] ?? 'Honduras')),
-                            ]);
-                          }).toList(),
+                          source: _ClientesDataSource(filteredDocs),
+                          rowsPerPage: _rowsPerPage,
+                          availableRowsPerPage: const [10, 20, 50],
+                          onRowsPerPageChanged: (value) {
+                            setState(() {
+                              _rowsPerPage = value!;
+                            });
+                          },
                         ),
                       ),
                     ),
@@ -368,4 +356,41 @@ class _ClientesPageState extends State<ClientesPage> {
       ),
     );
   }
+}
+
+class _ClientesDataSource extends DataTableSource {
+  final List<DocumentSnapshot> _docs;
+
+  _ClientesDataSource(this._docs);
+
+  @override
+  DataRow getRow(int index) {
+    final document = _docs[index];
+    final data = document.data() as Map<String, dynamic>?;
+
+    if (data == null) {
+      return const DataRow(cells: [DataCell(Text('Error al cargar datos'))]);
+    }
+
+    return DataRow(cells: [
+      DataCell(Text(data['nombre'] ?? 'Sin Nombre')),
+      DataCell(Text(data['apellido'] ?? 'Sin Apellido')),
+      DataCell(Text(data['email'] ?? 'Sin Email')),
+      DataCell(Text(data['numero_identidad'] ?? 'Sin Número de Identidad')),
+      DataCell(Text(data['telefono'] ?? 'Sin Teléfono')),
+      DataCell(Text(data['direccion'] ?? 'Sin Dirección')),
+      DataCell(Text(data['ciudad'] ?? 'Sin Ciudad')),
+      DataCell(Text(data['departamento'] ?? 'Sin Departamento')),
+      DataCell(Text(data['pais'] ?? 'Honduras')),
+    ]);
+  }
+
+  @override
+  bool get isRowCountApproximate => false;
+
+  @override
+  int get rowCount => _docs.length;
+
+  @override
+  int get selectedRowCount => 0;
 }

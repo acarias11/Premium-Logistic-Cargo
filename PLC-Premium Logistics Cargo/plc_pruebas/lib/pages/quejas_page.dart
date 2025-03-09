@@ -12,14 +12,14 @@ class QuejasPage extends StatefulWidget {
 
 class _QuejasPageState extends State<QuejasPage> {
   final SidebarXController _sidebarXController =
-      SidebarXController(selectedIndex: 0);
+      SidebarXController(selectedIndex: 6);
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Quejas'),
       ),
-      drawer: Sidebar(selectedIndex: 4, controller: _sidebarXController),
+      drawer: Sidebar(selectedIndex: 6, controller: _sidebarXController),
       body: const Center(
         child: Text('Quejas Page'),
       ),

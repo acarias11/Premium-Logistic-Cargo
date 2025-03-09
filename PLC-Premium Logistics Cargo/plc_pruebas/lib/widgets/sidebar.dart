@@ -1,17 +1,12 @@
-//importas todas las pages para las rutas
 import 'package:plc_pruebas/pages/home_page.dart';
 import 'package:plc_pruebas/pages/paquetes_page.dart';
 import 'package:plc_pruebas/pages/quejas_page.dart';
-//import 'package:plc_pruebas/pages/usuarios_page.dart';
 import 'package:plc_pruebas/pages/warehouse_page.dart';
 import 'package:flutter/material.dart';
 import 'package:sidebarx/sidebarx.dart';
 import 'package:plc_pruebas/pages/cargas_page.dart';
 import 'package:plc_pruebas/pages/clientes_page.dart';
 import 'package:plc_pruebas/pages/reportes_page.dart';
-
-
-//rehacerlo integrando la dependencia sidebarx
 
 class Sidebar extends StatelessWidget {
   final int selectedIndex;
@@ -29,10 +24,10 @@ class Sidebar extends StatelessWidget {
         theme: SidebarXTheme(
           margin: const EdgeInsets.all(10),
           decoration: BoxDecoration(
-            color: const Color(0xFF2E2E48),
+            color: Colors.blue.shade900,
             borderRadius: BorderRadius.circular(20),
           ),
-          hoverColor: const Color(0xFF464667),
+          hoverColor: Colors.orange.shade700,
           textStyle: TextStyle(color: Colors.white.withOpacity(0.7)),
           selectedTextStyle: const TextStyle(color: Colors.white),
           hoverTextStyle: const TextStyle(
@@ -43,16 +38,14 @@ class Sidebar extends StatelessWidget {
           selectedItemTextPadding: const EdgeInsets.only(left: 30),
           itemDecoration: BoxDecoration(
             borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: const Color(0xFF2E2E48)),
+            border: Border.all(color: Colors.blue.shade900),
           ),
           selectedItemDecoration: BoxDecoration(
             borderRadius: BorderRadius.circular(10),
             border: Border.all(
-              color: const Color(0xFF5F5FA7).withOpacity(0.6).withOpacity(0.37),
+              color: Colors.orange.shade700.withOpacity(0.6).withOpacity(0.37),
             ),
-            gradient: const LinearGradient(
-              colors: [Color(0xFF3E3E61), Color(0xFF2E2E48)],
-            ),
+            color: Colors.orange.shade700,
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withOpacity(0.28),
@@ -70,12 +63,13 @@ class Sidebar extends StatelessWidget {
           ),
         ),
         extendedTheme: SidebarXTheme(
-            margin: const EdgeInsets.symmetric(horizontal: 0),
-            width: 950,
-            decoration: BoxDecoration(
-              color: const Color(0xFF2E2E48),
-              borderRadius: BorderRadius.circular(20),
-            )),
+          margin: const EdgeInsets.symmetric(horizontal: 0),
+          width: 950,
+          decoration: BoxDecoration(
+            color: Colors.blue.shade900,
+            borderRadius: BorderRadius.circular(20),
+          ),
+        ),
         //Aqui se agregan los items del sidebar
         items: [
           SidebarXItem(

@@ -21,7 +21,7 @@ class _CargasPageState extends State<CargasPage> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirestoreService firestoreService = FirestoreService();
   final SidebarXController _sidebarXController =
-      SidebarXController(selectedIndex: 0);
+      SidebarXController(selectedIndex: 1);
 
   final TextEditingController _searchController = TextEditingController();
   final TextEditingController _fechaInicialController = TextEditingController();
@@ -308,7 +308,7 @@ class _CargasPageState extends State<CargasPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      drawer: Sidebar(selectedIndex: 1, controller: _sidebarXController),
+      drawer: Sidebar(selectedIndex: 2, controller: _sidebarXController),
       appBar: AppBar(
         backgroundColor: Colors.orange.shade700,
         title: const Text(

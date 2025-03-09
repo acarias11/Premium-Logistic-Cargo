@@ -14,7 +14,7 @@ class ReportesPage extends StatefulWidget {
 
 class _ReportesPageState extends State<ReportesPage> {
   final SidebarXController _sidebarXController =
-      SidebarXController(selectedIndex: 0);
+      SidebarXController(selectedIndex: 5);
 
   @override
   Widget build(BuildContext context) {
