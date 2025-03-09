@@ -9,7 +9,6 @@ import 'package:plc_pruebas/pages/paquetes_page.dart';
 import 'package:plc_pruebas/pages/quejas_page.dart';
 import 'package:plc_pruebas/pages/warehouse_page.dart';
 import 'package:plc_pruebas/pages/prueba_sidebar.dart';
-import 'package:plc_pruebas/pages/cargoPage.dart'; // Make sure cargoPage.dart exists
 
 
 void main() async {

@@ -5,6 +5,11 @@ import 'package:intl/intl.dart';
 import 'package:sidebarx/sidebarx.dart';
 import '../services/firestore.dart';
 import '../widgets/sidebar.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:pdf/pdf.dart';
+import 'package:printing/printing.dart';
+import 'package:intl/date_symbol_data_local.dart';
+import 'package:flutter/services.dart' show rootBundle;
 
 class CargasPage extends StatefulWidget {
   const CargasPage({super.key});
@@ -13,6 +18,7 @@ class CargasPage extends StatefulWidget {
 }
 
 class _CargasPageState extends State<CargasPage> {
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirestoreService firestoreService = FirestoreService();
   final SidebarXController _sidebarXController =
       SidebarXController(selectedIndex: 0);
@@ -35,6 +41,7 @@ class _CargasPageState extends State<CargasPage> {
     super.initState();
     _loadEstatuses();
     _loadModalidades();
+    initializeDateFormatting('es', null); // Inicializar la configuración regional
   }
 
   Future<void> _loadEstatuses() async {
@@ -122,6 +129,127 @@ class _CargasPageState extends State<CargasPage> {
     _entregaFinalController.clear();
     _pesoController.clear();
     _piezasController.clear();
+  }
+   
+  Future<void> generatePdf() async {
+    try {
+      final pdf = pw.Document();
+
+      final cargas = await _firestore.collection('Carga').get();
+
+      final monthName = DateFormat.MMMM('es').format(DateTime.now());
+      final currentMonth = DateTime.now().month;
+
+      final imageLogo = pw.MemoryImage(
+        (await rootBundle.load('assets/logo_PLC.jpg')).buffer.asUint8List(),
+      );
+
+      final cargasFiltradas = cargas.docs.where((doc) {
+        final data = doc.data();
+        final estatus = data['estatus_id'];
+        final fechaEntrega = data['entrega_final'];
+        DateTime fechaEntregaDate;
+        if (fechaEntrega is Timestamp) {
+          fechaEntregaDate = fechaEntrega.toDate();
+        } else if (fechaEntrega is String) {
+          try {
+            fechaEntregaDate = DateFormat('dd/MM/yyyy').parse(fechaEntrega);
+          } catch (e) {
+            return false;
+          }
+        } else {
+          return false;
+        }
+        return estatus == 'Completado' && fechaEntregaDate.month == currentMonth;
+      }).toList();
+
+      pdf.addPage(
+        pw.Page(
+          build: (pw.Context context) {
+            return pw.Column(
+              children: [
+                pw.Row(
+                  mainAxisAlignment: pw.MainAxisAlignment.center,
+                  children: [
+                    pw.Image(imageLogo, height: 100, width: 70),
+                  ],
+                ),
+                pw.SizedBox(height: 20),
+                pw.Text(
+                  'Cargas exitosas del mes de $monthName',
+                  style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold),
+                ),
+                pw.SizedBox(height: 10),
+                pw.Text(
+                  'Total de cargas exitosas: ${cargasFiltradas.length}',
+                  style: const pw.TextStyle(fontSize: 14),
+                ),
+                pw.SizedBox(height: 20),
+                // ignore: deprecated_member_use
+                pw.Table.fromTextArray(
+                  headers: ['ID', 'Fecha en almacen', 'Fecha de Entrega', 'Estatus', 'Modalidad', 'Peso', 'Piezas'],
+                  data: cargasFiltradas.map((doc) {
+                    final data = doc.data();
+                    final fechaInicial = data['entrega_inicial'];
+                    final fechaFinal = data['entrega_final'];
+                    DateTime fechaInicialDate;
+                    DateTime fechaFinalDate;
+                    if (fechaInicial is Timestamp) {
+                      fechaInicialDate = fechaInicial.toDate();
+                    } else if (fechaInicial is String) {
+                      try {
+                        fechaInicialDate = DateFormat('dd/MM/yyyy').parse(fechaInicial);
+                      } catch (e) {
+                        fechaInicialDate = DateTime.now();
+                      }
+                    } else {
+                      fechaInicialDate = DateTime.now();
+                    }
+                    if (fechaFinal is Timestamp) {
+                      fechaFinalDate = fechaFinal.toDate();
+                    } else if (fechaFinal is String) {
+                      try {
+                        fechaFinalDate = DateFormat('dd/MM/yyyy').parse(fechaFinal);
+                      } catch (e) {
+                        fechaFinalDate = DateTime.now();
+                      }
+                    } else {
+                      fechaFinalDate = DateTime.now();
+                    }
+                    return [
+                      doc.id,
+                      DateFormat('dd/MM/yyyy').format(fechaInicialDate),
+                      DateFormat('dd/MM/yyyy').format(fechaFinalDate),
+                      data['estatus_id'] ?? 'Desconocido',
+                      data['modalidad'] ?? 'Desconocido',
+                      '${data['peso']?.toString() ?? 'Sin peso'} kg',
+                      data['piezas']?.toString() ?? 'Sin piezas',
+                    ];
+                  }).toList(),
+                ),
+                pw.Spacer(),
+                pw.Container(
+                  color: PdfColors.blue,
+                  height: 50,
+                  child: pw.Center(
+                    child: pw.Text(
+                      'Premium Logistics Cargo',
+                      style: const pw.TextStyle(color: PdfColors.white),
+                    ),
+                  ),
+                ),
+              ],
+            );
+          },
+        ),
+      );
+
+      await Printing.layoutPdf(
+        onLayout: (PdfPageFormat format) async => pdf.save(),
+      );
+    } catch (e) {
+      print('Error generating PDF: $e');
+    }
   }
 
   @override
@@ -305,31 +433,31 @@ class _CargasPageState extends State<CargasPage> {
                                 ? Colors.blue.shade50
                                 : Colors.white),
                         columns: const [
-                          DataColumn(
+                          DataColumn2(
                               label: Text('ID',
                                   style:
                                       TextStyle(fontWeight: FontWeight.bold))),
-                          DataColumn(
+                          DataColumn2(
                               label: Text('Fecha en almacen',
                                   style:
                                       TextStyle(fontWeight: FontWeight.bold))),
-                          DataColumn(
+                          DataColumn2(
                               label: Text('Fecha de Entrega',
                                   style:
                                       TextStyle(fontWeight: FontWeight.bold))),
-                          DataColumn(
+                          DataColumn2(
                               label: Text('Estatus',
                                   style:
                                       TextStyle(fontWeight: FontWeight.bold))),
-                          DataColumn(
+                          DataColumn2(
                               label: Text('Modalidad',
                                   style:
                                       TextStyle(fontWeight: FontWeight.bold))),
-                          DataColumn(
+                          DataColumn2(
                               label: Text('Peso',
                                   style:
                                       TextStyle(fontWeight: FontWeight.bold))),
-                          DataColumn(
+                          DataColumn2(
                               label: Text('Piezas',
                                   style:
                                       TextStyle(fontWeight: FontWeight.bold))),
@@ -406,6 +534,10 @@ class _CargasPageState extends State<CargasPage> {
             ),
           ),
         ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: generatePdf,
+        child: const Icon(Icons.picture_as_pdf),
       ),
     );
   }

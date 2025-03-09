@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:sidebarx/sidebarx.dart';
 import 'package:plc_pruebas/widgets/sidebar.dart';
 
-import '../widgets/sidebar.dart';
 
 class QuejasPage extends StatefulWidget {
   const QuejasPage({super.key});

@@ -5,6 +5,12 @@ import 'package:plc_pruebas/services/firestore.dart';
 import 'package:plc_pruebas/controllers/controladores.dart';
 import 'package:plc_pruebas/widgets/sidebar.dart';
 import 'package:sidebarx/sidebarx.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:pdf/pdf.dart';
+import 'package:printing/printing.dart';
+import 'package:intl/intl.dart';
+import 'package:intl/date_symbol_data_local.dart';
+import 'package:flutter/services.dart' show rootBundle;
 
 class ClientesPage extends StatefulWidget {
   const ClientesPage({super.key});
@@ -25,6 +31,7 @@ class _ClientesPageState extends State<ClientesPage> {
   @override
   void initState() {
     super.initState();
+    initializeDateFormatting('es', null); // Inicializar la configuración regional
   }
 
   void nuevoCliente() {
@@ -118,6 +125,90 @@ class _ClientesPageState extends State<ClientesPage> {
     return _firestore.collection('Clientes').snapshots();
   }
 
+  Future<void> generatePdf() async {
+    try {
+      final pdf = pw.Document();
+
+      final clientes = await _firestore.collection('Clientes').get();
+
+      final monthName = DateFormat.MMMM('es').format(DateTime.now());
+      final currentMonth = DateTime.now().month;
+
+      final imageLogo = pw.MemoryImage(
+        (await rootBundle.load('assets/logo_PLC.jpg')).buffer.asUint8List(),
+      );
+
+      final clientesFiltrados = clientes.docs.where((doc) {
+        final data = doc.data();
+        final fecha = (data['fecha'] as Timestamp).toDate();
+        return fecha.month == currentMonth;
+      }).toList();
+
+      pdf.addPage(
+        pw.Page(
+          build: (pw.Context context) {
+            return pw.Column(
+              children: [
+                pw.Row(
+                  mainAxisAlignment: pw.MainAxisAlignment.center,
+                  children: [
+                    pw.Image(imageLogo, height: 100, width: 70),
+                  ],
+                ),
+                pw.SizedBox(height: 20),
+                pw.Text(
+                  'Clientes creados en el mes de $monthName',
+                  style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold),
+                ),
+                pw.SizedBox(height: 10),
+                pw.Text(
+                  'Total de clientes creados: ${clientesFiltrados.length}',
+                  style: const pw.TextStyle(fontSize: 14),
+                ),
+                pw.SizedBox(height: 20),
+                // ignore: deprecated_member_use
+                pw.Table.fromTextArray(
+                  headers: ['Nombre', 'Apellido', 'Email', 'Número de Identidad', 'Teléfono', 'Dirección', 'Ciudad', 'Departamento', 'País'],
+                  data: clientesFiltrados.map((doc) {
+                    final data = doc.data();
+                    return [
+                      data['nombre'] ?? 'Sin Nombre',
+                      data['apellido'] ?? 'Sin Apellido',
+                      data['email'] ?? 'Sin Email',
+                      data['numero_identidad'] ?? 'Sin Número de Identidad',
+                      data['telefono'] ?? 'Sin Teléfono',
+                      data['direccion'] ?? 'Sin Dirección',
+                      data['ciudad'] ?? 'Sin Ciudad',
+                      data['departamento'] ?? 'Sin Departamento',
+                      data['pais'] ?? 'Honduras',
+                    ];
+                  }).toList(),
+                ),
+                pw.Spacer(),
+                pw.Container(
+                  color: PdfColors.blue,
+                  height: 50,
+                  child: pw.Center(
+                    child: pw.Text(
+                      'Premium Logistics Cargo',
+                      style: const pw.TextStyle(color: PdfColors.white),
+                    ),
+                  ),
+                ),
+              ],
+            );
+          },
+        ),
+      );
+
+      await Printing.layoutPdf(
+        onLayout: (PdfPageFormat format) async => pdf.save(),
+      );
+    } catch (e) {
+      print('Error generating PDF: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -128,6 +219,10 @@ class _ClientesPageState extends State<ClientesPage> {
           IconButton(
             icon: const Icon(Icons.add),
             onPressed: () => nuevoCliente(),
+          ),
+          IconButton(
+            icon: const Icon(Icons.picture_as_pdf),
+            onPressed: generatePdf,
           ),
         ],
       ),
