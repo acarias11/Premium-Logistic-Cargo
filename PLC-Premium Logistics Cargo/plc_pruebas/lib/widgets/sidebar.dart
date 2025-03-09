@@ -2,12 +2,13 @@
 import 'package:plc_pruebas/pages/home_page.dart';
 import 'package:plc_pruebas/pages/paquetes_page.dart';
 import 'package:plc_pruebas/pages/quejas_page.dart';
-import 'package:plc_pruebas/pages/reportes_page.dart';
 //import 'package:plc_pruebas/pages/usuarios_page.dart';
 import 'package:plc_pruebas/pages/warehouse_page.dart';
 import 'package:flutter/material.dart';
 import 'package:sidebarx/sidebarx.dart';
 import 'package:plc_pruebas/pages/cargas_page.dart';
+import 'package:plc_pruebas/pages/clientes_page.dart';
+import 'package:plc_pruebas/pages/reportes_page.dart';
 
 
 //rehacerlo integrando la dependencia sidebarx
@@ -32,7 +33,6 @@ class Sidebar extends StatelessWidget {
             borderRadius: BorderRadius.circular(20),
           ),
           hoverColor: const Color(0xFF464667),
-          // ignore: deprecated_member_use
           textStyle: TextStyle(color: Colors.white.withOpacity(0.7)),
           selectedTextStyle: const TextStyle(color: Colors.white),
           hoverTextStyle: const TextStyle(
@@ -48,7 +48,6 @@ class Sidebar extends StatelessWidget {
           selectedItemDecoration: BoxDecoration(
             borderRadius: BorderRadius.circular(10),
             border: Border.all(
-              // ignore: deprecated_member_use
               color: const Color(0xFF5F5FA7).withOpacity(0.6).withOpacity(0.37),
             ),
             gradient: const LinearGradient(
@@ -56,14 +55,12 @@ class Sidebar extends StatelessWidget {
             ),
             boxShadow: [
               BoxShadow(
-                // ignore: deprecated_member_use
                 color: Colors.black.withOpacity(0.28),
                 blurRadius: 30,
               )
             ],
           ),
           iconTheme: IconThemeData(
-            // ignore: deprecated_member_use
             color: Colors.white.withOpacity(0.7),
             size: 20,
           ),
@@ -93,7 +90,7 @@ class Sidebar extends StatelessWidget {
             },
           ),
           SidebarXItem(
-            icon: Icons.send_time_extension_rounded,
+            icon: Icons.local_shipping,
             label: 'Cargas',
             onTap: () {
               debugPrint('Cargas');
@@ -104,7 +101,7 @@ class Sidebar extends StatelessWidget {
             },
           ),
           SidebarXItem(
-            icon: Icons.store,
+            icon: Icons.warehouse,
             label: 'Warehouse',
             onTap: () {
               debugPrint('Warehouse');
@@ -115,7 +112,7 @@ class Sidebar extends StatelessWidget {
             },
           ),
           SidebarXItem(
-            icon: Icons.shopping_cart,
+            icon: Icons.inventory_2,
             label: 'Paquetes',
             onTap: () {
               debugPrint('Paquetes');
@@ -126,13 +123,13 @@ class Sidebar extends StatelessWidget {
             },
           ),
           SidebarXItem(
-            icon: Icons.troubleshoot_sharp,
-            label: 'Quejas',
+            icon: Icons.person,
+            label: 'Clientes',
             onTap: () {
-              debugPrint('Quejas');
+              debugPrint('Clientes');
               Navigator.pushReplacement(
                 context,
-                MaterialPageRoute(builder: (context) => const QuejasPage()),
+                MaterialPageRoute(builder: (context) => const ClientesPage()),
               );
             },
           ),
@@ -144,6 +141,17 @@ class Sidebar extends StatelessWidget {
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(builder: (context) => const ReportesPage()),
+              );
+            },
+          ),
+          SidebarXItem(
+            icon: Icons.report_problem,
+            label: 'Quejas',
+            onTap: () {
+              debugPrint('Quejas');
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => const QuejasPage()),
               );
             },
           ),

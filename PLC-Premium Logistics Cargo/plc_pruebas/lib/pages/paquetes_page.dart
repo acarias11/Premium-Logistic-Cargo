@@ -26,6 +26,7 @@ class _PaquetesPageState extends State<PaquetesPage> {
       SidebarXController(selectedIndex: 0);
   final TextEditingController _searchController = TextEditingController();
   String _searchText = '';
+ int _rowsPerPage = 10;
 
   // Variables para modalidad de envío y tipo de paquete
   String? modalidadEnvio;
@@ -197,63 +198,95 @@ class _PaquetesPageState extends State<PaquetesPage> {
       return fecha.month == currentMonth;
     }).toList();
 
+    final headers = ['ID', 'Warehouse ID', 'Peso', 'Fecha'];
+
+    final data = paquetesFiltrados.map((doc) {
+      final data = doc.data();
+      String warehouseId = "Desconocido";
+      if (data['WarehouseID'] is DocumentReference) {
+        warehouseId = (data['WarehouseID'] as DocumentReference).id;
+      } else if (data['WarehouseID'] is String) {
+        warehouseId = data['WarehouseID'];
+      }
+      final fecha = (data['Fecha'] as Timestamp).toDate();
+      final fechaFormateada = DateFormat('dd/MM/yyyy').format(fecha);
+      return [
+        data['paquete_id']?.toString() ?? 'Sin ID',
+        warehouseId,
+        '${data['Peso']?.toString() ?? 'Sin peso'} kg',
+        fechaFormateada,
+      ];
+    }).toList();
+
     pdf.addPage(
-      pw.Page(
+      pw.MultiPage(
+        pageFormat: PdfPageFormat.a3,
+        margin: const pw.EdgeInsets.all(16),
         build: (pw.Context context) {
-          return pw.Column(
-            children: [
-              pw.Row(
-                mainAxisAlignment: pw.MainAxisAlignment.center,
-                children: [
-                  pw.Image(imageLogo, height: 100, width: 70),
-                ],
-              ),
-              pw.SizedBox(height: 20),
-              pw.Text(
-                'Durante el mes de $monthName, se llevó a cabo el registro y creación de paquetes dentro del sistema,'
-                'con un total de ${paquetesFiltrados.length} paquetes generados en este período. \n'
-                'Este reporte detalla la cantidad de paquetes creados, permitiendo un mejor control y'
-                'seguimiento de la logística y gestión operativa. La información recopilada servirá para'
-                'evaluar el rendimiento y la eficiencia en la administración de paquetes, así como para '
-                'identificar posibles mejoras en los procesos de almacenamiento y distribución.',
-                style: const pw.TextStyle(fontSize: 12),
-              ),
-              pw.SizedBox(height: 20),
-              // ignore: deprecated_member_use
-              pw.Table.fromTextArray(
-                headers: ['ID', 'Warehouse ID', 'Peso', 'Fecha'],
-                data: paquetesFiltrados.map((doc) {
-                  final data = doc.data();
-                  String warehouseId = "Desconocido";
-                  if (data['WarehouseID'] is DocumentReference) {
-                    warehouseId = (data['WarehouseID'] as DocumentReference).id;
-                  } else if (data['WarehouseID'] is String) {
-                    warehouseId = data['WarehouseID'];
-                  }
-                  final fecha = (data['Fecha'] as Timestamp).toDate();
-                  final fechaFormateada =
-                      DateFormat('dd/MM/yyyy').format(fecha);
-                  return [
-                    data['paquete_id']?.toString() ?? 'Sin ID',
-                    warehouseId,
-                    '${data['Peso']?.toString() ?? 'Sin peso'} kg',
-                    fechaFormateada,
-                  ];
-                }).toList(),
-              ),
-              pw.Spacer(),
-              pw.Container(
-                color: PdfColors.blue,
-                height: 50,
-                child: pw.Center(
-                  child: pw.Text(
-                    'Premium Logistics Cargo',
-                    style: const pw.TextStyle(color: PdfColors.white),
-                  ),
+          return [
+            pw.Row(
+              mainAxisAlignment: pw.MainAxisAlignment.center,
+              children: [
+                pw.Image(imageLogo, height: 100, width: 70),
+              ],
+            ),
+            pw.SizedBox(height: 20),
+            pw.Text(
+              'Durante el mes de $monthName, se llevó a cabo el registro y creación de paquetes dentro del sistema,'
+              'con un total de ${paquetesFiltrados.length} paquetes generados en este período. \n'
+              'Este reporte detalla la cantidad de paquetes creados, permitiendo un mejor control y'
+              'seguimiento de la logística y gestión operativa. La información recopilada servirá para'
+              'evaluar el rendimiento y la eficiencia en la administración de paquetes, así como para '
+              'identificar posibles mejoras en los procesos de almacenamiento y distribución.',
+              style: const pw.TextStyle(fontSize: 12),
+            ),
+            pw.SizedBox(height: 20),
+            pw.Table(
+              columnWidths: {
+                0: const pw.FixedColumnWidth(60),  // ID
+                1: const pw.FixedColumnWidth(80),  // Warehouse ID
+                2: const pw.FixedColumnWidth(60),  // Peso
+                3: const pw.FixedColumnWidth(60),  // Fecha
+              },
+              border: pw.TableBorder.all(color: PdfColors.grey),
+              children: [
+                pw.TableRow(
+                  decoration: const pw.BoxDecoration(color: PdfColors.blue),
+                  children: headers.map((header) => pw.Container(
+                    padding: const pw.EdgeInsets.all(5),
+                    child: pw.Text(
+                      header,
+                      style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold),
+                      softWrap: true,
+                    ),
+                  )).toList(),
+                ),
+                ...data.map((row) {
+                  return pw.TableRow(
+                    children: row.map((cell) => pw.Container(
+                      padding: const pw.EdgeInsets.all(5),
+                      child: pw.Text(
+                        cell.toString(),
+                        style: const pw.TextStyle(fontSize: 8),
+                        softWrap: true,
+                      ),
+                    )).toList(),
+                  );
+                }),
+              ],
+            ),
+            pw.Spacer(),
+            pw.Container(
+              color: PdfColors.blue,
+              height: 50,
+              child: pw.Center(
+                child: pw.Text(
+                  'Premium Logistics Cargo',
+                  style: const pw.TextStyle(color: PdfColors.white),
                 ),
               ),
-            ],
-          );
+            ),
+          ];
         },
       ),
     );
@@ -363,44 +396,27 @@ class _PaquetesPageState extends State<PaquetesPage> {
                 padding: const EdgeInsets.all(8.0),
                 child: SizedBox(
                   width: MediaQuery.of(context).size.width,
-                  child: DataTable2(
+                  child: PaginatedDataTable2(
                     columnSpacing: 12,
                     horizontalMargin: 12,
                     minWidth: 600,
+                    dataRowHeight: 60,
+                    headingRowHeight: 40,
                     headingTextStyle: const TextStyle(
-                        fontWeight: FontWeight.bold, color: Colors.white),
-                    dataRowColor: WidgetStateProperty.resolveWith<Color>(
-                        (states) => Colors.orange.shade700.withOpacity(0.2)),
+                        fontWeight: FontWeight.bold, color: Colors.black),
                     columns: const [
                       DataColumn(label: Text('ID')),
                       DataColumn(label: Text('Warehouse ID')),
                       DataColumn(label: Text('Peso')),
                     ],
-                    rows: filteredDocs.map((DocumentSnapshot document) {
-                      Map<String, dynamic>? data =
-                          document.data() as Map<String, dynamic>?;
-
-                      if (data == null) {
-                        return const DataRow(
-                            cells: [DataCell(Text('Error al cargar datos'))]);
-                      }
-
-                      String warehouseId = "Desconocido";
-                      if (data['WarehouseID'] is DocumentReference) {
-                        warehouseId =
-                            (data['WarehouseID'] as DocumentReference).id;
-                      } else if (data['WarehouseID'] is String) {
-                        warehouseId = data['WarehouseID'];
-                      }
-
-                      return DataRow(cells: [
-                        DataCell(
-                            Text(data['paquete_id']?.toString() ?? 'Sin ID')),
-                        DataCell(Text(warehouseId)),
-                        DataCell(Text(
-                            '${data['Peso']?.toString() ?? 'Sin peso'} kg')),
-                      ]);
-                    }).toList(),
+                    source: _PaquetesDataSource(filteredDocs),
+                    rowsPerPage: 10,
+                    availableRowsPerPage: const [10, 20, 50],
+                    onRowsPerPageChanged: (value) {
+                      setState(() {
+                        _rowsPerPage = value!;
+                      });
+                    },
                   ),
                 ),
               ),
@@ -410,4 +426,42 @@ class _PaquetesPageState extends State<PaquetesPage> {
       ),
     );
   }
+}
+
+class _PaquetesDataSource extends DataTableSource {
+  final List<DocumentSnapshot> _docs;
+
+  _PaquetesDataSource(this._docs);
+
+  @override
+  DataRow getRow(int index) {
+    final document = _docs[index];
+    final data = document.data() as Map<String, dynamic>?;
+
+    if (data == null) {
+      return const DataRow(cells: [DataCell(Text('Error al cargar datos'))]);
+    }
+
+    String warehouseId = "Desconocido";
+    if (data['WarehouseID'] is DocumentReference) {
+      warehouseId = (data['WarehouseID'] as DocumentReference).id;
+    } else if (data['WarehouseID'] is String) {
+      warehouseId = data['WarehouseID'];
+    }
+
+    return DataRow(cells: [
+      DataCell(Text(data['paquete_id']?.toString() ?? 'Sin ID')),
+      DataCell(Text(warehouseId)),
+      DataCell(Text('${data['Peso']?.toString() ?? 'Sin peso'} kg')),
+    ]);
+  }
+
+  @override
+  bool get isRowCountApproximate => false;
+
+  @override
+  int get rowCount => _docs.length;
+
+  @override
+  int get selectedRowCount => 0;
 }

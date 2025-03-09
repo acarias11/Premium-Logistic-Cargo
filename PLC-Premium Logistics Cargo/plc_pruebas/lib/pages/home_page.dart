@@ -58,16 +58,18 @@ class HomePage extends StatelessWidget {
                 runSpacing: 20,
                 alignment: WrapAlignment.center,
                 children: [
-                  _buildStyledButton(context, 'Paquetes', Icons.local_shipping,
-                      const PaquetesPage()),
+                  _buildStyledButton(context, 'Cargas', Icons.local_shipping,
+                      const CargasPage()),
                   _buildStyledButton(context, 'Warehouse', Icons.warehouse,
                       const WarehousePage()),
-                  _buildStyledButton(context, 'Cargas', Icons.airplane_ticket,
-                      const CargasPage()),
+                  _buildStyledButton(context, 'Paquetes', Icons.inventory_2,
+                      const PaquetesPage()),
                   _buildStyledButton(
-                      context, 'Cliente', Icons.person, const ClientesPage()),
+                      context, 'Clientes', Icons.person, const ClientesPage()),
                   _buildStyledButton(
                       context, 'Reportes', Icons.insert_chart, null),
+                   _buildStyledButton(
+                      context, 'Quejas', Icons.report_problem, null),
                 ],
               ),
             ],
