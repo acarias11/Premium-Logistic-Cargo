@@ -31,7 +31,8 @@ class _ClientesPageState extends State<ClientesPage> {
   @override
   void initState() {
     super.initState();
-    initializeDateFormatting('es', null); // Inicializar la configuración regional
+    initializeDateFormatting(
+        'es', null); // Inicializar la configuración regional
   }
 
   void nuevoCliente() {
@@ -158,7 +159,8 @@ class _ClientesPageState extends State<ClientesPage> {
                 pw.SizedBox(height: 20),
                 pw.Text(
                   'Clientes creados en el mes de $monthName',
-                  style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold),
+                  style: pw.TextStyle(
+                      fontSize: 18, fontWeight: pw.FontWeight.bold),
                 ),
                 pw.SizedBox(height: 10),
                 pw.Text(
@@ -168,7 +170,17 @@ class _ClientesPageState extends State<ClientesPage> {
                 pw.SizedBox(height: 20),
                 // ignore: deprecated_member_use
                 pw.Table.fromTextArray(
-                  headers: ['Nombre', 'Apellido', 'Email', 'Número de Identidad', 'Teléfono', 'Dirección', 'Ciudad', 'Departamento', 'País'],
+                  headers: [
+                    'Nombre',
+                    'Apellido',
+                    'Email',
+                    'Número de Identidad',
+                    'Teléfono',
+                    'Dirección',
+                    'Ciudad',
+                    'Departamento',
+                    'País'
+                  ],
                   data: clientesFiltrados.map((doc) {
                     final data = doc.data();
                     return [
@@ -214,97 +226,145 @@ class _ClientesPageState extends State<ClientesPage> {
     return Scaffold(
       drawer: Sidebar(selectedIndex: 3, controller: _sidebarXController),
       appBar: AppBar(
-        title: const Text('Clientes'),
+        backgroundColor: Colors.blue.shade900,
+        title: const Text(
+          'Clientes',
+          style: TextStyle(color: Colors.white),
+        ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.add),
+            icon: const Icon(Icons.add, color: Colors.white),
             onPressed: () => nuevoCliente(),
           ),
           IconButton(
-            icon: const Icon(Icons.picture_as_pdf),
+            icon: const Icon(Icons.picture_as_pdf, color: Colors.white),
             onPressed: generatePdf,
           ),
         ],
       ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: TextField(
-              controller: _searchController,
-              decoration: const InputDecoration(
-                labelText: 'Buscar por Número de Identidad',
-                prefixIcon: Icon(Icons.search),
-              ),
-              onChanged: (value) {
-                setState(() {
-                  _searchText = value.toUpperCase();
-                });
-              },
-            ),
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Colors.blue.shade900, Colors.orange.shade700],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
           ),
-          Expanded(
-            child: StreamBuilder<QuerySnapshot>(
-              stream: getClientes(),
-              builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-                if (snapshot.hasError) {
-                  return const Center(child: Text('Error al obtener los clientes'));
-                }
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-                if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                  return const Center(child: Text('No hay clientes disponibles'));
-                }
-                var filteredDocs = snapshot.data!.docs.where((DocumentSnapshot document) {
-                  Map<String, dynamic>? data = document.data() as Map<String, dynamic>?;
-                  if (data == null) return false;
-                  String numeroIdentidad = data['numero_identidad']?.toString() ?? '';
-                  return numeroIdentidad.contains(_searchText);
-                }).toList();
-                return SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: SizedBox(
-                      width: MediaQuery.of(context).size.width,
-                      child: DataTable2(
-                        columnSpacing: 12,
-                        horizontalMargin: 12,
-                        minWidth: 600,
-                        columns: const [
-                          DataColumn2(label: Text('Nombre')),
-                          DataColumn2(label: Text('Apellido')),
-                          DataColumn2(label: Text('Email')),
-                          DataColumn2(label: Text('Número de Identidad')),
-                          DataColumn2(label: Text('Teléfono')),
-                          DataColumn2(label: Text('Dirección')),
-                          DataColumn2(label: Text('Ciudad')),
-                          DataColumn2(label: Text('Departamento')),
-                          DataColumn2(label: Text('País')),
-                        ],
-                        rows: filteredDocs.map((DocumentSnapshot document) {
-                          Map<String, dynamic>? data = document.data() as Map<String, dynamic>?;
-                          return DataRow(cells: [
-                            DataCell(Text(data?['nombre'] ?? 'Sin Nombre')),
-                            DataCell(Text(data?['apellido'] ?? 'Sin Apellido')),
-                            DataCell(Text(data?['email'] ?? 'Sin Email')),
-                            DataCell(Text(data?['numero_identidad'] ?? 'Sin Número de Identidad')),
-                            DataCell(Text(data?['telefono'] ?? 'Sin Teléfono')),
-                            DataCell(Text(data?['direccion'] ?? 'Sin Dirección')),
-                            DataCell(Text(data?['ciudad'] ?? 'Sin Ciudad')),
-                            DataCell(Text(data?['departamento'] ?? 'Sin Departamento')),
-                            DataCell(Text(data?['pais'] ?? 'Honduras')),
-                          ]);
-                        }).toList(),
+        ),
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: TextField(
+                controller: _searchController,
+                style: const TextStyle(color: Colors.white),
+                decoration: InputDecoration(
+                  labelText: 'Buscar por Número de Identidad',
+                  labelStyle: const TextStyle(color: Colors.white),
+                  prefixIcon: const Icon(Icons.search, color: Colors.white),
+                  filled: true,
+                  fillColor: Colors.blue.shade800.withOpacity(0.5),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide.none,
+                  ),
+                ),
+                onChanged: (value) {
+                  setState(() {
+                    _searchText = value.toUpperCase();
+                  });
+                },
+              ),
+            ),
+            Expanded(
+              child: StreamBuilder<QuerySnapshot>(
+                stream: getClientes(),
+                builder: (BuildContext context,
+                    AsyncSnapshot<QuerySnapshot> snapshot) {
+                  if (snapshot.hasError) {
+                    return const Center(
+                        child: Text(
+                      'Error al obtener los clientes',
+                      style: TextStyle(color: Colors.white),
+                    ));
+                  }
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(
+                        child: CircularProgressIndicator(color: Colors.white));
+                  }
+                  if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                    return const Center(
+                        child: Text(
+                      'No hay clientes disponibles',
+                      style: TextStyle(color: Colors.white),
+                    ));
+                  }
+                  var filteredDocs =
+                      snapshot.data!.docs.where((DocumentSnapshot document) {
+                    Map<String, dynamic>? data =
+                        document.data() as Map<String, dynamic>?;
+                    if (data == null) return false;
+                    String numeroIdentidad =
+                        data['numero_identidad']?.toString() ?? '';
+                    return numeroIdentidad.contains(_searchText);
+                  }).toList();
+                  return SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: SizedBox(
+                        width: MediaQuery.of(context).size.width,
+                        child: DataTable2(
+                          columnSpacing: 12,
+                          horizontalMargin: 12,
+                          minWidth: 600,
+                          headingTextStyle: const TextStyle(
+                              fontWeight: FontWeight.bold, color: Colors.white),
+                          dataRowColor:
+                              MaterialStateProperty.resolveWith<Color>(
+                                  (states) =>
+                                      Colors.orange.shade700.withOpacity(0.2)),
+                          columns: const [
+                            DataColumn2(label: Text('Nombre')),
+                            DataColumn2(label: Text('Apellido')),
+                            DataColumn2(label: Text('Email')),
+                            DataColumn2(label: Text('Número de Identidad')),
+                            DataColumn2(label: Text('Teléfono')),
+                            DataColumn2(label: Text('Dirección')),
+                            DataColumn2(label: Text('Ciudad')),
+                            DataColumn2(label: Text('Departamento')),
+                            DataColumn2(label: Text('País')),
+                          ],
+                          rows: filteredDocs.map((DocumentSnapshot document) {
+                            Map<String, dynamic>? data =
+                                document.data() as Map<String, dynamic>?;
+                            return DataRow(cells: [
+                              DataCell(Text(data?['nombre'] ?? 'Sin Nombre')),
+                              DataCell(
+                                  Text(data?['apellido'] ?? 'Sin Apellido')),
+                              DataCell(Text(data?['email'] ?? 'Sin Email')),
+                              DataCell(Text(data?['numero_identidad'] ??
+                                  'Sin Número de Identidad')),
+                              DataCell(
+                                  Text(data?['telefono'] ?? 'Sin Teléfono')),
+                              DataCell(
+                                  Text(data?['direccion'] ?? 'Sin Dirección')),
+                              DataCell(Text(data?['ciudad'] ?? 'Sin Ciudad')),
+                              DataCell(Text(
+                                  data?['departamento'] ?? 'Sin Departamento')),
+                              DataCell(Text(data?['pais'] ?? 'Honduras')),
+                            ]);
+                          }).toList(),
+                        ),
                       ),
                     ),
-                  ),
-                );
-              },
+                  );
+                },
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

@@ -4,6 +4,7 @@ import 'package:data_table_2/data_table_2.dart';
 import 'package:intl/intl.dart';
 import 'package:plc_pruebas/services/firestore.dart';
 import 'package:plc_pruebas/widgets/sidebar.dart';
+
 import 'package:sidebarx/sidebarx.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:pdf/pdf.dart';
@@ -20,6 +21,7 @@ class WarehousePage extends StatefulWidget {
 
 class _WarehousePageState extends State<WarehousePage> {
   final FirestoreService firestoreService = FirestoreService();
+  final TextEditingController _searchController = TextEditingController();
   final SidebarXController _sidebarXController =
       SidebarXController(selectedIndex: 0);
   String _searchTerm = '';
@@ -28,7 +30,8 @@ class _WarehousePageState extends State<WarehousePage> {
   @override
   void initState() {
     super.initState();
-    initializeDateFormatting('es', null); // Inicializar la configuración regional
+    initializeDateFormatting(
+        'es', null); // Inicializar la configuración regional
   }
 
   Stream<QuerySnapshot> getWare() {
@@ -107,7 +110,8 @@ class _WarehousePageState extends State<WarehousePage> {
                 pw.SizedBox(height: 20),
                 pw.Text(
                   'Warehouses creados en el mes de $monthName',
-                  style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold),
+                  style: pw.TextStyle(
+                      fontSize: 18, fontWeight: pw.FontWeight.bold),
                 ),
                 pw.SizedBox(height: 10),
                 pw.Text(
@@ -117,7 +121,17 @@ class _WarehousePageState extends State<WarehousePage> {
                 pw.SizedBox(height: 20),
                 // ignore: deprecated_member_use
                 pw.Table.fromTextArray(
-                  headers: ['WarehouseID', 'CargaID', 'Nombre del cliente', 'Dirección', 'Estatus', 'Fecha de creación', 'Modalidad', 'Peso', 'Paquetes'],
+                  headers: [
+                    'WarehouseID',
+                    'CargaID',
+                    'Nombre del cliente',
+                    'Dirección',
+                    'Estatus',
+                    'Fecha de creación',
+                    'Modalidad',
+                    'Peso',
+                    'Paquetes'
+                  ],
                   data: warehousesFiltrados.map((doc) {
                     final data = doc.data();
                     final fecha = (data['fecha'] as Timestamp).toDate();
@@ -163,165 +177,159 @@ class _WarehousePageState extends State<WarehousePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       drawer: Sidebar(selectedIndex: 2, controller: _sidebarXController),
-      body: Column(
-        children: [
-          AppBar(
-            title:
-                const Text('Warehouse', style: TextStyle(color: Colors.white)),
-            backgroundColor: Colors.orange.shade700,
-          ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
+      appBar: AppBar(
+        backgroundColor: Colors.blue.shade900,
+        title: const Text(
+          'Warehouse',
+          style: TextStyle(color: Colors.white),
+        ),
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(56.0),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 6.0),
             child: TextField(
-              decoration: const InputDecoration(
+              controller: _searchController,
+              style: const TextStyle(color: Colors.white),
+              decoration: InputDecoration(
                 hintText: 'Buscar por warehouse_id, carga_id o cliente_id',
-                prefixIcon: Icon(Icons.search),
-                border: OutlineInputBorder(),
+                hintStyle: const TextStyle(color: Colors.white70),
+                prefixIcon: const Icon(Icons.search, color: Colors.white),
+                filled: true,
+                fillColor: Colors.blue.shade800.withOpacity(0.6),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: BorderSide.none,
+                ),
               ),
               onChanged: (value) {
                 setState(() {
-                  _searchTerm = value;
+                  _searchTerm = value.toLowerCase();
                 });
               },
             ),
           ),
-          Expanded(
-            child: StreamBuilder<QuerySnapshot>(
-              stream: getWare(),
-              builder: (BuildContext context,
-                  AsyncSnapshot<QuerySnapshot> snapshot) {
-                if (snapshot.hasError) {
-                  return const Center(
-                      child: Text('Error al obtener los almacenes'));
-                }
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-                if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                  return const Center(
-                      child: Text('No hay almacenes disponibles'));
-                }
-
-                final filteredDocs = snapshot.data!.docs.where((document) {
-                  final data = document.data() as Map<String, dynamic>? ?? {};
-                  final whId = document['warehouse_id']
-                      .toString()
-                      .toLowerCase();
-                  final cargaId = data['carga_id']?.toString().toLowerCase() ?? '';
-                  final clientId = data['cliente_id']?.toString().toLowerCase() ?? '';
-                  final search = _searchTerm.toLowerCase();
-                  return search.isEmpty ||
-                      whId.contains(search) ||
-                      cargaId.contains(search) ||
-                      clientId.contains(search);
-                }).toList();
-
-                return SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: SizedBox(
-                      width: MediaQuery.of(context).size.width,
-                      child: DataTable2(
-                        columnSpacing: 12,
-                        horizontalMargin: 12,
-                        minWidth: 600,
-                        headingRowColor:
-                            WidgetStateProperty.all(Colors.blue.shade100),
-                        dataRowColor: WidgetStateProperty.resolveWith(
-                            (states) => states.contains(WidgetState.selected)
-                                ? Colors.blue.shade50
-                                : Colors.white),
-                        columns: const [
-                          DataColumn2(
-                              label: Text('WarehouseID',
-                                  style:
-                                      TextStyle(fontWeight: FontWeight.bold))),
-                          DataColumn2(
-                              label: Text('CargaID',
-                                  style:
-                                      TextStyle(fontWeight: FontWeight.bold))),
-                          DataColumn2(
-                              label: Text('Nombre del cliente',
-                                  style:
-                                      TextStyle(fontWeight: FontWeight.bold))),
-                          DataColumn2(
-                              label: Text('Dirección',
-                                  style:
-                                      TextStyle(fontWeight: FontWeight.bold))),
-                          DataColumn2(
-                              label: Text('Estatus',
-                                  style:
-                                      TextStyle(fontWeight: FontWeight.bold))),
-                          DataColumn2(
-                              label: Text('Fecha de creación',
-                                  style:
-                                      TextStyle(fontWeight: FontWeight.bold))),
-                          DataColumn2(
-                              label: Text('Modalidad',
-                                  style:
-                                      TextStyle(fontWeight: FontWeight.bold))),
-                          DataColumn2(
-                              label: Text('Peso',
-                                  style:
-                                      TextStyle(fontWeight: FontWeight.bold))),
-                          DataColumn2(
-                              label: Text('Paquetes',
-                                  style:
-                                      TextStyle(fontWeight: FontWeight.bold))),
-                        ],
-                        rows: filteredDocs.map((DocumentSnapshot document) {
-                          Map<String, dynamic>? data =
-                              document.data() as Map<String, dynamic>?;
-                          if (data == null) {
-                            return const DataRow(cells: [
-                              DataCell(Text('Error al cargar datos'))
-                            ]);
-                          }
-
-                          return DataRow(
-                            cells: [
-                              DataCell(Text(document['warehouse_id'])),
-                              DataCell(Text(data['carga_id']?.toString() ??
-                                  'Desconocido')),
-                              DataCell(FutureBuilder(
-                                future:
-                                    getClientFullName(data['cliente_id'] ?? ''),
-                                builder: (context, snapshot) =>
-                                    Text(snapshot.data ?? 'Cargando...'),
-                              )),
-                              DataCell(
-                                  Text(data['direccion'] ?? 'Desconocido')),
-                              DataCell(FutureBuilder(
-                                future: getEstatusNameById(
-                                    data['estatus_id'] ?? ''),
-                                builder: (context, snapshot) =>
-                                    Text(snapshot.data ?? 'Cargando...'),
-                              )),
-                              DataCell(Text(formatDate(data['fecha']))),
-                              DataCell(FutureBuilder(
-                                future: getModalidadNameById(
-                                    data['modalidad'] ?? ''),
-                                builder: (context, snapshot) =>
-                                    Text(snapshot.data ?? 'Cargando...'),
-                              )),
-                              DataCell(Text(data['peso_total'].toString())),
-                              DataCell(Text(data['piezas'].toString())),
-                            ],
-                          );
-                        }).toList(),
-                      ),
-                    ),
-                  ),
-                );
-              },
-            ),
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.picture_as_pdf, color: Colors.white),
+            onPressed: generatePdf,
           ),
         ],
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: generatePdf,
-        child: const Icon(Icons.picture_as_pdf),
+        backgroundColor: Colors.blue.shade800,
+        child: const Icon(Icons.picture_as_pdf, color: Colors.white),
+      ),
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Colors.blue.shade900, Colors.orange.shade700],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
+        child: StreamBuilder<QuerySnapshot>(
+          stream: getWare(),
+          builder:
+              (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+            if (snapshot.hasError) {
+              return const Center(
+                  child: Text('Error al obtener los almacenes',
+                      style: TextStyle(color: Colors.white)));
+            }
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(
+                  child: CircularProgressIndicator(color: Colors.white));
+            }
+            if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+              return const Center(
+                  child: Text('No hay almacenes disponibles',
+                      style: TextStyle(color: Colors.white)));
+            }
+
+            var filteredDocs = snapshot.data!.docs.where((document) {
+              Map<String, dynamic>? data =
+                  document.data() as Map<String, dynamic>?;
+              if (data == null) return false;
+
+              String whId = document['warehouse_id'].toString().toLowerCase();
+              String cargaId = data['carga_id']?.toString().toLowerCase() ?? '';
+              String clientId =
+                  data['cliente_id']?.toString().toLowerCase() ?? '';
+
+              return _searchTerm.isEmpty ||
+                  whId.contains(_searchTerm) ||
+                  cargaId.contains(_searchTerm) ||
+                  clientId.contains(_searchTerm);
+            }).toList();
+
+            return SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: SizedBox(
+                  width: MediaQuery.of(context).size.width,
+                  child: DataTable2(
+                    columnSpacing: 12,
+                    horizontalMargin: 12,
+                    minWidth: 600,
+                    headingTextStyle: const TextStyle(
+                        fontWeight: FontWeight.bold, color: Colors.white),
+                    dataRowColor: WidgetStateProperty.resolveWith<Color>(
+                        (states) => Colors.orange.shade700.withOpacity(0.2)),
+                    columns: const [
+                      DataColumn(label: Text('WarehouseID')),
+                      DataColumn(label: Text('CargaID')),
+                      DataColumn(label: Text('Nombre del cliente')),
+                      DataColumn(label: Text('Dirección')),
+                      DataColumn(label: Text('Estatus')),
+                      DataColumn(label: Text('Fecha de creación')),
+                      DataColumn(label: Text('Modalidad')),
+                      DataColumn(label: Text('Peso')),
+                      DataColumn(label: Text('Paquetes')),
+                    ],
+                    rows: filteredDocs.map((DocumentSnapshot document) {
+                      Map<String, dynamic>? data =
+                          document.data() as Map<String, dynamic>?;
+                      if (data == null) {
+                        return const DataRow(
+                            cells: [DataCell(Text('Error al cargar datos'))]);
+                      }
+
+                      return DataRow(cells: [
+                        DataCell(Text(document['warehouse_id'])),
+                        DataCell(Text(
+                            data['carga_id']?.toString() ?? 'Desconocido')),
+                        DataCell(FutureBuilder(
+                          future: getClientFullName(data['cliente_id'] ?? ''),
+                          builder: (context, snapshot) =>
+                              Text(snapshot.data ?? 'Cargando...'),
+                        )),
+                        DataCell(Text(data['direccion'] ?? 'Desconocido')),
+                        DataCell(FutureBuilder(
+                          future: getEstatusNameById(data['estatus_id'] ?? ''),
+                          builder: (context, snapshot) =>
+                              Text(snapshot.data ?? 'Cargando...'),
+                        )),
+                        DataCell(Text(formatDate(data['fecha']))),
+                        DataCell(FutureBuilder(
+                          future: getModalidadNameById(data['modalidad'] ?? ''),
+                          builder: (context, snapshot) =>
+                              Text(snapshot.data ?? 'Cargando...'),
+                        )),
+                        DataCell(Text(data['peso_total'].toString())),
+                        DataCell(Text(data['piezas'].toString())),
+                      ]);
+                    }).toList(),
+                  ),
+                ),
+              ),
+            );
+          },
+        ),
       ),
     );
   }

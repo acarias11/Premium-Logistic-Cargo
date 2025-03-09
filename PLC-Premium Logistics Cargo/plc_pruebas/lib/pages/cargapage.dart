@@ -65,7 +65,8 @@ class _CargoPageState extends State<CargoPage> {
           child: Text(document['Nombre']),
         );
       }).toList();
-      selectedModalidad = modalidadItems.isNotEmpty ? modalidadItems[0].value : null;
+      selectedModalidad =
+          modalidadItems.isNotEmpty ? modalidadItems[0].value : null;
     });
   }
 
@@ -263,118 +264,150 @@ class _CargoPageState extends State<CargoPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Cargo Warehouses'),
+        backgroundColor: Colors.blue.shade900,
+        title: const Text(
+          'Cargo Warehouses',
+          style: TextStyle(color: Colors.white),
+        ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.add),
+            icon: const Icon(Icons.add, color: Colors.white),
             onPressed: () => createWarehouse(context),
           ),
         ],
       ),
-      body: StreamBuilder<QuerySnapshot>(
-        stream: getWarehousesByCargoId(),
-        builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-          if (snapshot.hasError) {
-            return const Center(child: Text('Error al obtener los almacenes'));
-          }
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-            return const Center(child: Text('No hay almacenes disponibles'));
-          }
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Colors.blue.shade900, Colors.orange.shade700],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
+        child: StreamBuilder<QuerySnapshot>(
+          stream: getWarehousesByCargoId(),
+          builder:
+              (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+            if (snapshot.hasError) {
+              return const Center(
+                child: Text(
+                  'Error al obtener los almacenes',
+                  style: TextStyle(color: Colors.white),
+                ),
+              );
+            }
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(
+                child: CircularProgressIndicator(color: Colors.white),
+              );
+            }
+            if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+              return const Center(
+                child: Text(
+                  'No hay almacenes disponibles',
+                  style: TextStyle(color: Colors.white),
+                ),
+              );
+            }
 
-          return SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: SizedBox(
-                width: MediaQuery.of(context).size.width,
-                child: DataTable2(
-                  columnSpacing: 12,
-                  horizontalMargin: 12,
-                  minWidth: 600,
-                  columns: const [
-                    DataColumn2(label: Text('WarehouseID')),
-                    DataColumn2(label: Text('Nombre del cliente')),
-                    DataColumn2(label: Text('Direccion')),
-                    DataColumn2(label: Text('Estatus')),
-                    DataColumn2(label: Text('Fecha de creacion')),
-                    DataColumn2(label: Text('Modalidad')),
-                    DataColumn2(label: Text('Peso')),
-                    DataColumn2(label: Text('Paquetes')),
-                  ],
-                  rows: snapshot.data!.docs.map((DocumentSnapshot document) {
-                    Map<String, dynamic>? data =
-                        document.data() as Map<String, dynamic>?;
+            return SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: SizedBox(
+                  width: MediaQuery.of(context).size.width,
+                  child: DataTable2(
+                    columnSpacing: 12,
+                    horizontalMargin: 12,
+                    minWidth: 600,
+                    headingTextStyle: const TextStyle(
+                        fontWeight: FontWeight.bold, color: Colors.white),
+                    dataRowColor: WidgetStateProperty.resolveWith<Color>(
+                        (states) => Colors.orange.shade700.withOpacity(0.2)),
+                    columns: const [
+                      DataColumn2(label: Text('WarehouseID')),
+                      DataColumn2(label: Text('Nombre del cliente')),
+                      DataColumn2(label: Text('Direccion')),
+                      DataColumn2(label: Text('Estatus')),
+                      DataColumn2(label: Text('Fecha de creacion')),
+                      DataColumn2(label: Text('Modalidad')),
+                      DataColumn2(label: Text('Peso')),
+                      DataColumn2(label: Text('Paquetes')),
+                    ],
+                    rows: snapshot.data!.docs.map((DocumentSnapshot document) {
+                      Map<String, dynamic>? data =
+                          document.data() as Map<String, dynamic>?;
 
-                    if (data == null)
-                      return const DataRow(
-                          cells: [DataCell(Text('Error al cargar datos'))]);
+                      if (data == null) {
+                        return const DataRow(
+                            cells: [DataCell(Text('Error al cargar datos'))]);
+                      }
 
-                    // Se utilizan los campos "estatus_id" y "modalidad_id" para obtener los nombres
-                    Future<String> estatusFuture = data['estatus_id'] != null
-                        ? getEstatusNameById(data['estatus_id'])
-                        : Future.value('Desconocido');
+                      Future<String> estatusFuture = data['estatus_id'] != null
+                          ? getEstatusNameById(data['estatus_id'])
+                          : Future.value('Desconocido');
 
-                    Future<String> modalidadFuture =
-                        data['Modalidad'] is DocumentReference
-                            ? getModalidadName(
-                                data['Modalidad'] as DocumentReference)
-                            : (data['modalidad'] is String
-                                ? getModalidadNameById(data['modalidad'])
-                                : Future.value('Desconocido'));
+                      Future<String> modalidadFuture =
+                          data['Modalidad'] is DocumentReference
+                              ? getModalidadName(
+                                  data['Modalidad'] as DocumentReference)
+                              : (data['modalidad'] is String
+                                  ? getModalidadNameById(data['modalidad'])
+                                  : Future.value('Desconocido'));
 
-                    Future<String> clientFuture = data['cliente_id'] != null
-                        ? getClientFullNameById(data['cliente_id'])
-                        : Future.value('Desconocido');
+                      Future<String> clientFuture = data['cliente_id'] != null
+                          ? getClientFullNameById(data['cliente_id'])
+                          : Future.value('Desconocido');
 
-                    return DataRow(
-                      cells: [
-                        DataCell(
-                            Text(document['warehouse_id']?.toString() ?? '')),
-                        DataCell(FutureBuilder<String>(
-                          future: clientFuture,
-                          builder: (context, snapshot) {
-                            if (snapshot.connectionState ==
-                                ConnectionState.waiting) {
-                              return const Text('Cargando...');
-                            }
-                            return Text(snapshot.data ?? 'Desconocido');
-                          },
-                        )),
-                        DataCell(Text(data['direccion'] ?? 'Desconocido')),
-                        DataCell(FutureBuilder<String>(
-                          future: estatusFuture,
-                          builder: (context, snapshot) {
-                            if (snapshot.connectionState ==
-                                ConnectionState.waiting) {
-                              return const Text('Cargando...');
-                            }
-                            return Text(snapshot.data ?? 'Desconocido');
-                          },
-                        )),
-                        DataCell(Text(formatDate(data['fecha']))),
-                        DataCell(FutureBuilder<String>(
-                          future: modalidadFuture,
-                          builder: (context, snapshot) {
-                            if (snapshot.connectionState ==
-                                ConnectionState.waiting) {
-                              return const Text('Cargando...');
-                            }
-                            return Text(snapshot.data ?? 'Desconocido');
-                          },
-                        )),
-                        DataCell(Text(data['peso_total'].toString())),
-                        DataCell(Text(data['piezas'].toString())),
-                      ],
-                    );
-                  }).toList(),
+                      return DataRow(
+                        cells: [
+                          DataCell(
+                              Text(document['warehouse_id']?.toString() ?? '')),
+                          DataCell(FutureBuilder<String>(
+                            future: clientFuture,
+                            builder: (context, snapshot) {
+                              if (snapshot.connectionState ==
+                                  ConnectionState.waiting) {
+                                return const Text('Cargando...');
+                              }
+                              return Text(snapshot.data ?? 'Desconocido');
+                            },
+                          )),
+                          DataCell(Text(data['direccion'] ?? 'Desconocido')),
+                          DataCell(FutureBuilder<String>(
+                            future: estatusFuture,
+                            builder: (context, snapshot) {
+                              if (snapshot.connectionState ==
+                                  ConnectionState.waiting) {
+                                return const Text('Cargando...');
+                              }
+                              return Text(snapshot.data ?? 'Desconocido');
+                            },
+                          )),
+                          DataCell(Text(formatDate(data['fecha']))),
+                          DataCell(FutureBuilder<String>(
+                            future: modalidadFuture,
+                            builder: (context, snapshot) {
+                              if (snapshot.connectionState ==
+                                  ConnectionState.waiting) {
+                                return const Text('Cargando...');
+                              }
+                              return Text(snapshot.data ?? 'Desconocido');
+                            },
+                          )),
+                          DataCell(Text(data['peso_total'].toString())),
+                          DataCell(Text(data['piezas'].toString())),
+                        ],
+                      );
+                    }).toList(),
+                  ),
                 ),
               ),
-            ),
-          );
-        },
+            );
+          },
+        ),
       ),
     );
   }

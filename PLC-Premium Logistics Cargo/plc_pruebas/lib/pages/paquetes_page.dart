@@ -22,7 +22,8 @@ class _PaquetesPageState extends State<PaquetesPage> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirestoreService firestoreService = FirestoreService();
   final ControladorPaquetes controladorPaquete = ControladorPaquetes();
-  final SidebarXController _sidebarXController = SidebarXController(selectedIndex: 0);
+  final SidebarXController _sidebarXController =
+      SidebarXController(selectedIndex: 0);
   final TextEditingController _searchController = TextEditingController();
   String _searchText = '';
 
@@ -43,7 +44,8 @@ class _PaquetesPageState extends State<PaquetesPage> {
   Future<void> _loadModalidades() async {
     QuerySnapshot snapshot = await firestoreService.modalidad.get();
     setState(() {
-      modalidades = snapshot.docs.map((doc) => doc['Nombre'].toString()).toList();
+      modalidades =
+          snapshot.docs.map((doc) => doc['Nombre'].toString()).toList();
       modalidadEnvio = modalidades.isNotEmpty ? modalidades[0] : null;
     });
   }
@@ -61,7 +63,8 @@ class _PaquetesPageState extends State<PaquetesPage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Nuevo Paquete', style: TextStyle(color: Colors.blue)),
+        title:
+            const Text('Nuevo Paquete', style: TextStyle(color: Colors.blue)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
@@ -104,7 +107,8 @@ class _PaquetesPageState extends State<PaquetesPage> {
               items: tipos.map<DropdownMenuItem<String>>((String value) {
                 return DropdownMenuItem<String>(
                   value: value,
-                  child: Text(value, style: const TextStyle(color: Colors.blue)),
+                  child:
+                      Text(value, style: const TextStyle(color: Colors.blue)),
                 );
               }).toList(),
             ),
@@ -118,7 +122,8 @@ class _PaquetesPageState extends State<PaquetesPage> {
               items: modalidades.map<DropdownMenuItem<String>>((String value) {
                 return DropdownMenuItem<String>(
                   value: value,
-                  child: Text(value, style: const TextStyle(color: Colors.blue)),
+                  child:
+                      Text(value, style: const TextStyle(color: Colors.blue)),
                 );
               }).toList(),
             ),
@@ -129,14 +134,17 @@ class _PaquetesPageState extends State<PaquetesPage> {
             onPressed: () {
               Navigator.of(context).pop();
             },
-            child: const Text('Cancelar', style: TextStyle(color: Colors.orange)),
+            child:
+                const Text('Cancelar', style: TextStyle(color: Colors.orange)),
           ),
           TextButton(
             onPressed: () {
-              double peso = double.tryParse(controladorPaquete.pesoController.text) ?? -1;
+              double peso =
+                  double.tryParse(controladorPaquete.pesoController.text) ?? -1;
               if (peso <= 0) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('El peso debe ser un número mayor que 0')),
+                  const SnackBar(
+                      content: Text('El peso debe ser un número mayor que 0')),
                 );
                 return;
               }
@@ -202,10 +210,10 @@ class _PaquetesPageState extends State<PaquetesPage> {
               ),
               pw.SizedBox(height: 20),
               pw.Text(
-                'Durante el mes de $monthName, se llevó a cabo el registro y creación de paquetes dentro del sistema,' 
-                'con un total de ${paquetesFiltrados.length} paquetes generados en este período. \n' 
-                'Este reporte detalla la cantidad de paquetes creados, permitiendo un mejor control y' 
-                'seguimiento de la logística y gestión operativa. La información recopilada servirá para' 
+                'Durante el mes de $monthName, se llevó a cabo el registro y creación de paquetes dentro del sistema,'
+                'con un total de ${paquetesFiltrados.length} paquetes generados en este período. \n'
+                'Este reporte detalla la cantidad de paquetes creados, permitiendo un mejor control y'
+                'seguimiento de la logística y gestión operativa. La información recopilada servirá para'
                 'evaluar el rendimiento y la eficiencia en la administración de paquetes, así como para '
                 'identificar posibles mejoras en los procesos de almacenamiento y distribución.',
                 style: const pw.TextStyle(fontSize: 12),
@@ -223,7 +231,8 @@ class _PaquetesPageState extends State<PaquetesPage> {
                     warehouseId = data['WarehouseID'];
                   }
                   final fecha = (data['Fecha'] as Timestamp).toDate();
-                  final fechaFormateada = DateFormat('dd/MM/yyyy').format(fecha);
+                  final fechaFormateada =
+                      DateFormat('dd/MM/yyyy').format(fecha);
                   return [
                     data['paquete_id']?.toString() ?? 'Sin ID',
                     warehouseId,
@@ -257,19 +266,30 @@ class _PaquetesPageState extends State<PaquetesPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      drawer: Sidebar(selectedIndex: 3, controller: _sidebarXController),
       appBar: AppBar(
-        //* Se agrega un campo de texto para buscar por paquete_id o warehouse_id
-        title: const Text('Paquetes'),
+        backgroundColor: Colors.blue.shade900,
+        title: const Text(
+          'Paquetes',
+          style: TextStyle(color: Colors.white),
+        ),
         bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(48.0),
+          preferredSize: const Size.fromHeight(56.0),
           child: Padding(
-            padding: const EdgeInsets.all(8.0),
+            padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 6.0),
             child: TextField(
               controller: _searchController,
-              decoration: const InputDecoration(
+              style: const TextStyle(color: Colors.white),
+              decoration: InputDecoration(
                 hintText: 'Buscar por paquete_id o warehouse_id',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.search),
+                hintStyle: const TextStyle(color: Colors.white70),
+                prefixIcon: const Icon(Icons.search, color: Colors.white),
+                filled: true,
+                fillColor: Colors.blue.shade800.withOpacity(0.6),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: BorderSide.none,
+                ),
               ),
               onChanged: (value) {
                 setState(() {
@@ -281,77 +301,112 @@ class _PaquetesPageState extends State<PaquetesPage> {
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.picture_as_pdf),
+            icon: const Icon(Icons.picture_as_pdf, color: Colors.white),
             onPressed: generatePdf,
           ),
         ],
       ),
-      drawer: Sidebar(selectedIndex: 3, controller: _sidebarXController),
       floatingActionButton: FloatingActionButton(
         onPressed: nuevoPaquete,
-        child: const Icon(Icons.add),
+        backgroundColor: Colors.blue.shade800,
+        child: const Icon(Icons.add, color: Colors.white),
       ),
-      body: StreamBuilder<QuerySnapshot>(
-        stream: getPaq(),
-        builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-          if (snapshot.hasError) {
-            return const Center(child: Text('Error al obtener los paquetes'));
-          }
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-            return const Center(child: Text('No hay paquetes disponibles'));
-          }
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Colors.blue.shade900, Colors.orange.shade700],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
+        child: StreamBuilder<QuerySnapshot>(
+          stream: getPaq(),
+          builder:
+              (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+            if (snapshot.hasError) {
+              return const Center(
+                  child: Text(
+                'Error al obtener los paquetes',
+                style: TextStyle(color: Colors.white),
+              ));
+            }
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(
+                  child: CircularProgressIndicator(color: Colors.white));
+            }
+            if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+              return const Center(
+                  child: Text(
+                'No hay paquetes disponibles',
+                style: TextStyle(color: Colors.white),
+              ));
+            }
 
-          var filteredDocs = snapshot.data!.docs.where((DocumentSnapshot document) {
-            Map<String, dynamic>? data = document.data() as Map<String, dynamic>?;
-            if (data == null) return false;
+            var filteredDocs =
+                snapshot.data!.docs.where((DocumentSnapshot document) {
+              Map<String, dynamic>? data =
+                  document.data() as Map<String, dynamic>?;
+              if (data == null) return false;
 
-            String paqueteId = data['paquete_id']?.toString() ?? '';
-            String warehouseId = data['WarehouseID']?.toString() ?? '';
+              String paqueteId = data['paquete_id']?.toString() ?? '';
+              String warehouseId = data['WarehouseID']?.toString() ?? '';
 
-            return paqueteId.contains(_searchText) || warehouseId.contains(_searchText);
-          }).toList();
+              return paqueteId.contains(_searchText) ||
+                  warehouseId.contains(_searchText);
+            }).toList();
 
-          return SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: SizedBox(
-                width: MediaQuery.of(context).size.width, // Asegura que el DataTable2 tenga un ancho adecuado
-                child: DataTable2(
-                  columnSpacing: 12,
-                  horizontalMargin: 12,
-                  minWidth: 600,
-                  columns: const [
-                    DataColumn(label: Text('ID')),
-                    DataColumn(label: Text('Warehouse ID')),
-                    DataColumn(label: Text('Peso')),
-                  ],
-                  rows: filteredDocs.map((DocumentSnapshot document) {
-                    Map<String, dynamic>? data = document.data() as Map<String, dynamic>?;
+            return SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: SizedBox(
+                  width: MediaQuery.of(context).size.width,
+                  child: DataTable2(
+                    columnSpacing: 12,
+                    horizontalMargin: 12,
+                    minWidth: 600,
+                    headingTextStyle: const TextStyle(
+                        fontWeight: FontWeight.bold, color: Colors.white),
+                    dataRowColor: MaterialStateProperty.resolveWith<Color>(
+                        (states) => Colors.orange.shade700.withOpacity(0.2)),
+                    columns: const [
+                      DataColumn(label: Text('ID')),
+                      DataColumn(label: Text('Warehouse ID')),
+                      DataColumn(label: Text('Peso')),
+                    ],
+                    rows: filteredDocs.map((DocumentSnapshot document) {
+                      Map<String, dynamic>? data =
+                          document.data() as Map<String, dynamic>?;
 
-                    if (data == null) return const DataRow(cells: [DataCell(Text('Error al cargar datos'))]);
+                      if (data == null) {
+                        return const DataRow(
+                            cells: [DataCell(Text('Error al cargar datos'))]);
+                      }
 
-                    String warehouseId = "Desconocido";
-                    if (data['WarehouseID'] is DocumentReference) {
-                      warehouseId = (data['WarehouseID'] as DocumentReference).id;
-                    } else if (data['WarehouseID'] is String) {
-                      warehouseId = data['WarehouseID'];
-                    }
+                      String warehouseId = "Desconocido";
+                      if (data['WarehouseID'] is DocumentReference) {
+                        warehouseId =
+                            (data['WarehouseID'] as DocumentReference).id;
+                      } else if (data['WarehouseID'] is String) {
+                        warehouseId = data['WarehouseID'];
+                      }
 
-                    return DataRow(cells: [
-                      DataCell(Text(data['paquete_id']?.toString() ?? 'Sin ID')),
-                      DataCell(Text(warehouseId)),
-                      DataCell(Text('${data['Peso']?.toString() ?? 'Sin peso'} kg')),
-                    ]);
-                  }).toList(),
+                      return DataRow(cells: [
+                        DataCell(
+                            Text(data['paquete_id']?.toString() ?? 'Sin ID')),
+                        DataCell(Text(warehouseId)),
+                        DataCell(Text(
+                            '${data['Peso']?.toString() ?? 'Sin peso'} kg')),
+                      ]);
+                    }).toList(),
+                  ),
                 ),
               ),
-            ),
-          );
-        },
+            );
+          },
+        ),
       ),
     );
   }

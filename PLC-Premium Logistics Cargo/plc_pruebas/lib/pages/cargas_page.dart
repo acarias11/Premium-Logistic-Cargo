@@ -41,7 +41,8 @@ class _CargasPageState extends State<CargasPage> {
     super.initState();
     _loadEstatuses();
     _loadModalidades();
-    initializeDateFormatting('es', null); // Inicializar la configuración regional
+    initializeDateFormatting(
+        'es', null); // Inicializar la configuración regional
   }
 
   Future<void> _loadEstatuses() async {
@@ -55,7 +56,8 @@ class _CargasPageState extends State<CargasPage> {
   Future<void> _loadModalidades() async {
     QuerySnapshot snapshot = await firestoreService.modalidad.get();
     setState(() {
-      modalidades = snapshot.docs.map((doc) => doc['Nombre'].toString()).toList();
+      modalidades =
+          snapshot.docs.map((doc) => doc['Nombre'].toString()).toList();
       selectedModalidad = modalidades.isNotEmpty ? modalidades[0] : null;
     });
   }
@@ -87,7 +89,8 @@ class _CargasPageState extends State<CargasPage> {
     return 'Desconocido';
   }
 
-  Future<void> _selectDate(BuildContext context, TextEditingController controller) async {
+  Future<void> _selectDate(
+      BuildContext context, TextEditingController controller) async {
     DateTime? picked = await showDatePicker(
       context: context,
       initialDate: DateTime.now(),
@@ -102,10 +105,14 @@ class _CargasPageState extends State<CargasPage> {
   }
 
   void _addCarga() async {
-    DateTime fechaInicial = DateFormat('dd/MM/yyyy').parse(_fechaInicialController.text);
-    DateTime fechaFinal = DateFormat('dd/MM/yyyy').parse(_fechaFinalController.text);
-    DateTime entregaInicial = DateFormat('dd/MM/yyyy').parse(_entregaInicialController.text);
-    DateTime entregaFinal = DateFormat('dd/MM/yyyy').parse(_entregaFinalController.text);
+    DateTime fechaInicial =
+        DateFormat('dd/MM/yyyy').parse(_fechaInicialController.text);
+    DateTime fechaFinal =
+        DateFormat('dd/MM/yyyy').parse(_fechaFinalController.text);
+    DateTime entregaInicial =
+        DateFormat('dd/MM/yyyy').parse(_entregaInicialController.text);
+    DateTime entregaFinal =
+        DateFormat('dd/MM/yyyy').parse(_entregaFinalController.text);
     String estatusID = selectedEstatus!;
     String modalidad = selectedModalidad!;
     double peso = double.parse(_pesoController.text);
@@ -130,7 +137,7 @@ class _CargasPageState extends State<CargasPage> {
     _pesoController.clear();
     _piezasController.clear();
   }
-   
+
   Future<void> generatePdf() async {
     try {
       final pdf = pw.Document();
@@ -160,7 +167,8 @@ class _CargasPageState extends State<CargasPage> {
         } else {
           return false;
         }
-        return estatus == 'Completado' && fechaEntregaDate.month == currentMonth;
+        return estatus == 'Completado' &&
+            fechaEntregaDate.month == currentMonth;
       }).toList();
 
       pdf.addPage(
@@ -177,7 +185,8 @@ class _CargasPageState extends State<CargasPage> {
                 pw.SizedBox(height: 20),
                 pw.Text(
                   'Cargas exitosas del mes de $monthName',
-                  style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold),
+                  style: pw.TextStyle(
+                      fontSize: 18, fontWeight: pw.FontWeight.bold),
                 ),
                 pw.SizedBox(height: 10),
                 pw.Text(
@@ -187,7 +196,15 @@ class _CargasPageState extends State<CargasPage> {
                 pw.SizedBox(height: 20),
                 // ignore: deprecated_member_use
                 pw.Table.fromTextArray(
-                  headers: ['ID', 'Fecha en almacen', 'Fecha de Entrega', 'Estatus', 'Modalidad', 'Peso', 'Piezas'],
+                  headers: [
+                    'ID',
+                    'Fecha en almacen',
+                    'Fecha de Entrega',
+                    'Estatus',
+                    'Modalidad',
+                    'Peso',
+                    'Piezas'
+                  ],
                   data: cargasFiltradas.map((doc) {
                     final data = doc.data();
                     final fechaInicial = data['entrega_inicial'];
@@ -198,7 +215,8 @@ class _CargasPageState extends State<CargasPage> {
                       fechaInicialDate = fechaInicial.toDate();
                     } else if (fechaInicial is String) {
                       try {
-                        fechaInicialDate = DateFormat('dd/MM/yyyy').parse(fechaInicial);
+                        fechaInicialDate =
+                            DateFormat('dd/MM/yyyy').parse(fechaInicial);
                       } catch (e) {
                         fechaInicialDate = DateTime.now();
                       }
@@ -209,7 +227,8 @@ class _CargasPageState extends State<CargasPage> {
                       fechaFinalDate = fechaFinal.toDate();
                     } else if (fechaFinal is String) {
                       try {
-                        fechaFinalDate = DateFormat('dd/MM/yyyy').parse(fechaFinal);
+                        fechaFinalDate =
+                            DateFormat('dd/MM/yyyy').parse(fechaFinal);
                       } catch (e) {
                         fechaFinalDate = DateTime.now();
                       }
@@ -295,7 +314,8 @@ class _CargasPageState extends State<CargasPage> {
                                     labelText: 'Fecha Inicial',
                                     suffixIcon: IconButton(
                                       icon: const Icon(Icons.calendar_today),
-                                      onPressed: () => _selectDate(context, _fechaInicialController),
+                                      onPressed: () => _selectDate(
+                                          context, _fechaInicialController),
                                     ),
                                   ),
                                 ),
@@ -305,7 +325,8 @@ class _CargasPageState extends State<CargasPage> {
                                     labelText: 'Fecha Final',
                                     suffixIcon: IconButton(
                                       icon: const Icon(Icons.calendar_today),
-                                      onPressed: () => _selectDate(context, _fechaFinalController),
+                                      onPressed: () => _selectDate(
+                                          context, _fechaFinalController),
                                     ),
                                   ),
                                 ),
@@ -315,7 +336,8 @@ class _CargasPageState extends State<CargasPage> {
                                     labelText: 'Entrega Inicial',
                                     suffixIcon: IconButton(
                                       icon: const Icon(Icons.calendar_today),
-                                      onPressed: () => _selectDate(context, _entregaInicialController),
+                                      onPressed: () => _selectDate(
+                                          context, _entregaInicialController),
                                     ),
                                   ),
                                 ),
@@ -325,7 +347,8 @@ class _CargasPageState extends State<CargasPage> {
                                     labelText: 'Entrega Final',
                                     suffixIcon: IconButton(
                                       icon: const Icon(Icons.calendar_today),
-                                      onPressed: () => _selectDate(context, _entregaFinalController),
+                                      onPressed: () => _selectDate(
+                                          context, _entregaFinalController),
                                     ),
                                   ),
                                 ),
@@ -336,7 +359,9 @@ class _CargasPageState extends State<CargasPage> {
                                       selectedEstatus = newValue;
                                     });
                                   },
-                                  items: estatuses.map<DropdownMenuItem<String>>((String value) {
+                                  items: estatuses
+                                      .map<DropdownMenuItem<String>>(
+                                          (String value) {
                                     return DropdownMenuItem<String>(
                                       value: value,
                                       child: Text(value),
@@ -351,7 +376,9 @@ class _CargasPageState extends State<CargasPage> {
                                       selectedModalidad = newValue;
                                     });
                                   },
-                                  items: modalidades.map<DropdownMenuItem<String>>((String value) {
+                                  items: modalidades
+                                      .map<DropdownMenuItem<String>>(
+                                          (String value) {
                                     return DropdownMenuItem<String>(
                                       value: value,
                                       child: Text(value),
@@ -361,12 +388,14 @@ class _CargasPageState extends State<CargasPage> {
                                 ),
                                 TextField(
                                   controller: _pesoController,
-                                  decoration: const InputDecoration(labelText: 'Peso'),
+                                  decoration:
+                                      const InputDecoration(labelText: 'Peso'),
                                   keyboardType: TextInputType.number,
                                 ),
                                 TextField(
                                   controller: _piezasController,
-                                  decoration: const InputDecoration(labelText: 'Piezas'),
+                                  decoration: const InputDecoration(
+                                      labelText: 'Piezas'),
                                   keyboardType: TextInputType.number,
                                 ),
                               ],
@@ -496,7 +525,8 @@ class _CargasPageState extends State<CargasPage> {
                                   ),
                                 ),
                                 onTap: () {
-                                  Navigator.pushNamed(context, '/cargoPage', arguments: document.id);
+                                  Navigator.pushNamed(context, '/cargoPage',
+                                      arguments: document.id);
                                 },
                               ),
                             ),
@@ -522,8 +552,10 @@ class _CargasPageState extends State<CargasPage> {
                                 return Text(snapshot.data ?? 'Desconocido');
                               },
                             )),
-                            DataCell(Text(data['peso']?.toString() ?? 'Desconocido')),
-                            DataCell(Text(data['piezas']?.toString() ?? 'Desconocido')),
+                            DataCell(Text(
+                                data['peso']?.toString() ?? 'Desconocido')),
+                            DataCell(Text(
+                                data['piezas']?.toString() ?? 'Desconocido')),
                           ]);
                         }).toList(),
                       ),
