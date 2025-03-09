@@ -75,6 +75,11 @@ class FirestoreService {
     });
   }
 
+  //Funcion para obtener la modalidad de todos los paquetes
+  Stream<QuerySnapshot> getModalidadPaquetes() {
+    return modalidad.snapshots();
+  }
+
   //Funcion para agregar un paquete a un warehouse
   Future<void> addPaqueteToWarehouse(String paqueteId, String warehouseId) {
     return paquetes.doc(paqueteId).update({
@@ -134,6 +139,11 @@ class FirestoreService {
   Stream<QuerySnapshot> getClientes(String text) {
     final clientestream = clientes.orderBy('cliente_id', descending: true).snapshots();
     return clientestream;
+  }
+
+  //Funcion para obtener la fecha de todos los clientes
+  Stream<QuerySnapshot> getFechaClientes() {
+    return clientes.snapshots();
   }
 
   //UPDATE: actualizar cliente

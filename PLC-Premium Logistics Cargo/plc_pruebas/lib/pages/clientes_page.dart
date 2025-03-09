@@ -97,8 +97,8 @@ class _ClientesPageState extends State<ClientesPage> {
               firestoreService.addCliente(
                 controladorCliente.nombreController.text,
                 controladorCliente.apellidoController.text,
-                controladorCliente.emailController.text,
                 controladorCliente.numero_identidadController.text,
+                controladorCliente.emailController.text,
                 controladorCliente.telefonoController.text,
                 controladorCliente.direccionController.text,
                 controladorCliente.ciudadController.text,

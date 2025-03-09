@@ -7,6 +7,7 @@ environment:
   sdk: '>=3.4.3 <4.0.0'
 
 dependencies:
+  syncfusion_flutter_charts: ^28.2.9
   cupertino_icons: ^1.0.6
   firebase_core: ^3.12.1
   cloud_firestore: ^5.6.5
@@ -16,18 +17,17 @@ dependencies:
   sidebarx: ^0.17.1
   faker: ^2.0.0
   printing: ^5.11.3
-  intl: 0.17.0
+  intl: ^0.20.2
   pdf: ^3.11.3
   flutter_charts: ^0.5.0
+  month_picker_dialog: ^6.0.2
   flutter:
     sdk: flutter
-
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^4.0.0
-
+  flutter_lints: ^5.0.0
 
 flutter:
   uses-material-design: true
