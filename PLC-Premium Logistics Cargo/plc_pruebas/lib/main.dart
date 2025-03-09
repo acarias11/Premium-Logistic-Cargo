@@ -9,6 +9,7 @@ import 'package:plc_pruebas/pages/paquetes_page.dart';
 import 'package:plc_pruebas/pages/quejas_page.dart';
 import 'package:plc_pruebas/pages/warehouse_page.dart';
 import 'package:plc_pruebas/pages/prueba_sidebar.dart';
+import 'package:plc_pruebas/pages/cargoPage.dart'; // Make sure cargoPage.dart exists
 
 
 void main() async {
@@ -26,7 +27,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       initialRoute: '/',
       routes: {
-        '/': (BuildContext context) => CargoPage(cargaId: 'CRG1',),
+        '/': (BuildContext context) => HomePage(),
         '/warehouse': (BuildContext context) => const WarehousePage(),
         '/cargas': (BuildContext context) => const CargasPage(),
         '/paquetes': (BuildContext context) => const PaquetesPage(),
@@ -34,7 +35,10 @@ class MyApp extends StatelessWidget {
         '/Quejas': (BuildContext context) => const QuejasPage(),
         '/Clientes': (BuildContext context) => const ClientesPage(),
         '/prueba_sidebar': (BuildContext context) => PruebaSidebar(),
-
+        '/cargoPage': (context) {
+          final args = ModalRoute.of(context)?.settings.arguments as String?;
+          return CargoPage(cargaId: args ?? '');
+        },
       },
     );
   }

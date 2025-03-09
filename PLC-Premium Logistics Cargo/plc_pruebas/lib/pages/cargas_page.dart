@@ -17,6 +17,42 @@ class _CargasPageState extends State<CargasPage> {
   final SidebarXController _sidebarXController =
       SidebarXController(selectedIndex: 0);
 
+  TextEditingController _searchController = TextEditingController();
+  TextEditingController _fechaInicialController = TextEditingController();
+  TextEditingController _fechaFinalController = TextEditingController();
+  TextEditingController _entregaInicialController = TextEditingController();
+  TextEditingController _entregaFinalController = TextEditingController();
+  TextEditingController _pesoController = TextEditingController();
+  TextEditingController _piezasController = TextEditingController();
+
+  List<String> estatuses = [];
+  List<String> modalidades = [];
+  String? selectedEstatus;
+  String? selectedModalidad;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadEstatuses();
+    _loadModalidades();
+  }
+
+  Future<void> _loadEstatuses() async {
+    QuerySnapshot snapshot = await firestoreService.estatus.get();
+    setState(() {
+      estatuses = snapshot.docs.map((doc) => doc['Nombre'].toString()).toList();
+      selectedEstatus = estatuses.isNotEmpty ? estatuses[0] : null;
+    });
+  }
+
+  Future<void> _loadModalidades() async {
+    QuerySnapshot snapshot = await firestoreService.modalidad.get();
+    setState(() {
+      modalidades = snapshot.docs.map((doc) => doc['Nombre'].toString()).toList();
+      selectedModalidad = modalidades.isNotEmpty ? modalidades[0] : null;
+    });
+  }
+
   Stream<QuerySnapshot> getcar() {
     return firestoreService.getCargas();
   }
@@ -29,9 +65,63 @@ class _CargasPageState extends State<CargasPage> {
     return 'Desconocido';
   }
 
-  String formatDate(Timestamp timestamp) {
-    DateTime date = timestamp.toDate();
-    return DateFormat('dd/MM/yyyy').format(date);
+  String formatDate(dynamic timestamp) {
+    if (timestamp == null) return 'Desconocido';
+    if (timestamp is Timestamp) {
+      DateTime date = timestamp.toDate();
+      return DateFormat('dd/MM/yyyy').format(date);
+    }
+    if (timestamp is String) {
+      DateTime? date = DateTime.tryParse(timestamp);
+      if (date != null) {
+        return DateFormat('dd/MM/yyyy').format(date);
+      }
+    }
+    return 'Desconocido';
+  }
+
+  Future<void> _selectDate(BuildContext context, TextEditingController controller) async {
+    DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2101),
+    );
+    if (picked != null) {
+      setState(() {
+        controller.text = DateFormat('dd/MM/yyyy').format(picked);
+      });
+    }
+  }
+
+  void _addCarga() async {
+    DateTime fechaInicial = DateFormat('dd/MM/yyyy').parse(_fechaInicialController.text);
+    DateTime fechaFinal = DateFormat('dd/MM/yyyy').parse(_fechaFinalController.text);
+    DateTime entregaInicial = DateFormat('dd/MM/yyyy').parse(_entregaInicialController.text);
+    DateTime entregaFinal = DateFormat('dd/MM/yyyy').parse(_entregaFinalController.text);
+    String estatusID = selectedEstatus!;
+    String modalidad = selectedModalidad!;
+    double peso = double.parse(_pesoController.text);
+    int piezas = int.parse(_piezasController.text);
+
+    await firestoreService.addCarga(
+      DateFormat('dd/MM/yyyy').format(entregaInicial),
+      DateFormat('dd/MM/yyyy').format(entregaFinal),
+      estatusID,
+      DateFormat('dd/MM/yyyy').format(fechaInicial),
+      DateFormat('dd/MM/yyyy').format(fechaFinal),
+      modalidad,
+      peso,
+      piezas,
+    );
+
+    // Clear the text fields after adding the carga
+    _fechaInicialController.clear();
+    _fechaFinalController.clear();
+    _entregaInicialController.clear();
+    _entregaFinalController.clear();
+    _pesoController.clear();
+    _piezasController.clear();
   }
 
   @override
@@ -43,6 +133,140 @@ class _CargasPageState extends State<CargasPage> {
           AppBar(
             title: const Text('Cargas', style: TextStyle(color: Colors.white)),
             backgroundColor: Colors.orange.shade700,
+          ),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _searchController,
+                    decoration: const InputDecoration(
+                      labelText: 'Buscar por ID',
+                      suffixIcon: Icon(Icons.search),
+                    ),
+                    onChanged: (value) {
+                      setState(() {});
+                    },
+                  ),
+                ),
+                const SizedBox(width: 8),
+                ElevatedButton(
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return AlertDialog(
+                          title: const Text('Añadir Carga'),
+                          content: SingleChildScrollView(
+                            child: Column(
+                              children: [
+                                TextField(
+                                  controller: _fechaInicialController,
+                                  decoration: InputDecoration(
+                                    labelText: 'Fecha Inicial',
+                                    suffixIcon: IconButton(
+                                      icon: const Icon(Icons.calendar_today),
+                                      onPressed: () => _selectDate(context, _fechaInicialController),
+                                    ),
+                                  ),
+                                ),
+                                TextField(
+                                  controller: _fechaFinalController,
+                                  decoration: InputDecoration(
+                                    labelText: 'Fecha Final',
+                                    suffixIcon: IconButton(
+                                      icon: const Icon(Icons.calendar_today),
+                                      onPressed: () => _selectDate(context, _fechaFinalController),
+                                    ),
+                                  ),
+                                ),
+                                TextField(
+                                  controller: _entregaInicialController,
+                                  decoration: InputDecoration(
+                                    labelText: 'Entrega Inicial',
+                                    suffixIcon: IconButton(
+                                      icon: const Icon(Icons.calendar_today),
+                                      onPressed: () => _selectDate(context, _entregaInicialController),
+                                    ),
+                                  ),
+                                ),
+                                TextField(
+                                  controller: _entregaFinalController,
+                                  decoration: InputDecoration(
+                                    labelText: 'Entrega Final',
+                                    suffixIcon: IconButton(
+                                      icon: const Icon(Icons.calendar_today),
+                                      onPressed: () => _selectDate(context, _entregaFinalController),
+                                    ),
+                                  ),
+                                ),
+                                DropdownButton<String>(
+                                  value: selectedEstatus,
+                                  onChanged: (String? newValue) {
+                                    setState(() {
+                                      selectedEstatus = newValue;
+                                    });
+                                  },
+                                  items: estatuses.map<DropdownMenuItem<String>>((String value) {
+                                    return DropdownMenuItem<String>(
+                                      value: value,
+                                      child: Text(value),
+                                    );
+                                  }).toList(),
+                                  hint: const Text('Seleccionar Estatus'),
+                                ),
+                                DropdownButton<String>(
+                                  value: selectedModalidad,
+                                  onChanged: (String? newValue) {
+                                    setState(() {
+                                      selectedModalidad = newValue;
+                                    });
+                                  },
+                                  items: modalidades.map<DropdownMenuItem<String>>((String value) {
+                                    return DropdownMenuItem<String>(
+                                      value: value,
+                                      child: Text(value),
+                                    );
+                                  }).toList(),
+                                  hint: const Text('Seleccionar Modalidad'),
+                                ),
+                                TextField(
+                                  controller: _pesoController,
+                                  decoration: const InputDecoration(labelText: 'Peso'),
+                                  keyboardType: TextInputType.number,
+                                ),
+                                TextField(
+                                  controller: _piezasController,
+                                  decoration: const InputDecoration(labelText: 'Piezas'),
+                                  keyboardType: TextInputType.number,
+                                ),
+                              ],
+                            ),
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                              },
+                              child: const Text('Cancelar'),
+                            ),
+                            ElevatedButton(
+                              onPressed: () {
+                                _addCarga();
+                                Navigator.of(context).pop();
+                              },
+                              child: const Text('Añadir'),
+                            ),
+                          ],
+                        );
+                      },
+                    );
+                  },
+                  child: const Text('Añadir Carga'),
+                ),
+              ],
+            ),
           ),
           Expanded(
             child: StreamBuilder<QuerySnapshot>(
@@ -59,6 +283,11 @@ class _CargasPageState extends State<CargasPage> {
                 if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
                   return const Center(child: Text('No hay cargas disponibles'));
                 }
+                var filteredDocs = snapshot.data!.docs.where((doc) {
+                  var id = doc.id.toLowerCase();
+                  var searchQuery = _searchController.text.toLowerCase();
+                  return id.contains(searchQuery);
+                }).toList();
                 return SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
                   child: Padding(
@@ -105,33 +334,46 @@ class _CargasPageState extends State<CargasPage> {
                                   style:
                                       TextStyle(fontWeight: FontWeight.bold))),
                         ],
-                        rows: snapshot.data!.docs
-                            .map((DocumentSnapshot document) {
+                        rows: filteredDocs.map((DocumentSnapshot document) {
                           Map<String, dynamic>? data =
                               document.data() as Map<String, dynamic>?;
-                          if (data == null)
+                          if (data == null) {
                             return const DataRow(cells: [
                               DataCell(Text('Error al cargar datos'))
                             ]);
+                          }
 
                           Future<String> estatusFuture =
-                              data['EstatusID'] is DocumentReference
+                              data['estatus_id'] is DocumentReference
                                   ? getDocumentName(
-                                      data['EstatusID'] as DocumentReference)
+                                      data['estatus_id'] as DocumentReference)
                                   : Future.value(
-                                      data['EstatusID'] ?? 'Desconocido');
+                                      data['estatus_id'] ?? 'Desconocido');
 
                           Future<String> modalidadFuture =
-                              data['Modalidad'] is DocumentReference
+                              data['modalidad'] is DocumentReference
                                   ? getDocumentName(
-                                      data['Modalidad'] as DocumentReference)
+                                      data['modalidad'] as DocumentReference)
                                   : Future.value(
-                                      data['Modalidad'] ?? 'Desconocido');
+                                      data['modalidad'] ?? 'Desconocido');
 
                           return DataRow(cells: [
-                            DataCell(Text(document.id)),
-                            DataCell(Text(formatDate(data['Fecha_Inicial']))),
-                            DataCell(Text(formatDate(data['Fecha_Final']))),
+                            DataCell(
+                              InkWell(
+                                child: Text(
+                                  document.id,
+                                  style: const TextStyle(
+                                    color: Colors.blue,
+                                    decoration: TextDecoration.underline,
+                                  ),
+                                ),
+                                onTap: () {
+                                  Navigator.pushNamed(context, '/cargoPage', arguments: document.id);
+                                },
+                              ),
+                            ),
+                            DataCell(Text(formatDate(data['fecha_inicial']))),
+                            DataCell(Text(formatDate(data['fecha_final']))),
                             DataCell(FutureBuilder<String>(
                               future: estatusFuture,
                               builder: (context, snapshot) {
@@ -152,8 +394,8 @@ class _CargasPageState extends State<CargasPage> {
                                 return Text(snapshot.data ?? 'Desconocido');
                               },
                             )),
-                            DataCell(Text(data['Peso'].toString())),
-                            DataCell(Text(data['Piezas'].toString())),
+                            DataCell(Text(data['peso']?.toString() ?? 'Desconocido')),
+                            DataCell(Text(data['piezas']?.toString() ?? 'Desconocido')),
                           ]);
                         }).toList(),
                       ),

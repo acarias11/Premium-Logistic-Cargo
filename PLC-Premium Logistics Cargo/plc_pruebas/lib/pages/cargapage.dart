@@ -4,60 +4,83 @@ import 'package:data_table_2/data_table_2.dart';
 import 'package:intl/intl.dart';
 import 'package:plc_pruebas/services/firestore.dart';
 
-import '../services/firestore.dart';
-
-class CargoPage extends StatelessWidget {
+class CargoPage extends StatefulWidget {
   final String cargaId;
 
   CargoPage({super.key, required this.cargaId});
 
+  @override
+  _CargoPageState createState() => _CargoPageState();
+}
+
+class _CargoPageState extends State<CargoPage> {
   final FirestoreService firestoreService = FirestoreService();
 
   Stream<QuerySnapshot> getWarehousesByCargoId() {
-    return firestoreService.getWarehousesCarga(cargaId);
+    return firestoreService.getWarehousesCarga(widget.cargaId);
+  }
+
+  List<DropdownMenuItem<String>> estatusItems = [];
+  List<DropdownMenuItem<String>> modalidadItems = [];
+  List<DropdownMenuItem<String>> clientItems = [];
+  String? selectedEstatus;
+  String? selectedModalidad;
+  String? selectedClientId;
+
+  Future<void> _loadClientes() async {
+    QuerySnapshot snapshot = await firestoreService.getClientes('').first;
+    setState(() {
+      clientItems = snapshot.docs.map((DocumentSnapshot document) {
+        String nombre = document['nombre'] ?? 'Desconocido';
+        String apellido = document['apellido'] ?? '';
+        String numeroIdentidad = document['numero_identidad'] ?? '';
+        return DropdownMenuItem<String>(
+          value: document.id,
+          child: Text('$nombre $apellido ($numeroIdentidad)'),
+        );
+      }).toList();
+      selectedClientId = clientItems.isNotEmpty ? clientItems[0].value : null;
+    });
+  }
+
+  Future<void> _loadEstatus() async {
+    QuerySnapshot snapshot = await firestoreService.getEstatus().first;
+    setState(() {
+      estatusItems = snapshot.docs.map((DocumentSnapshot document) {
+        return DropdownMenuItem<String>(
+          value: document.id,
+          child: Text(document['Nombre']),
+        );
+      }).toList();
+      selectedEstatus = estatusItems.isNotEmpty ? estatusItems[0].value : null;
+    });
+  }
+
+  Future<void> _loadModalidades() async {
+    QuerySnapshot snapshot = await firestoreService.getModalidades().first;
+    setState(() {
+      modalidadItems = snapshot.docs.map((DocumentSnapshot document) {
+        return DropdownMenuItem<String>(
+          value: document.id,
+          child: Text(document['Nombre']),
+        );
+      }).toList();
+      selectedModalidad = modalidadItems.isNotEmpty ? modalidadItems[0].value : null;
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _loadClientes();
+    _loadEstatus();
+    _loadModalidades();
   }
 
   Future<void> createWarehouse(BuildContext context) async {
     TextEditingController direccionController = TextEditingController();
     TextEditingController pesoController = TextEditingController();
     TextEditingController piezasController = TextEditingController();
-    String? selectedEstatus;
-    String? selectedModalidad;
-    String? selectedClientId;
-
-    List<DropdownMenuItem<String>> estatusItems = [];
-    List<DropdownMenuItem<String>> modalidadItems = [];
-    List<DropdownMenuItem<String>> clientItems = [];
-
-    // Fetch Estatus and Modalidad from Firestore
-    QuerySnapshot estatusSnapshot = await firestoreService.getEstatus().first;
-    QuerySnapshot modalidadSnapshot =
-        await firestoreService.getModalidades().first;
-    QuerySnapshot clientsSnapshot = await firestoreService.getClientes('').first;
-
-    estatusItems = estatusSnapshot.docs.map((DocumentSnapshot document) {
-      return DropdownMenuItem<String>(
-        value: document.id,
-        child: Text(document['Nombre']),
-      );
-    }).toList();
-
-    modalidadItems = modalidadSnapshot.docs.map((DocumentSnapshot document) {
-      return DropdownMenuItem<String>(
-        value: document.id,
-        child: Text(document['Nombre']),
-      );
-    }).toList();
-
-    clientItems = clientsSnapshot.docs.map((DocumentSnapshot document) {
-      String nombre = document['nombre'] ?? 'Desconocido';
-      String apellido = document['apellido'] ?? '';
-      String numeroIdentidad = document['numero_identidad'] ?? '';
-      return DropdownMenuItem<String>(
-        value: document.id,
-        child: Text('$nombre $apellido ($numeroIdentidad)'),
-      );
-    }).toList();
 
     await showDialog(
       context: context,
@@ -130,7 +153,7 @@ class CargoPage extends StatelessWidget {
                         selectedModalidad != null &&
                         selectedClientId != null) {
                       await firestoreService.addWarehouse(
-                        cargaId,
+                        widget.cargaId,
                         selectedClientId!,
                         direccionController.text,
                         selectedEstatus!,

@@ -17,6 +17,7 @@ class _WarehousePageState extends State<WarehousePage> {
   final FirestoreService firestoreService = FirestoreService();
   final SidebarXController _sidebarXController =
       SidebarXController(selectedIndex: 0);
+  String _searchTerm = '';
 
   Stream<QuerySnapshot> getWare() {
     return firestoreService.getWarehouses();
@@ -72,6 +73,21 @@ class _WarehousePageState extends State<WarehousePage> {
                 const Text('Warehouse', style: TextStyle(color: Colors.white)),
             backgroundColor: Colors.orange.shade700,
           ),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: TextField(
+              decoration: const InputDecoration(
+                hintText: 'Buscar por warehouse_id, carga_id o cliente_id',
+                prefixIcon: Icon(Icons.search),
+                border: OutlineInputBorder(),
+              ),
+              onChanged: (value) {
+                setState(() {
+                  _searchTerm = value;
+                });
+              },
+            ),
+          ),
           Expanded(
             child: StreamBuilder<QuerySnapshot>(
               stream: getWare(),
@@ -88,6 +104,20 @@ class _WarehousePageState extends State<WarehousePage> {
                   return const Center(
                       child: Text('No hay almacenes disponibles'));
                 }
+
+                final filteredDocs = snapshot.data!.docs.where((document) {
+                  final data = document.data() as Map<String, dynamic>? ?? {};
+                  final whId = document['warehouse_id']
+                      .toString()
+                      .toLowerCase();
+                  final cargaId = data['carga_id']?.toString().toLowerCase() ?? '';
+                  final clientId = data['cliente_id']?.toString().toLowerCase() ?? '';
+                  final search = _searchTerm.toLowerCase();
+                  return search.isEmpty ||
+                      whId.contains(search) ||
+                      cargaId.contains(search) ||
+                      clientId.contains(search);
+                }).toList();
 
                 return SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
@@ -143,8 +173,7 @@ class _WarehousePageState extends State<WarehousePage> {
                                   style:
                                       TextStyle(fontWeight: FontWeight.bold))),
                         ],
-                        rows: snapshot.data!.docs
-                            .map((DocumentSnapshot document) {
+                        rows: filteredDocs.map((DocumentSnapshot document) {
                           Map<String, dynamic>? data =
                               document.data() as Map<String, dynamic>?;
                           if (data == null) {
