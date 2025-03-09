@@ -45,7 +45,7 @@ class HomePage extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Image.asset(
-                  'lib/assets/PLC.png', // imagen
+                  'assets/logo_PLC.jpg', // imagen
                   height: 200,
                   width: 200,
                 ),
