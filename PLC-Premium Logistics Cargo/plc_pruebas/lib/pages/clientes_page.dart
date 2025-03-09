@@ -322,7 +322,7 @@ class _ClientesPageState extends State<ClientesPage> {
                           headingTextStyle: const TextStyle(
                               fontWeight: FontWeight.bold, color: Colors.white),
                           dataRowColor:
-                              MaterialStateProperty.resolveWith<Color>(
+                              WidgetStateProperty.resolveWith<Color>(
                                   (states) =>
                                       Colors.orange.shade700.withOpacity(0.2)),
                           columns: const [

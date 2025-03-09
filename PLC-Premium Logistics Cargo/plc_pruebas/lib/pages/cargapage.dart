@@ -7,7 +7,7 @@ import 'package:plc_pruebas/services/firestore.dart';
 class CargoPage extends StatefulWidget {
   final String cargaId;
 
-  CargoPage({super.key, required this.cargaId});
+  const CargoPage({super.key, required this.cargaId});
 
   @override
   _CargoPageState createState() => _CargoPageState();

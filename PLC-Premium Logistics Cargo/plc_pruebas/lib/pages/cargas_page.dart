@@ -23,13 +23,13 @@ class _CargasPageState extends State<CargasPage> {
   final SidebarXController _sidebarXController =
       SidebarXController(selectedIndex: 0);
 
-  TextEditingController _searchController = TextEditingController();
-  TextEditingController _fechaInicialController = TextEditingController();
-  TextEditingController _fechaFinalController = TextEditingController();
-  TextEditingController _entregaInicialController = TextEditingController();
-  TextEditingController _entregaFinalController = TextEditingController();
-  TextEditingController _pesoController = TextEditingController();
-  TextEditingController _piezasController = TextEditingController();
+  final TextEditingController _searchController = TextEditingController();
+  final TextEditingController _fechaInicialController = TextEditingController();
+  final TextEditingController _fechaFinalController = TextEditingController();
+  final TextEditingController _entregaInicialController = TextEditingController();
+  final TextEditingController _entregaFinalController = TextEditingController();
+  final TextEditingController _pesoController = TextEditingController();
+  final TextEditingController _piezasController = TextEditingController();
 
   List<String> estatuses = [];
   List<String> modalidades = [];

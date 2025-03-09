@@ -2,6 +2,7 @@
 import 'package:plc_pruebas/pages/home_page.dart';
 import 'package:plc_pruebas/pages/paquetes_page.dart';
 import 'package:plc_pruebas/pages/quejas_page.dart';
+import 'package:plc_pruebas/pages/reportes_page.dart';
 //import 'package:plc_pruebas/pages/usuarios_page.dart';
 import 'package:plc_pruebas/pages/warehouse_page.dart';
 import 'package:flutter/material.dart';
@@ -31,6 +32,7 @@ class Sidebar extends StatelessWidget {
             borderRadius: BorderRadius.circular(20),
           ),
           hoverColor: const Color(0xFF464667),
+          // ignore: deprecated_member_use
           textStyle: TextStyle(color: Colors.white.withOpacity(0.7)),
           selectedTextStyle: const TextStyle(color: Colors.white),
           hoverTextStyle: const TextStyle(
@@ -46,6 +48,7 @@ class Sidebar extends StatelessWidget {
           selectedItemDecoration: BoxDecoration(
             borderRadius: BorderRadius.circular(10),
             border: Border.all(
+              // ignore: deprecated_member_use
               color: const Color(0xFF5F5FA7).withOpacity(0.6).withOpacity(0.37),
             ),
             gradient: const LinearGradient(
@@ -53,12 +56,14 @@ class Sidebar extends StatelessWidget {
             ),
             boxShadow: [
               BoxShadow(
+                // ignore: deprecated_member_use
                 color: Colors.black.withOpacity(0.28),
                 blurRadius: 30,
               )
             ],
           ),
           iconTheme: IconThemeData(
+            // ignore: deprecated_member_use
             color: Colors.white.withOpacity(0.7),
             size: 20,
           ),
@@ -128,6 +133,17 @@ class Sidebar extends StatelessWidget {
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(builder: (context) => const QuejasPage()),
+              );
+            },
+          ),
+          SidebarXItem(
+            icon: Icons.insert_chart,
+            label: 'Reportes',
+            onTap: () {
+              debugPrint('Reportes');
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => const ReportesPage()),
               );
             },
           ),

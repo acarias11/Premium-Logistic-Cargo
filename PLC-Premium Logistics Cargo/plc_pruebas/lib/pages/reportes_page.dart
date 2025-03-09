@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:plc_pruebas/pages/reportes_page.dart';
-import 'package:plc_pruebas/widgets/sidebar.dart';
 import 'package:sidebarx/sidebarx.dart';
-import 'package:plc_pruebas/pages/clientes_page.dart';
-import 'package:plc_pruebas/pages/paquetes_page.dart';
-import 'package:plc_pruebas/pages/warehouse_page.dart';
-import 'package:plc_pruebas/pages/cargas_page.dart';
+import 'package:plc_pruebas/widgets/sidebar.dart';
+//import 'package:plc_pruebas/pages/reports/rcasilleros_page.dart';
 
-class HomePage extends StatelessWidget {
-  HomePage({super.key});
+class ReportesPage extends StatefulWidget {
+  const ReportesPage({super.key});
 
+  @override
+  _ReportesPageState createState() => _ReportesPageState();
+}
+
+class _ReportesPageState extends State<ReportesPage> {
   final SidebarXController _sidebarXController =
       SidebarXController(selectedIndex: 0);
 
@@ -17,17 +18,10 @@ class HomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        title: const Text('Reportes'),
         backgroundColor: Colors.blue.shade900,
-        title: const Text(
-          'Premium Logistics Cargo',
-          style: TextStyle(color: Colors.white),
-        ),
-        centerTitle: true,
       ),
-      drawer: Sidebar(
-        selectedIndex: 0,
-        controller: _sidebarXController,
-      ),
+      drawer: Sidebar(selectedIndex: 5, controller: _sidebarXController),
       body: Container(
         width: double.infinity,
         height: double.infinity,
@@ -42,32 +36,29 @@ class HomePage extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
-              // Logo
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Image.asset(
-                  'assets/logo_PLC.jpg', // imagen
-                  height: 200,
-                  width: 200,
-                ),
-              ),
-              const SizedBox(height: 20),
-              // Buttons Section
+              // First Row of Buttons
               Wrap(
                 spacing: 20,
                 runSpacing: 20,
                 alignment: WrapAlignment.center,
                 children: [
-                  _buildStyledButton(context, 'Paquetes', Icons.local_shipping,
-                      const PaquetesPage()),
-                  _buildStyledButton(context, 'Warehouse', Icons.warehouse,
-                      const WarehousePage()),
-                  _buildStyledButton(context, 'Cargas', Icons.airplane_ticket,
-                      const CargasPage()),
-                  _buildStyledButton(
-                      context, 'Cliente', Icons.person, const ClientesPage()),
-                  _buildStyledButton(
-                      context, 'Reportes', Icons.insert_chart, null),
+                  _buildStyledButton(context, 'Casilleros Mensuales', Icons.calendar_today, null),
+                  _buildStyledButton(context, 'Reporte Gráfico de Modalidad', Icons.bar_chart, null),
+                  _buildStyledButton(context, 'Email Estados', Icons.email, null),
+                  _buildStyledButton(context, 'Usuarios Activos e Inactivos', Icons.people, null),
+                ],
+              ),
+              const SizedBox(height: 20),
+              // Second Row of Buttons
+              Wrap(
+                spacing: 20,
+                runSpacing: 20,
+                alignment: WrapAlignment.center,
+                children: [
+                  _buildStyledButton(context, 'Registro de Quejas', Icons.report_problem, null),
+                  _buildStyledButton(context, 'Promedios', Icons.show_chart, null),
+                  _buildStyledButton(context, 'Clientes Frecuentes', Icons.star, null),
+                  _buildStyledButton(context, 'Clientes para Eliminar', Icons.delete, null),
                 ],
               ),
             ],
@@ -77,8 +68,7 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  Widget _buildStyledButton(
-      BuildContext context, String title, IconData icon, Widget? page) {
+  Widget _buildStyledButton(BuildContext context, String title, IconData icon, Widget? page) {
     return ElevatedButton(
       style: ElevatedButton.styleFrom(
         backgroundColor: Colors.orange.shade700,
@@ -97,11 +87,11 @@ class HomePage extends StatelessWidget {
             MaterialPageRoute(builder: (context) => page),
           );
         } else {
-          // Comentado porque la página de reportes aún no está creada
-           Navigator.push(
-             context,
-             MaterialPageRoute(builder: (context) => const ReportesPage()),
-           );
+          // Comentado porque aún no hay funcionalidad
+          // Navigator.push(
+          //   context,
+          //   MaterialPageRoute(builder: (context) => SomePage()),
+          // );
         }
       },
       child: Column(
@@ -112,6 +102,7 @@ class HomePage extends StatelessWidget {
           Text(
             title,
             style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            textAlign: TextAlign.center,
           ),
         ],
       ),

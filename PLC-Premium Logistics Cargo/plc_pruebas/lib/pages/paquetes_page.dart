@@ -369,7 +369,7 @@ class _PaquetesPageState extends State<PaquetesPage> {
                     minWidth: 600,
                     headingTextStyle: const TextStyle(
                         fontWeight: FontWeight.bold, color: Colors.white),
-                    dataRowColor: MaterialStateProperty.resolveWith<Color>(
+                    dataRowColor: WidgetStateProperty.resolveWith<Color>(
                         (states) => Colors.orange.shade700.withOpacity(0.2)),
                     columns: const [
                       DataColumn(label: Text('ID')),
