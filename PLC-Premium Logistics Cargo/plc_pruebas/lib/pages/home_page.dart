@@ -6,11 +6,6 @@ import 'package:plc_pruebas/pages/paquetes_page.dart';
 import 'package:plc_pruebas/pages/warehouse_page.dart';
 import 'package:plc_pruebas/pages/cargas_page.dart';
 
-import '../widgets/sidebar.dart';
-import 'cargas_page.dart';
-import 'paquetes_page.dart';
-import 'warehouse_page.dart';
-
 class HomePage extends StatelessWidget {
   HomePage({super.key});
 

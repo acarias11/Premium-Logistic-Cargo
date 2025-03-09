@@ -8,11 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:sidebarx/sidebarx.dart';
 import 'package:plc_pruebas/pages/cargas_page.dart';
 
-import '../pages/cargas_page.dart';
-import '../pages/home_page.dart';
-import '../pages/paquetes_page.dart';
-import '../pages/quejas_page.dart';
-import '../pages/warehouse_page.dart';
+
 //rehacerlo integrando la dependencia sidebarx
 
 class Sidebar extends StatelessWidget {

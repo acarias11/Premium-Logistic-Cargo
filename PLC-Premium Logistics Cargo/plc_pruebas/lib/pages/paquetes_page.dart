@@ -10,6 +10,7 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:flutter/services.dart' show rootBundle;
 
 class PaquetesPage extends StatefulWidget {
   const PaquetesPage({super.key});
@@ -21,8 +22,7 @@ class _PaquetesPageState extends State<PaquetesPage> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirestoreService firestoreService = FirestoreService();
   final ControladorPaquetes controladorPaquete = ControladorPaquetes();
-  final SidebarXController _sidebarXController =
-      SidebarXController(selectedIndex: 0);
+  final SidebarXController _sidebarXController = SidebarXController(selectedIndex: 0);
   final TextEditingController _searchController = TextEditingController();
   String _searchText = '';
 
@@ -43,8 +43,7 @@ class _PaquetesPageState extends State<PaquetesPage> {
   Future<void> _loadModalidades() async {
     QuerySnapshot snapshot = await firestoreService.modalidad.get();
     setState(() {
-      modalidades =
-          snapshot.docs.map((doc) => doc['Nombre'].toString()).toList();
+      modalidades = snapshot.docs.map((doc) => doc['Nombre'].toString()).toList();
       modalidadEnvio = modalidades.isNotEmpty ? modalidades[0] : null;
     });
   }
@@ -62,8 +61,7 @@ class _PaquetesPageState extends State<PaquetesPage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title:
-            const Text('Nuevo Paquete', style: TextStyle(color: Colors.blue)),
+        title: const Text('Nuevo Paquete', style: TextStyle(color: Colors.blue)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
@@ -106,8 +104,7 @@ class _PaquetesPageState extends State<PaquetesPage> {
               items: tipos.map<DropdownMenuItem<String>>((String value) {
                 return DropdownMenuItem<String>(
                   value: value,
-                  child:
-                      Text(value, style: const TextStyle(color: Colors.blue)),
+                  child: Text(value, style: const TextStyle(color: Colors.blue)),
                 );
               }).toList(),
             ),
@@ -121,8 +118,7 @@ class _PaquetesPageState extends State<PaquetesPage> {
               items: modalidades.map<DropdownMenuItem<String>>((String value) {
                 return DropdownMenuItem<String>(
                   value: value,
-                  child:
-                      Text(value, style: const TextStyle(color: Colors.blue)),
+                  child: Text(value, style: const TextStyle(color: Colors.blue)),
                 );
               }).toList(),
             ),
@@ -133,17 +129,14 @@ class _PaquetesPageState extends State<PaquetesPage> {
             onPressed: () {
               Navigator.of(context).pop();
             },
-            child:
-                const Text('Cancelar', style: TextStyle(color: Colors.orange)),
+            child: const Text('Cancelar', style: TextStyle(color: Colors.orange)),
           ),
           TextButton(
             onPressed: () {
-              double peso =
-                  double.tryParse(controladorPaquete.pesoController.text) ?? -1;
+              double peso = double.tryParse(controladorPaquete.pesoController.text) ?? -1;
               if (peso <= 0) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                      content: Text('El peso debe ser un número mayor que 0')),
+                  const SnackBar(content: Text('El peso debe ser un número mayor que 0')),
                 );
                 return;
               }
@@ -183,6 +176,18 @@ class _PaquetesPageState extends State<PaquetesPage> {
     final paquetes = await _firestore.collection('Paquetes').get();
 
     final monthName = DateFormat.MMMM('es').format(DateTime.now());
+    final currentMonth = DateTime.now().month;
+
+    // Cargar la imagen desde los assets
+    final imageLogo = pw.MemoryImage(
+      (await rootBundle.load('assets/logo_PLC.jpg')).buffer.asUint8List(),
+    );
+
+    final paquetesFiltrados = paquetes.docs.where((doc) {
+      final data = doc.data();
+      final fecha = (data['Fecha'] as Timestamp).toDate();
+      return fecha.month == currentMonth;
+    }).toList();
 
     pdf.addPage(
       pw.Page(
@@ -192,22 +197,15 @@ class _PaquetesPageState extends State<PaquetesPage> {
               pw.Row(
                 mainAxisAlignment: pw.MainAxisAlignment.center,
                 children: [
-                  pw.Container(
-                    height: 50,
-                    width: 50,
-                    color: PdfColors.grey300,
-                    child: pw.Center(child: pw.Text('Logo')),
-                  ),
-                  pw.SizedBox(width: 10),
-                  pw.Text('PLC', style: const pw.TextStyle(fontSize: 20)),
+                  pw.Image(imageLogo, height: 100, width: 70),
                 ],
               ),
               pw.SizedBox(height: 20),
               pw.Text(
-                'Durante el mes de $monthName, se llevó a cabo el registro y creación de paquetes dentro del sistema,'
-                'con un total de ${paquetes.size} paquetes generados en este período. \n'
-                'Este reporte detalla la cantidad de paquetes creados, permitiendo un mejor control y'
-                'seguimiento de la logística y gestión operativa. La información recopilada servirá para'
+                'Durante el mes de $monthName, se llevó a cabo el registro y creación de paquetes dentro del sistema,' 
+                'con un total de ${paquetesFiltrados.length} paquetes generados en este período. \n' 
+                'Este reporte detalla la cantidad de paquetes creados, permitiendo un mejor control y' 
+                'seguimiento de la logística y gestión operativa. La información recopilada servirá para' 
                 'evaluar el rendimiento y la eficiencia en la administración de paquetes, así como para '
                 'identificar posibles mejoras en los procesos de almacenamiento y distribución.',
                 style: const pw.TextStyle(fontSize: 12),
@@ -215,8 +213,8 @@ class _PaquetesPageState extends State<PaquetesPage> {
               pw.SizedBox(height: 20),
               // ignore: deprecated_member_use
               pw.Table.fromTextArray(
-                headers: ['ID', 'Warehouse ID', 'Peso'],
-                data: paquetes.docs.map((doc) {
+                headers: ['ID', 'Warehouse ID', 'Peso', 'Fecha'],
+                data: paquetesFiltrados.map((doc) {
                   final data = doc.data();
                   String warehouseId = "Desconocido";
                   if (data['WarehouseID'] is DocumentReference) {
@@ -224,10 +222,13 @@ class _PaquetesPageState extends State<PaquetesPage> {
                   } else if (data['WarehouseID'] is String) {
                     warehouseId = data['WarehouseID'];
                   }
+                  final fecha = (data['Fecha'] as Timestamp).toDate();
+                  final fechaFormateada = DateFormat('dd/MM/yyyy').format(fecha);
                   return [
-                    doc.id,
+                    data['paquete_id']?.toString() ?? 'Sin ID',
                     warehouseId,
                     '${data['Peso']?.toString() ?? 'Sin peso'} kg',
+                    fechaFormateada,
                   ];
                 }).toList(),
               ),
@@ -303,17 +304,14 @@ class _PaquetesPageState extends State<PaquetesPage> {
             return const Center(child: Text('No hay paquetes disponibles'));
           }
 
-          var filteredDocs =
-              snapshot.data!.docs.where((DocumentSnapshot document) {
-            Map<String, dynamic>? data =
-                document.data() as Map<String, dynamic>?;
+          var filteredDocs = snapshot.data!.docs.where((DocumentSnapshot document) {
+            Map<String, dynamic>? data = document.data() as Map<String, dynamic>?;
             if (data == null) return false;
 
             String paqueteId = data['paquete_id']?.toString() ?? '';
             String warehouseId = data['WarehouseID']?.toString() ?? '';
 
-            return paqueteId.contains(_searchText) ||
-                warehouseId.contains(_searchText);
+            return paqueteId.contains(_searchText) || warehouseId.contains(_searchText);
           }).toList();
 
           return SingleChildScrollView(
@@ -321,9 +319,7 @@ class _PaquetesPageState extends State<PaquetesPage> {
             child: Padding(
               padding: const EdgeInsets.all(8.0),
               child: SizedBox(
-                width: MediaQuery.of(context)
-                    .size
-                    .width, // Asegura que el DataTable2 tenga un ancho adecuado
+                width: MediaQuery.of(context).size.width, // Asegura que el DataTable2 tenga un ancho adecuado
                 child: DataTable2(
                   columnSpacing: 12,
                   horizontalMargin: 12,
@@ -334,27 +330,21 @@ class _PaquetesPageState extends State<PaquetesPage> {
                     DataColumn(label: Text('Peso')),
                   ],
                   rows: filteredDocs.map((DocumentSnapshot document) {
-                    Map<String, dynamic>? data =
-                        document.data() as Map<String, dynamic>?;
+                    Map<String, dynamic>? data = document.data() as Map<String, dynamic>?;
 
-                    if (data == null)
-                      return const DataRow(
-                          cells: [DataCell(Text('Error al cargar datos'))]);
+                    if (data == null) return const DataRow(cells: [DataCell(Text('Error al cargar datos'))]);
 
                     String warehouseId = "Desconocido";
                     if (data['WarehouseID'] is DocumentReference) {
-                      warehouseId =
-                          (data['WarehouseID'] as DocumentReference).id;
+                      warehouseId = (data['WarehouseID'] as DocumentReference).id;
                     } else if (data['WarehouseID'] is String) {
                       warehouseId = data['WarehouseID'];
                     }
 
                     return DataRow(cells: [
-                      DataCell(
-                          Text(data['paquete_id']?.toString() ?? 'Sin ID')),
+                      DataCell(Text(data['paquete_id']?.toString() ?? 'Sin ID')),
                       DataCell(Text(warehouseId)),
-                      DataCell(
-                          Text('${data['Peso']?.toString() ?? 'Sin peso'} kg')),
+                      DataCell(Text('${data['Peso']?.toString() ?? 'Sin peso'} kg')),
                     ]);
                   }).toList(),
                 ),

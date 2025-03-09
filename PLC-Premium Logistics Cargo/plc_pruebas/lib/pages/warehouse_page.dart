@@ -5,6 +5,11 @@ import 'package:intl/intl.dart';
 import 'package:plc_pruebas/services/firestore.dart';
 import 'package:plc_pruebas/widgets/sidebar.dart';
 import 'package:sidebarx/sidebarx.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:pdf/pdf.dart';
+import 'package:printing/printing.dart';
+import 'package:intl/date_symbol_data_local.dart';
+import 'package:flutter/services.dart' show rootBundle;
 
 class WarehousePage extends StatefulWidget {
   const WarehousePage({super.key});
@@ -18,6 +23,13 @@ class _WarehousePageState extends State<WarehousePage> {
   final SidebarXController _sidebarXController =
       SidebarXController(selectedIndex: 0);
   String _searchTerm = '';
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  @override
+  void initState() {
+    super.initState();
+    initializeDateFormatting('es', null); // Inicializar la configuración regional
+  }
 
   Stream<QuerySnapshot> getWare() {
     return firestoreService.getWarehouses();
@@ -60,6 +72,91 @@ class _WarehousePageState extends State<WarehousePage> {
       return fullName.isEmpty ? 'Desconocido' : fullName;
     }
     return 'Desconocido';
+  }
+
+  Future<void> generatePdf() async {
+    try {
+      final pdf = pw.Document();
+
+      final warehouses = await _firestore.collection('Warehouse').get();
+
+      final monthName = DateFormat.MMMM('es').format(DateTime.now());
+      final currentMonth = DateTime.now().month;
+
+      final imageLogo = pw.MemoryImage(
+        (await rootBundle.load('assets/logo_PLC.jpg')).buffer.asUint8List(),
+      );
+
+      final warehousesFiltrados = warehouses.docs.where((doc) {
+        final data = doc.data();
+        final fecha = (data['fecha'] as Timestamp).toDate();
+        return fecha.month == currentMonth;
+      }).toList();
+
+      pdf.addPage(
+        pw.Page(
+          build: (pw.Context context) {
+            return pw.Column(
+              children: [
+                pw.Row(
+                  mainAxisAlignment: pw.MainAxisAlignment.center,
+                  children: [
+                    pw.Image(imageLogo, height: 100, width: 70),
+                  ],
+                ),
+                pw.SizedBox(height: 20),
+                pw.Text(
+                  'Warehouses creados en el mes de $monthName',
+                  style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold),
+                ),
+                pw.SizedBox(height: 10),
+                pw.Text(
+                  'Total de warehouses creados: ${warehousesFiltrados.length}',
+                  style: const pw.TextStyle(fontSize: 14),
+                ),
+                pw.SizedBox(height: 20),
+                // ignore: deprecated_member_use
+                pw.Table.fromTextArray(
+                  headers: ['WarehouseID', 'CargaID', 'Nombre del cliente', 'Dirección', 'Estatus', 'Fecha de creación', 'Modalidad', 'Peso', 'Paquetes'],
+                  data: warehousesFiltrados.map((doc) {
+                    final data = doc.data();
+                    final fecha = (data['fecha'] as Timestamp).toDate();
+                    return [
+                      data['warehouse_id'] ?? 'Desconocido',
+                      data['carga_id'] ?? 'Desconocido',
+                      data['cliente_id'] ?? 'Desconocido',
+                      data['direccion'] ?? 'Desconocido',
+                      data['estatus_id'] ?? 'Desconocido',
+                      DateFormat('dd/MM/yyyy').format(fecha),
+                      data['modalidad'] ?? 'Desconocido',
+                      data['peso_total']?.toString() ?? 'Desconocido',
+                      data['piezas']?.toString() ?? 'Desconocido',
+                    ];
+                  }).toList(),
+                ),
+                pw.Spacer(),
+                pw.Container(
+                  color: PdfColors.blue,
+                  height: 50,
+                  child: pw.Center(
+                    child: pw.Text(
+                      'Premium Logistics Cargo',
+                      style: const pw.TextStyle(color: PdfColors.white),
+                    ),
+                  ),
+                ),
+              ],
+            );
+          },
+        ),
+      );
+
+      await Printing.layoutPdf(
+        onLayout: (PdfPageFormat format) async => pdf.save(),
+      );
+    } catch (e) {
+      print('Error generating PDF: $e');
+    }
   }
 
   @override
@@ -221,6 +318,10 @@ class _WarehousePageState extends State<WarehousePage> {
             ),
           ),
         ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: generatePdf,
+        child: const Icon(Icons.picture_as_pdf),
       ),
     );
   }
