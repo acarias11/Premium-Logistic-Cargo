@@ -21,128 +21,93 @@ class HomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Premium Logistics Cargo'),
+        backgroundColor: Colors.blue.shade900,
+        title: const Text(
+          'Premium Logistics Cargo',
+          style: TextStyle(color: Colors.white),
+        ),
+        centerTitle: true,
       ),
       drawer: Sidebar(
         selectedIndex: 0,
         controller: _sidebarXController,
       ),
-      body: SingleChildScrollView(
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Colors.blue.shade900, Colors.orange.shade700],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
         child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
+              // Logo
               Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8.0),
-                    ),
-                    minimumSize: const Size(150, 150), // Tamaño cuadrado
-                  ),
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => const PaquetesPage()),
-                    );
-                  },
-                  child: const Text('Paquetes'),
-                  // child: Column(
-                  //   mainAxisAlignment: MainAxisAlignment.center,
-                  //   children: [
-                  //     Image.asset('assets/paquetes.png', height: 80), // Imagen
-                  //     const SizedBox(height: 8),
-                  //     const Text('Paquetes'),
-                  //   ],
-                  // ),
+                padding: const EdgeInsets.all(16.0),
+                child: Image.asset(
+                  'lib/assets/PLC.png', // imagen
+                  height: 200,
+                  width: 200,
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8.0),
-                    ),
-                    minimumSize: const Size(150, 150), // Tamaño cuadrado
-                  ),
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => const WarehousePage()),
-                    );
-                  },
-                  child: const Text('Warehouse'),
-                  // child: Column(
-                  //   mainAxisAlignment: MainAxisAlignment.center,
-                  //   children: [
-                  //     Image.asset('assets/warehouse.png', height: 80), // Imagen
-                  //     const SizedBox(height: 8),
-                  //     const Text('Warehouse'),
-                  //   ],
-                  // ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8.0),
-                    ),
-                    minimumSize: const Size(150, 150), // Tamaño cuadrado
-                  ),
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => const CargasPage()),
-                    );
-                  },
-                  child: const Text('Cargas'),
-                  // child: Column(
-                  //   mainAxisAlignment: MainAxisAlignment.center,
-                  //   children: [
-                  //     Image.asset('assets/cargas.png', height: 80), // Imagen
-                  //     const SizedBox(height: 8),
-                  //     const Text('Cargas'),
-                  //   ],
-                  // ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8.0),
-                    ),
-                    minimumSize: const Size(150, 150), // Tamaño cuadrado
-                  ),
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => const ClientesPage()),
-                    );
-                  },
-                  child: const Text('Cliente'),
-                  // child: Column(
-                  //   mainAxisAlignment: MainAxisAlignment.center,
-                  //   children: [
-                  //     Image.asset('assets/cliente.png', height: 80), // Imagen
-                  //     const SizedBox(height: 8),
-                  //     const Text('Cliente'),
-                  //   ],
-                  // ),
-                ),
+              const SizedBox(height: 20),
+              // Buttons Section
+              Wrap(
+                spacing: 20,
+                runSpacing: 20,
+                alignment: WrapAlignment.center,
+                children: [
+                  _buildStyledButton(context, 'Paquetes', Icons.local_shipping,
+                      const PaquetesPage()),
+                  _buildStyledButton(context, 'Warehouse', Icons.warehouse,
+                      const WarehousePage()),
+                  _buildStyledButton(context, 'Cargas', Icons.airplane_ticket,
+                      const CargasPage()),
+                  _buildStyledButton(
+                      context, 'Cliente', Icons.person, const ClientesPage()),
+                ],
               ),
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildStyledButton(
+      BuildContext context, String title, IconData icon, Widget page) {
+    return ElevatedButton(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Colors.orange.shade700,
+        foregroundColor: Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15.0),
+        ),
+        padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 30),
+        minimumSize: const Size(160, 160),
+        elevation: 5,
+      ),
+      onPressed: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => page),
+        );
+      },
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, size: 50),
+          const SizedBox(height: 10),
+          Text(
+            title,
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+        ],
       ),
     );
   }
