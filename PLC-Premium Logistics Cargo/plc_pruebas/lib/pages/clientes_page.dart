@@ -149,8 +149,8 @@ class _ClientesPageState extends State<ClientesPage> {
         return [
           data['nombre'] ?? 'Sin Nombre',
           data['apellido'] ?? 'Sin Apellido',
-          data['email'] ?? 'Sin Email',
           data['numero_identidad'] ?? 'Sin Número de Identidad',
+          data['email'] ?? 'Sin Email',
           data['telefono'] ?? 'Sin Teléfono',
           data['direccion'] ?? 'Sin Dirección',
           data['ciudad'] ?? 'Sin Ciudad',
@@ -206,7 +206,7 @@ class _ClientesPageState extends State<ClientesPage> {
                         ),
                       )).toList(),
                     );
-                  }).toList(),
+                  }),
                 ],
               )
             ];
@@ -375,8 +375,8 @@ class _ClientesDataSource extends DataTableSource {
     return DataRow(cells: [
       DataCell(Text(data['nombre'] ?? 'Sin Nombre')),
       DataCell(Text(data['apellido'] ?? 'Sin Apellido')),
-      DataCell(Text(data['email'] ?? 'Sin Email')),
       DataCell(Text(data['numero_identidad'] ?? 'Sin Número de Identidad')),
+      DataCell(Text(data['email'] ?? 'Sin Email')),
       DataCell(Text(data['telefono'] ?? 'Sin Teléfono')),
       DataCell(Text(data['direccion'] ?? 'Sin Dirección')),
       DataCell(Text(data['ciudad'] ?? 'Sin Ciudad')),

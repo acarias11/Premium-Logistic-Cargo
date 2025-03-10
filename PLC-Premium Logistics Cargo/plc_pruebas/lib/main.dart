@@ -7,9 +7,11 @@ import 'package:plc_pruebas/pages/clientes_page.dart';
 import 'package:plc_pruebas/pages/home_page.dart';
 import 'package:plc_pruebas/pages/paquetes_page.dart';
 import 'package:plc_pruebas/pages/quejas_page.dart';
+import 'package:plc_pruebas/pages/signIn_page.dart';
+import 'package:plc_pruebas/pages/signUp_page.dart';
 import 'package:plc_pruebas/pages/warehouse_page.dart';
 import 'package:plc_pruebas/pages/prueba_sidebar.dart';
-
+import 'package:plc_pruebas/pages/splash_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -24,9 +26,10 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      initialRoute: '/',
+      initialRoute: '/signIn',
       routes: {
-        '/': (BuildContext context) => HomePage(),
+        '/': (BuildContext context) => SignInPage(),
+        '/home': (BuildContext context) => HomePage(),
         '/warehouse': (BuildContext context) => const WarehousePage(),
         '/cargas': (BuildContext context) => const CargasPage(),
         '/paquetes': (BuildContext context) => const PaquetesPage(),
@@ -38,6 +41,9 @@ class MyApp extends StatelessWidget {
           final args = ModalRoute.of(context)?.settings.arguments as String?;
           return CargoPage(cargaId: args ?? '');
         },
+        '/signIn': (BuildContext context) => SignInPage(),
+        '/signUp': (BuildContext context) => const SignUpPage(),
+        '/splash': (context) => SplashPage(),
       },
     );
   }

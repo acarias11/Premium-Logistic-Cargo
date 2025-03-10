@@ -6,6 +6,7 @@ import 'package:plc_pruebas/pages/clientes_page.dart';
 import 'package:plc_pruebas/pages/paquetes_page.dart';
 import 'package:plc_pruebas/pages/warehouse_page.dart';
 import 'package:plc_pruebas/pages/cargas_page.dart';
+import 'package:firebase_auth/firebase_auth.dart'; // Importar Firebase Auth
 
 class HomePage extends StatelessWidget {
   HomePage({super.key});
@@ -23,6 +24,16 @@ class HomePage extends StatelessWidget {
           style: TextStyle(color: Colors.white),
         ),
         centerTitle: true,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            onPressed: () async {
+              // Lógica para cerrar sesión con Firebase Auth
+              await FirebaseAuth.instance.signOut();
+              Navigator.of(context).pop();
+            },
+          ),
+        ],
       ),
       drawer: Sidebar(
         selectedIndex: 0,
