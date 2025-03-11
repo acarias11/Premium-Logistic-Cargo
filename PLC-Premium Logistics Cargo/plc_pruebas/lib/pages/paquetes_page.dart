@@ -64,15 +64,14 @@ class _PaquetesPageState extends State<PaquetesPage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title:
-            const Text('Nuevo Paquete', style: TextStyle(color: Colors.blue)),
+        title: const Text('Nuevo Paquete', style: TextStyle(color: Colors.blue)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
             TextField(
               controller: controladorPaquete.traking_numberController,
               decoration: const InputDecoration(
-                labelText: 'Traking Number',
+                labelText: 'Tracking Number',
                 labelStyle: TextStyle(color: Colors.orange),
               ),
             ),
@@ -108,8 +107,7 @@ class _PaquetesPageState extends State<PaquetesPage> {
               items: tipos.map<DropdownMenuItem<String>>((String value) {
                 return DropdownMenuItem<String>(
                   value: value,
-                  child:
-                      Text(value, style: const TextStyle(color: Colors.blue)),
+                  child: Text(value, style: const TextStyle(color: Colors.blue)),
                 );
               }).toList(),
             ),
@@ -123,8 +121,7 @@ class _PaquetesPageState extends State<PaquetesPage> {
               items: modalidades.map<DropdownMenuItem<String>>((String value) {
                 return DropdownMenuItem<String>(
                   value: value,
-                  child:
-                      Text(value, style: const TextStyle(color: Colors.blue)),
+                  child: Text(value, style: const TextStyle(color: Colors.blue)),
                 );
               }).toList(),
             ),
@@ -135,38 +132,49 @@ class _PaquetesPageState extends State<PaquetesPage> {
             onPressed: () {
               Navigator.of(context).pop();
             },
-            child:
-                const Text('Cancelar', style: TextStyle(color: Colors.orange)),
+            child: const Text('Cancelar', style: TextStyle(color: Colors.orange)),
           ),
           TextButton(
-            onPressed: () {
-              double peso =
-                  double.tryParse(controladorPaquete.pesoController.text) ?? -1;
+            onPressed: () async {
+              double peso = double.tryParse(controladorPaquete.pesoController.text) ?? -1;
               if (peso <= 0) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                      content: Text('El peso debe ser un número mayor que 0')),
+                  const SnackBar(content: Text('El peso debe ser un número mayor que 0')),
                 );
                 return;
               }
-              firestoreService.addPaquete(
-                controladorPaquete.traking_numberController.text,
-                controladorPaquete.warehouseIDController.text,
-                controladorPaquete.direccionController.text,
-                peso,
-                tipoPaquete!,
-                modalidadEnvio!,
-                controladorPaquete.estatusIDController.text,
-              );
-              controladorPaquete.traking_numberController.clear();
-              controladorPaquete.warehouseIDController.clear();
-              controladorPaquete.direccionController.clear();
-              controladorPaquete.pesoController.clear();
-              setState(() {
-                modalidadEnvio = modalidades.isNotEmpty ? modalidades[0] : null;
-                tipoPaquete = tipos.isNotEmpty ? tipos[0] : null;
-              });
-              Navigator.of(context).pop();
+              if (controladorPaquete.traking_numberController.text.isEmpty ||
+                  controladorPaquete.warehouseIDController.text.isEmpty ||
+                  controladorPaquete.direccionController.text.isEmpty ||
+                  tipoPaquete == null ||
+                  modalidadEnvio == null) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Por favor, complete todos los campos')),
+                );
+                return;
+              }
+              try {
+                await firestoreService.addPaquete(
+                  controladorPaquete.traking_numberController.text,
+                  controladorPaquete.warehouseIDController.text,
+                  controladorPaquete.direccionController.text,
+                  peso,
+                  tipoPaquete!,
+                );
+                controladorPaquete.traking_numberController.clear();
+                controladorPaquete.warehouseIDController.clear();
+                controladorPaquete.direccionController.clear();
+                controladorPaquete.pesoController.clear();
+                setState(() {
+                  modalidadEnvio = modalidades.isNotEmpty ? modalidades[0] : null;
+                  tipoPaquete = tipos.isNotEmpty ? tipos[0] : null;
+                });
+                Navigator.of(context).pop();
+              } catch (e) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Error al agregar el paquete: $e')),
+                );
+              }
             },
             child: const Text('Agregar', style: TextStyle(color: Colors.blue)),
           ),

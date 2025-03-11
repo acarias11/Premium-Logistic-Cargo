@@ -300,13 +300,11 @@ class _ClientesPageState extends State<ClientesPage> {
                       style: TextStyle(color: Colors.white),
                     ));
                   }
-                  var filteredDocs =
-                      snapshot.data!.docs.where((DocumentSnapshot document) {
-                    Map<String, dynamic>? data =
-                        document.data() as Map<String, dynamic>?;
+                  var filteredDocs = snapshot.data!.docs.where((DocumentSnapshot document) {
+                    Map<String, dynamic>? data = document.data() as Map<String, dynamic>?;
                     if (data == null) return false;
-                    String numeroIdentidad =
-                        data['numero_identidad']?.toString() ?? '';
+                    // Convertir el número de identidad a mayúsculas para una comparación correcta
+                    String numeroIdentidad = (data['numero_identidad']?.toString() ?? '').toUpperCase();
                     return numeroIdentidad.contains(_searchText);
                   }).toList();
                   return SingleChildScrollView(
