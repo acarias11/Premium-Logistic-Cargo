@@ -17,73 +17,119 @@ class _SignInPageState extends State<SignInPage> {
     final errorMessage = ModalRoute.of(context)?.settings.arguments as String?;
     return Scaffold(
       appBar: AppBar(
-        title: Text('Inicio de Sesión'),
+        title: const Text('Inicio de Sesión'),
+        backgroundColor: Colors.orange.shade700,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            if (errorMessage != null) ...[
-              Text(
-                errorMessage,
-                style: TextStyle(color: Colors.red),
-              ),
-              SizedBox(height: 16.0),
-            ],
-            TextField(
-              controller: emailController,
-              decoration: InputDecoration(
-                labelText: 'Correo Electrónico',
-                border: OutlineInputBorder(),
-              ),
-            ),
-            SizedBox(height: 16.0),
-            TextField(
-              controller: passwordController,
-              obscureText: _obscureText,
-              decoration: InputDecoration(
-                labelText: 'Contraseña',
-                border: OutlineInputBorder(),
-                suffixIcon: IconButton(
-                  icon: Icon(
-                    _obscureText ? Icons.visibility : Icons.visibility_off,
-                  ),
-                  onPressed: () {
-                    setState(() {
-                      _obscureText = !_obscureText;
-                    });
-                  },
-                ),
-              ),
-            ),
-            SizedBox(height: 16.0),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.of(context).pushReplacementNamed(
-                  '/splash',
-                  arguments: {
-                    'email': emailController.text,
-                    'password': passwordController.text,
-                  },
-                );
-              },
-              child: Text('Iniciar Sesión'),
-            ),
-            SizedBox(height: 16.0),
-            Row(
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Colors.orange.shade700, Colors.blue],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
-                Text('¿No estás registrado?'),
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pushNamed('/signUp');
-                  },
-                  child: Text('Regístrate aquí'),
+                Image.asset(
+                  'assets/logo_PLC.jpg', // Replace with your image asset path
+                  height: 300,
+                  width: 300,
+                ),
+                const SizedBox(height: 24.0),
+                if (errorMessage != null) ...[
+                  Text(
+                    errorMessage,
+                    style: const TextStyle(color: Colors.red),
+                  ),
+                  const SizedBox(height: 16.0),
+                ],
+                Container(
+                  width: 300,
+                  child: TextField(
+                    controller: emailController,
+                    decoration: const InputDecoration(
+                      labelText: 'Correo Electrónico',
+                      border: OutlineInputBorder(),
+                      filled: true,
+                      fillColor: Colors.white,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16.0),
+                Container(
+                  width: 300,
+                  child: TextField(
+                    controller: passwordController,
+                    obscureText: _obscureText,
+                    decoration: InputDecoration(
+                      labelText: 'Contraseña',
+                      border: const OutlineInputBorder(),
+                      filled: true,
+                      fillColor: Colors.white,
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _obscureText
+                              ? Icons.visibility
+                              : Icons.visibility_off,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _obscureText = !_obscureText;
+                          });
+                        },
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16.0),
+                SizedBox(
+                  width: 300,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.of(context).pushReplacementNamed(
+                        '/splash',
+                        arguments: {
+                          'email': emailController.text,
+                          'password': passwordController.text,
+                        },
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 12.0),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8.0),
+                      ),
+                    ),
+                    child: const Text('Iniciar Sesión',
+                        style: TextStyle(fontSize: 16)),
+                  ),
+                ),
+                const SizedBox(height: 16.0),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    const Text('¿No estás registrado?'),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.of(context).pushNamed('/signUp');
+                      },
+                      child: const Text(
+                        'Regístrate aquí',
+                        style: TextStyle(
+                            color: Colors.white, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
-          ],
+          ),
         ),
       ),
     );

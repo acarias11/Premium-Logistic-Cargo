@@ -28,67 +28,341 @@ class _SignUpPageState extends State<SignUpPage> {
   bool _confirmPasswordVisible = false;
 
   final List<String> departamentos = [
-    'Atlántida', 'Choluteca', 'Colón', 'Comayagua', 'Copán', 'Cortés', 'El Paraíso', 
-    'Francisco Morazán', 'Gracias a Dios', 'Intibucá', 'Islas de la Bahía', 'La Paz', 
-    'Lempira', 'Ocotepeque', 'Olancho', 'Santa Bárbara', 'Valle', 'Yoro'
+    'Atlántida',
+    'Choluteca',
+    'Colón',
+    'Comayagua',
+    'Copán',
+    'Cortés',
+    'El Paraíso',
+    'Francisco Morazán',
+    'Gracias a Dios',
+    'Intibucá',
+    'Islas de la Bahía',
+    'La Paz',
+    'Lempira',
+    'Ocotepeque',
+    'Olancho',
+    'Santa Bárbara',
+    'Valle',
+    'Yoro'
   ];
 
   final Map<String, List<String>> municipios = {
-  'Atlántida': [
-    'La Ceiba', 'El Porvenir', 'Esparta', 'Jutiapa', 'La Masica', 'San Francisco', 'Tela', 'Arizona'
-  ],
-  'Colón': [
-    'Trujillo', 'Balfate', 'Iriona', 'Limón', 'Sabá', 'Santa Fe', 'Santa Rosa de Aguán', 'Sonaguera'
-  ],
-  'Comayagua': [
-    'Comayagua', 'Ajuterique', 'El Rosario', 'Esquías', 'Humuya', 'La Libertad', 'Lamaní', 'La Trinidad', 'Lejamaní', 'Meámbar', 'Minas de Oro', 'Ojos de Agua', 'San Jerónimo', 'San José de Comayagua', 'San Sebastián', 'Siguatepeque', 'Villa de San Antonio'
-  ],
-  'Copán': [
-    'Santa Rosa de Copán', 'Cabañas', 'Concepción', 'Copán Ruinas', 'Corquín', 'Cucuyagua', 'Dolores', 'Dulce Nombre', 'El Paraíso', 'La Unión', 'Nueva Arcadia', 'San Agustín', 'San Antonio', 'San Jerónimo', 'San José', 'San Juan de Copán', 'San Nicolás', 'San Pedro', 'Santa Rita', 'Trinidad de Copán', 'Veracruz'
-  ],
-  'Cortés': [
-    'San Pedro Sula', 'Choloma', 'Omoa', 'Pimienta', 'Potrerillos', 'Puerto Cortés', 'San Antonio de Cortés', 'San Francisco de Yojoa', 'San Manuel', 'Santa Cruz de Yojoa', 'Villanueva', 'La Lima'
-  ],
-  'Choluteca': [
-    'Choluteca', 'Apacilagua', 'Concepción de María', 'Duyure', 'El Corpus', 'El Triunfo', 'Marcovia', 'Namasigüe', 'Pespire', 'San Antonio de Flores', 'San Isidro', 'San José', 'San Marcos de Colón', 'Santa Ana', 'Orocuina', 'Pespire'
-  ],
-  'El Paraíso': [
-    'Yuscarán', 'Alauca', 'Danlí', 'El Paraíso', 'Güinope', 'Jacaleapa', 'Liure', 'Morocelí', 'Oropolí', 'Potrerillos', 'San Antonio de Flores', 'San Lucas', 'Teupasenti', 'Texiguat'
-  ],
-  'Francisco Morazán': [
-    'Distrito Central (Tegucigalpa y Comayagüela)', 'Alubarén', 'Cedros', 'Curarén', 'El Hatillo', 'Guaimaca', 'La Libertad', 'Lepaterique', 'Maraita', 'Marale', 'Nueva Armenia', 'Ojojona', 'Orica', 'Reitoca', 'Sabanagrande', 'San Antonio de Oriente', 'San Buenaventura', 'San Ignacio', 'San Juan de Flores', 'San Miguelito', 'Santa Ana', 'Santa Lucía', 'Talanga', 'Tatumbla', 'Valle de Ángeles', 'Villa de San Francisco'
-  ],
-  'Gracias a Dios': [
-    'Puerto Lempira', 'Brus Laguna', 'Juan Francisco Bulnes', 'Ramón Villeda Morales', 'Wampusirpi', 'Ahuas'
-  ],
-  'Intibucá': [
-    'La Esperanza', 'Camasca', 'Colomoncagua', 'Concepción', 'Dolores', 'Intibucá', 'Jesús de Otoro', 'San Antonio', 'San Francisco de Opalaca', 'San Isidro', 'San Juan', 'San Marcos de la Sierra', 'San Miguel Guancapla', 'Santa Lucía', 'Yamaranguila', 'Magdalena'
-  ],
-  'Islas de la Bahía': [
-    'Roatán', 'Guanaja', 'José Santos Guardiola', 'Utila'
-  ],
-  'La Paz': [
-    'La Paz', 'Aguanqueterique', 'Cabañas', 'Cane', 'Chinacla', 'Guajiquiro', 'Lauterique', 'Marcala', 'Mercedes de Oriente', 'Opatoro', 'San Antonio del Norte', 'San José', 'San Juan', 'San Pedro de Tutule', 'Santa Ana', 'Santa Elena', 'Santa María', 'Santiago de Puringla', 'Yarula'
-  ],
-  'Lempira': [
-    'Gracias', 'Belén', 'Candelaria', 'Cololaca', 'Erandique', 'Gualcince', 'Guarita', 'La Campa', 'La Iguala', 'Las Flores', 'La Unión', 'Mapulaca', 'Piraera', 'San Andrés', 'San Francisco', 'San Juan Guarita', 'San Manuel Colohete', 'San Marcos de Caiquín', 'San Rafael', 'San Sebastián', 'Santa Cruz', 'Talgua', 'Tomalá', 'Valladolid', 'Virginia'
-  ],
-  'Ocotepeque': [
-    'Ocotepeque', 'Belén Gualcho', 'Concepción', 'Dolores Merendon', 'Fraternidad', 'La Encarnación', 'La Labor', 'Lucerna', 'Mercedes', 'San Fernando', 'San Francisco del Valle', 'San Jorge', 'San Marcos', 'Santa Fe', 'Sinuapa', 'Sensenti'
-  ],
-  'Olancho': [
-    'Juticalpa', 'Campamento', 'Catacamas', 'Concordia', 'Dulce Nombre de Culmí', 'El Rosario', 'Esquipulas del Norte', 'Gualaco', 'Guarizama', 'Guata', 'Guayape', 'Jano', 'La Unión', 'Mangulile', 'Manto', 'Salamá', 'San Esteban', 'San Francisco de la Paz', 'San Juan', 'San Lorenzo', 'Santa María del Real', 'Silca', 'Yocón'
-  ],
-  'Santa Bárbara': [
-    'Santa Bárbara', 'Arada', 'Atima', 'Azacualpa', 'Ceguaca', 'Chinda', 'Concepción del Norte', 'Concepción del Sur', 'El Níspero', 'Gualala', 'Ilama', 'Macuelizo', 'Naranjito', 'Nueva Celilac', 'Petoa', 'Protección', 'Quimistán', 'San Francisco de Ojuera', 'San José de Colinas', 'Las Vegas', 'San Luis', 'San Marcos', 'San Nicolás', 'San Pedro Zacapa', 'Santa Rita', 'Trinidad'
-  ],
-  'Valle': [
-    'Nacaome', 'Alianza', 'Amapala', 'Aramecina', 'Caridad', 'Goascorán', 'Langue', 'San Francisco de Coray', 'San Lorenzo'
-  ],
-  'Yoro': [
-    'Yoro', 'Arenal', 'El Negrito', 'El Progreso', 'Jocón', 'Morazán', 'Olanchito', 'Santa Rita', 'Sulaco', 'Victoria', 'Yorito'
-  ],
-};
+    'Atlántida': [
+      'La Ceiba',
+      'El Porvenir',
+      'Esparta',
+      'Jutiapa',
+      'La Masica',
+      'San Francisco',
+      'Tela',
+      'Arizona'
+    ],
+    'Colón': [
+      'Trujillo',
+      'Balfate',
+      'Iriona',
+      'Limón',
+      'Sabá',
+      'Santa Fe',
+      'Santa Rosa de Aguán',
+      'Sonaguera'
+    ],
+    'Comayagua': [
+      'Comayagua',
+      'Ajuterique',
+      'El Rosario',
+      'Esquías',
+      'Humuya',
+      'La Libertad',
+      'Lamaní',
+      'La Trinidad',
+      'Lejamaní',
+      'Meámbar',
+      'Minas de Oro',
+      'Ojos de Agua',
+      'San Jerónimo',
+      'San José de Comayagua',
+      'San Sebastián',
+      'Siguatepeque',
+      'Villa de San Antonio'
+    ],
+    'Copán': [
+      'Santa Rosa de Copán',
+      'Cabañas',
+      'Concepción',
+      'Copán Ruinas',
+      'Corquín',
+      'Cucuyagua',
+      'Dolores',
+      'Dulce Nombre',
+      'El Paraíso',
+      'La Unión',
+      'Nueva Arcadia',
+      'San Agustín',
+      'San Antonio',
+      'San Jerónimo',
+      'San José',
+      'San Juan de Copán',
+      'San Nicolás',
+      'San Pedro',
+      'Santa Rita',
+      'Trinidad de Copán',
+      'Veracruz'
+    ],
+    'Cortés': [
+      'San Pedro Sula',
+      'Choloma',
+      'Omoa',
+      'Pimienta',
+      'Potrerillos',
+      'Puerto Cortés',
+      'San Antonio de Cortés',
+      'San Francisco de Yojoa',
+      'San Manuel',
+      'Santa Cruz de Yojoa',
+      'Villanueva',
+      'La Lima'
+    ],
+    'Choluteca': [
+      'Choluteca',
+      'Apacilagua',
+      'Concepción de María',
+      'Duyure',
+      'El Corpus',
+      'El Triunfo',
+      'Marcovia',
+      'Namasigüe',
+      'Pespire',
+      'San Antonio de Flores',
+      'San Isidro',
+      'San José',
+      'San Marcos de Colón',
+      'Santa Ana',
+      'Orocuina',
+      'Pespire'
+    ],
+    'El Paraíso': [
+      'Yuscarán',
+      'Alauca',
+      'Danlí',
+      'El Paraíso',
+      'Güinope',
+      'Jacaleapa',
+      'Liure',
+      'Morocelí',
+      'Oropolí',
+      'Potrerillos',
+      'San Antonio de Flores',
+      'San Lucas',
+      'Teupasenti',
+      'Texiguat'
+    ],
+    'Francisco Morazán': [
+      'Distrito Central (Tegucigalpa y Comayagüela)',
+      'Alubarén',
+      'Cedros',
+      'Curarén',
+      'El Hatillo',
+      'Guaimaca',
+      'La Libertad',
+      'Lepaterique',
+      'Maraita',
+      'Marale',
+      'Nueva Armenia',
+      'Ojojona',
+      'Orica',
+      'Reitoca',
+      'Sabanagrande',
+      'San Antonio de Oriente',
+      'San Buenaventura',
+      'San Ignacio',
+      'San Juan de Flores',
+      'San Miguelito',
+      'Santa Ana',
+      'Santa Lucía',
+      'Talanga',
+      'Tatumbla',
+      'Valle de Ángeles',
+      'Villa de San Francisco'
+    ],
+    'Gracias a Dios': [
+      'Puerto Lempira',
+      'Brus Laguna',
+      'Juan Francisco Bulnes',
+      'Ramón Villeda Morales',
+      'Wampusirpi',
+      'Ahuas'
+    ],
+    'Intibucá': [
+      'La Esperanza',
+      'Camasca',
+      'Colomoncagua',
+      'Concepción',
+      'Dolores',
+      'Intibucá',
+      'Jesús de Otoro',
+      'San Antonio',
+      'San Francisco de Opalaca',
+      'San Isidro',
+      'San Juan',
+      'San Marcos de la Sierra',
+      'San Miguel Guancapla',
+      'Santa Lucía',
+      'Yamaranguila',
+      'Magdalena'
+    ],
+    'Islas de la Bahía': [
+      'Roatán',
+      'Guanaja',
+      'José Santos Guardiola',
+      'Utila'
+    ],
+    'La Paz': [
+      'La Paz',
+      'Aguanqueterique',
+      'Cabañas',
+      'Cane',
+      'Chinacla',
+      'Guajiquiro',
+      'Lauterique',
+      'Marcala',
+      'Mercedes de Oriente',
+      'Opatoro',
+      'San Antonio del Norte',
+      'San José',
+      'San Juan',
+      'San Pedro de Tutule',
+      'Santa Ana',
+      'Santa Elena',
+      'Santa María',
+      'Santiago de Puringla',
+      'Yarula'
+    ],
+    'Lempira': [
+      'Gracias',
+      'Belén',
+      'Candelaria',
+      'Cololaca',
+      'Erandique',
+      'Gualcince',
+      'Guarita',
+      'La Campa',
+      'La Iguala',
+      'Las Flores',
+      'La Unión',
+      'Mapulaca',
+      'Piraera',
+      'San Andrés',
+      'San Francisco',
+      'San Juan Guarita',
+      'San Manuel Colohete',
+      'San Marcos de Caiquín',
+      'San Rafael',
+      'San Sebastián',
+      'Santa Cruz',
+      'Talgua',
+      'Tomalá',
+      'Valladolid',
+      'Virginia'
+    ],
+    'Ocotepeque': [
+      'Ocotepeque',
+      'Belén Gualcho',
+      'Concepción',
+      'Dolores Merendon',
+      'Fraternidad',
+      'La Encarnación',
+      'La Labor',
+      'Lucerna',
+      'Mercedes',
+      'San Fernando',
+      'San Francisco del Valle',
+      'San Jorge',
+      'San Marcos',
+      'Santa Fe',
+      'Sinuapa',
+      'Sensenti'
+    ],
+    'Olancho': [
+      'Juticalpa',
+      'Campamento',
+      'Catacamas',
+      'Concordia',
+      'Dulce Nombre de Culmí',
+      'El Rosario',
+      'Esquipulas del Norte',
+      'Gualaco',
+      'Guarizama',
+      'Guata',
+      'Guayape',
+      'Jano',
+      'La Unión',
+      'Mangulile',
+      'Manto',
+      'Salamá',
+      'San Esteban',
+      'San Francisco de la Paz',
+      'San Juan',
+      'San Lorenzo',
+      'Santa María del Real',
+      'Silca',
+      'Yocón'
+    ],
+    'Santa Bárbara': [
+      'Santa Bárbara',
+      'Arada',
+      'Atima',
+      'Azacualpa',
+      'Ceguaca',
+      'Chinda',
+      'Concepción del Norte',
+      'Concepción del Sur',
+      'El Níspero',
+      'Gualala',
+      'Ilama',
+      'Macuelizo',
+      'Naranjito',
+      'Nueva Celilac',
+      'Petoa',
+      'Protección',
+      'Quimistán',
+      'San Francisco de Ojuera',
+      'San José de Colinas',
+      'Las Vegas',
+      'San Luis',
+      'San Marcos',
+      'San Nicolás',
+      'San Pedro Zacapa',
+      'Santa Rita',
+      'Trinidad'
+    ],
+    'Valle': [
+      'Nacaome',
+      'Alianza',
+      'Amapala',
+      'Aramecina',
+      'Caridad',
+      'Goascorán',
+      'Langue',
+      'San Francisco de Coray',
+      'San Lorenzo'
+    ],
+    'Yoro': [
+      'Yoro',
+      'Arenal',
+      'El Negrito',
+      'El Progreso',
+      'Jocón',
+      'Morazán',
+      'Olanchito',
+      'Santa Rita',
+      'Sulaco',
+      'Victoria',
+      'Yorito'
+    ],
+  };
 
   List<String> _municipiosDisponibles = [];
 
@@ -97,8 +371,16 @@ class _SignUpPageState extends State<SignUpPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Registro de Cliente'),
+        backgroundColor: Colors.orange.shade700, // Orange aesthetic for header
       ),
-      body: Padding(
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Colors.orange.shade700, Colors.blue],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
         padding: const EdgeInsets.all(16.0),
         child: Form(
           key: _formKey,
@@ -157,7 +439,9 @@ class _SignUpPageState extends State<SignUpPage> {
                   labelText: 'Contraseña',
                   suffixIcon: IconButton(
                     icon: Icon(
-                      _passwordVisible ? Icons.visibility : Icons.visibility_off,
+                      _passwordVisible
+                          ? Icons.visibility
+                          : Icons.visibility_off,
                     ),
                     onPressed: () {
                       setState(() {
@@ -185,7 +469,9 @@ class _SignUpPageState extends State<SignUpPage> {
                   labelText: 'Confirme su contraseña',
                   suffixIcon: IconButton(
                     icon: Icon(
-                      _confirmPasswordVisible ? Icons.visibility : Icons.visibility_off,
+                      _confirmPasswordVisible
+                          ? Icons.visibility
+                          : Icons.visibility_off,
                     ),
                     onPressed: () {
                       setState(() {
@@ -269,6 +555,10 @@ class _SignUpPageState extends State<SignUpPage> {
               SizedBox(height: 20),
               ElevatedButton(
                 onPressed: _submitForm,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue, // Updated button color
+                  foregroundColor: Colors.white,
+                ),
                 child: Text('Registrar'),
               ),
             ],
@@ -288,7 +578,8 @@ class _SignUpPageState extends State<SignUpPage> {
         return;
       }
       try {
-        UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
+        UserCredential userCredential =
+            await _auth.createUserWithEmailAndPassword(
           email: email,
           password: password,
         );
