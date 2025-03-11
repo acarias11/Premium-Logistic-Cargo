@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:plc_pruebas/pages/reports/clientes_eliminar_page.dart';
+import 'package:plc_pruebas/pages/reports/clientes_peso_page.dart';
 import 'package:plc_pruebas/pages/reports/grafica_activos&inactivos_page.dart';
 import 'package:plc_pruebas/pages/reports/grafica_casilleros_mensuales.dart';
 import 'package:plc_pruebas/pages/reports/grafica_prom_page.dart';
 import 'package:plc_pruebas/pages/reports/prom_peso.dart';
+import 'package:plc_pruebas/pages/reports/quejas_page.dart';
 import 'package:plc_pruebas/pages/reports/send_email.dart';
 import 'package:sidebarx/sidebarx.dart';
 import 'package:plc_pruebas/widgets/sidebar.dart';
@@ -60,10 +63,10 @@ class _ReportesPageState extends State<ReportesPage> {
                 runSpacing: 20,
                 alignment: WrapAlignment.center,
                 children: [
-                  _buildStyledButton(context, 'Registro de Quejas', Icons.report_problem, null),
+                  _buildStyledButton(context, 'Registro de Quejas', Icons.report_problem, QuejasPage()),
                   _buildStyledButton(context, 'Promedios', Icons.show_chart, PromPesoPage()),
-                  _buildStyledButton(context, 'Clientes Frecuentes', Icons.star, null),
-                  _buildStyledButton(context, 'Clientes para Eliminar', Icons.delete, null),
+                  _buildStyledButton(context, 'Clientes Frecuentes', Icons.star, ClientesPesoPage()),
+                  _buildStyledButton(context, 'Clientes para Eliminar', Icons.delete, ClientesEliminarPage()),
                 ],
               ),
             ],
