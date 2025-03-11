@@ -22,6 +22,7 @@ class _SignInPageState extends State<SignInPage> {
       ),
       body: SingleChildScrollView(
         child: Container(
+          height: MediaQuery.of(context).size.height, // Ocupa toda la altura disponible
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [Colors.orange.shade700, Colors.blue],
@@ -52,11 +53,13 @@ class _SignInPageState extends State<SignInPage> {
                     width: 300,
                     child: TextField(
                       controller: emailController,
-                      decoration: const InputDecoration(
+                      decoration: InputDecoration(
                         labelText: 'Correo Electrónico',
-                        border: OutlineInputBorder(),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8.0),
+                        ),
                         filled: true,
-                        fillColor: Colors.white,
+                        fillColor: Colors.white.withOpacity(0.8),
                       ),
                     ),
                   ),
@@ -68,9 +71,11 @@ class _SignInPageState extends State<SignInPage> {
                       obscureText: _obscureText,
                       decoration: InputDecoration(
                         labelText: 'Contraseña',
-                        border: const OutlineInputBorder(),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8.0),
+                        ),
                         filled: true,
-                        fillColor: Colors.white,
+                        fillColor: Colors.white.withOpacity(0.8),
                         suffixIcon: IconButton(
                           icon: Icon(
                             _obscureText
