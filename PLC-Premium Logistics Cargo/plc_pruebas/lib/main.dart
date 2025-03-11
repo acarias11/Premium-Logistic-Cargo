@@ -6,6 +6,7 @@ import 'package:plc_pruebas/pages/cargas_page.dart';
 import 'package:plc_pruebas/pages/clientes_page.dart';
 import 'package:plc_pruebas/pages/home_page.dart';
 import 'package:plc_pruebas/pages/paquetes_page.dart';
+import 'package:plc_pruebas/pages/reports/grafica_activos&inactivos_page.dart';
 import 'package:plc_pruebas/pages/reports/quejas_page.dart';
 import 'package:plc_pruebas/pages/reports/send_email.dart';
 import 'package:plc_pruebas/pages/signIn_page.dart';

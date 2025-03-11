@@ -358,4 +358,60 @@ class FirestoreService {
     final warehousesCargaStream = warehouse.where('carga_id', isEqualTo: cargaId).snapshots();
     return warehousesCargaStream;
   }
+
+  //metodo para obtener el promedio de peso de los paquetes
+  Future<double> getPromedioPaquetes() async {
+    QuerySnapshot querySnapshot = await paquetes.get();
+    double totalPeso = 0;
+    for (var doc in querySnapshot.docs) {
+      totalPeso += doc['Peso'];
+    }
+    return totalPeso / querySnapshot.size;
+  }
+
+  //metodo para obtener el promedio de peso de los warehouse
+  Future<double> getPromedioWarehouse() async {
+    QuerySnapshot querySnapshot = await warehouse.get();
+    double totalPeso = 0;
+    for (var doc in querySnapshot.docs) {
+      totalPeso += doc['peso_total'];
+    }
+    return totalPeso / querySnapshot.size;
+  }
+
+  //metodo para obtener el promedio de peso de las cargas
+  Future<double> getPromedioCargas() async {
+    QuerySnapshot querySnapshot = await cargas.get();
+    double totalPeso = 0;
+    for (var doc in querySnapshot.docs) {
+      totalPeso += doc['peso'];
+    }
+    return totalPeso / querySnapshot.size;
+  }
+
+  //metodo para obtener los clientes que tienen warehouse (activos) y los que no (inactivos)
+  Future<Map<String, int>> getClientesActivosInactivos() async {
+    QuerySnapshot clientesSnapshot = await clientes.get();
+    QuerySnapshot warehousesSnapshot = await warehouse.get();
+
+    Set<int> allClientes = {};
+    Set<int> activeClientes = {};
+
+    for (var doc in clientesSnapshot.docs) {
+      int cid = int.tryParse(doc['cliente_id']) ?? 0;
+      if (cid != 0) allClientes.add(cid);
+    }
+    for (var doc in warehousesSnapshot.docs) {
+      int cid = int.tryParse(doc['cliente_id']) ?? 0;
+      if (cid != 0) activeClientes.add(cid);
+    }
+
+    int total = allClientes.length;
+    int inactive = total - activeClientes.length;
+    return {
+      'activos': activeClientes.length,
+      'inactivos': inactive
+    };
+  }
+
 }
