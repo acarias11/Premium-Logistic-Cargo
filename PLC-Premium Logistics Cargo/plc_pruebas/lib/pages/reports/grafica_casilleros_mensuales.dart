@@ -9,10 +9,12 @@ class GraficaCasillerosMensuales extends StatefulWidget {
   const GraficaCasillerosMensuales({super.key});
 
   @override
-  _GraficaCasillerosMensualesState createState() => _GraficaCasillerosMensualesState();
+  _GraficaCasillerosMensualesState createState() =>
+      _GraficaCasillerosMensualesState();
 }
 
-class _GraficaCasillerosMensualesState extends State<GraficaCasillerosMensuales> {
+class _GraficaCasillerosMensualesState
+    extends State<GraficaCasillerosMensuales> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   List<_ChartData> _chartData = [];
   DateTime _selectedMonth = DateTime.now();
@@ -20,22 +22,26 @@ class _GraficaCasillerosMensualesState extends State<GraficaCasillerosMensuales>
   @override
   void initState() {
     super.initState();
-    initializeDateFormatting('es', null); // Inicializar la configuración regional
+    initializeDateFormatting(
+        'es', null); // Inicializar la configuración regional
     _getChartData();
   }
 
   Future<void> _getChartData() async {
     final startOfMonth = DateTime(_selectedMonth.year, _selectedMonth.month, 1);
-    final endOfMonth = DateTime(_selectedMonth.year, _selectedMonth.month + 1, 1);
+    final endOfMonth =
+        DateTime(_selectedMonth.year, _selectedMonth.month + 1, 1);
     print("Consultando clientes entre $startOfMonth y $endOfMonth");
-    
-    QuerySnapshot snapshot = await _firestore.collection('Clientes')
-      .where('fecha', isGreaterThanOrEqualTo: Timestamp.fromDate(startOfMonth))
-      .where('fecha', isLessThan: Timestamp.fromDate(endOfMonth))
-      .get();
-    
+
+    QuerySnapshot snapshot = await _firestore
+        .collection('Clientes')
+        .where('fecha',
+            isGreaterThanOrEqualTo: Timestamp.fromDate(startOfMonth))
+        .where('fecha', isLessThan: Timestamp.fromDate(endOfMonth))
+        .get();
+
     print("Documentos obtenidos: ${snapshot.docs.length}");
-    
+
     final clientesPorDia = <int, int>{};
     for (var doc in snapshot.docs) {
       final data = doc.data() as Map<String, dynamic>;
@@ -47,15 +53,16 @@ class _GraficaCasillerosMensualesState extends State<GraficaCasillerosMensuales>
         print("Documento sin campo 'fecha' o tipo incorrecto: ${doc.id}");
       }
     }
-    
+
     List<_ChartData> chartData = clientesPorDia.entries
-      .map((entry) => _ChartData(entry.key.toString(), entry.value.toDouble()))
-      .toList();
-    
+        .map(
+            (entry) => _ChartData(entry.key.toString(), entry.value.toDouble()))
+        .toList();
+
     // Ordena los datos para mostrar los días de forma correcta
     chartData.sort((a, b) => int.parse(a.label).compareTo(int.parse(b.label)));
     print("Chart Data: $chartData");
-    
+
     setState(() {
       _chartData = chartData;
     });
@@ -85,9 +92,16 @@ class _GraficaCasillerosMensualesState extends State<GraficaCasillerosMensuales>
     return Scaffold(
       appBar: AppBar(
         title: const Text('Reporte de Casilleros Mensuales'),
-        backgroundColor: Colors.blue.shade900,
+        backgroundColor: Colors.orange.shade700,
       ),
-      body: Padding(
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Colors.orange.shade700, Colors.blue.shade300],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
@@ -96,7 +110,12 @@ class _GraficaCasillerosMensualesState extends State<GraficaCasillerosMensuales>
               children: [
                 ElevatedButton(
                   onPressed: () => _selectMonth(context),
-                  child: Text('Seleccionar Mes: ${DateFormat.yMMM('es').format(_selectedMonth)}'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue, // Updated button color
+                    foregroundColor: Colors.white,
+                  ),
+                  child: Text(
+                      'Seleccionar Mes: ${DateFormat.yMMM('es').format(_selectedMonth)}'),
                 ),
               ],
             ),
@@ -135,7 +154,8 @@ class _GraficaCasillerosMensualesState extends State<GraficaCasillerosMensuales>
           height: 300,
           child: VerticalBarChart(
             painter: VerticalBarChartPainter(
-              verticalBarChartContainer: VerticalBarChartTopContainer(chartData: chartData),
+              verticalBarChartContainer:
+                  VerticalBarChartTopContainer(chartData: chartData),
             ),
           ),
         );
