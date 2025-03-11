@@ -23,9 +23,10 @@ class SendEmailPage extends StatelessWidget {
       for (var doc in paquetesSnapshot.docs) {
         try {
           Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+          String estatusId = data['EstatusID'] ?? 'Desconocido';
           DocumentSnapshot estadoSnapshot = await FirebaseFirestore.instance
               .collection('Estatus')
-              .doc(data['estatus_id'])
+              .doc(estatusId)
               .get();
           String estadoNombre = estadoSnapshot.exists ? estadoSnapshot['Nombre'] : 'Desconocido';
           data['Nombre'] = estadoNombre;
@@ -76,68 +77,84 @@ class SendEmailPage extends StatelessWidget {
     }
   }
 
-  Future<void> sendEmailToCliente(String clienteEmail) async {
+  Future<void> sendEmailToClientes() async {
     try {
-      // Obtener el estado de los paquetes del cliente
-      QuerySnapshot paquetesSnapshot = await FirebaseFirestore.instance
-          .collection('Paquetes')
-          .where('cliente_email', isEqualTo: clienteEmail)
-          .get();
+      // Obtener el estado de los paquetes
+      QuerySnapshot paquetesSnapshot =
+          await FirebaseFirestore.instance.collection('Paquetes').get();
 
-      List<Map<String, dynamic>> paquetesData = [];
       for (var doc in paquetesSnapshot.docs) {
         try {
           Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+          String estatusId = data['EstatusID'] ?? 'Desconocido';
+          String paqueteId = data['paquete_id'] ?? 'Desconocido';
           DocumentSnapshot estadoSnapshot = await FirebaseFirestore.instance
               .collection('Estatus')
-              .doc(data['estatus_id'])
+              .doc(estatusId)
               .get();
           String estadoNombre = estadoSnapshot.exists ? estadoSnapshot['Nombre'] : 'Desconocido';
-          data['estatus_nombre'] = estadoNombre;
-          paquetesData.add(data);
+
+          // Obtener el warehouseID y luego el cliente_id
+          String warehouseId = data['warehouseID'] ?? 'Desconocido';
+          DocumentSnapshot warehouseSnapshot = await FirebaseFirestore.instance
+              .collection('Warehouse')
+              .doc(warehouseId)
+              .get();
+          String clienteId = warehouseSnapshot.exists ? warehouseSnapshot['cliente_id'] : 'Desconocido';
+
+          // Obtener el correo y nombre del cliente
+          DocumentSnapshot clienteSnapshot = await FirebaseFirestore.instance
+              .collection('Clientes')
+              .doc(clienteId)
+              .get();
+          String clienteEmail = clienteSnapshot.exists ? clienteSnapshot['email'] : 'desconocido@example.com';
+          String clienteNombre = clienteSnapshot.exists ? clienteSnapshot['nombre'] : 'Cliente';
+
+          // Validar el correo electrónico
+          if (!clienteEmail.contains('@gmail.com')) {
+            clienteEmail = 'cariasangel60@gmail.com';
+          }
+
+          // Crear el contenido del correo
+          String emailContent = 
+              'El estado de su paquete $paqueteId es:\n\n'
+              '$estadoNombre\n\n';
+
+          // Enviar el correo utilizando EmailJS
+          const serviceId = 'service_u5n9hww';
+          const templateId = 'estado_paquetes';
+          const userId = '67JFCnhnFGGRXFSJD';
+
+          final url = Uri.parse('https://api.emailjs.com/api/v1.0/email/send');
+          final response = await http.post(
+            url,
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: json.encode({
+              'service_id': serviceId,
+              'template_id': templateId,
+              'user_id': userId,
+              'template_params': {
+                'to_email': clienteEmail,
+                'ClienteNombre': clienteNombre,
+                'paqueteID': paqueteId,
+                'message': emailContent,
+              },
+            }),
+          );
+
+          if (response.statusCode == 200) {
+            print('Correo enviado al cliente $clienteEmail');
+          } else {
+            print('Error al enviar correo al cliente $clienteEmail: ${response.body}');
+          }
         } catch (e) {
-          print('Error al obtener datos del paquete: $e');
-          paquetesData.add({'paquete_id': 'Desconocido', 'estatus_nombre': 'Desconocido'});
+          print('Error al obtener datos del paquete o enviar correo: $e');
         }
       }
-
-      // Crear el contenido del correo
-      String emailContent = 'Estado de sus Paquetes:\n\n';
-      for (var paquete in paquetesData) {
-        emailContent +=
-            'Paquete ID: ${paquete['paquete_id'] ?? 'Desconocido'}, Estado: ${paquete['estatus_nombre'] ?? 'Desconocido'}\n';
-      }
-
-      // Enviar el correo utilizando EmailJS
-      const serviceId = 'service_u5n9hww';
-      const templateId = 'contact_form';
-      const userId = '67JFCnhnFGGRXFSJD';
-
-      final url = Uri.parse('https://api.emailjs.com/api/v1.0/email/send');
-      final response = await http.post(
-        url,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: json.encode({
-          'service_id': serviceId,
-          'template_id': templateId,
-          'user_id': userId,
-          'template_params': {
-            'to_email': clienteEmail,
-            'subject': 'Estado de sus Paquetes',
-            'message': emailContent,
-          },
-        }),
-      );
-
-      if (response.statusCode == 200) {
-        print('Correo enviado al cliente');
-      } else {
-        print('Error al enviar correo al cliente: ${response.body}');
-      }
     } catch (e) {
-      print('Error al enviar correo al cliente: $e');
+      print('Error al enviar correos a los clientes: $e');
     }
   }
 
@@ -202,10 +219,7 @@ class SendEmailPage extends StatelessWidget {
                   elevation: 5,
                 ),
                 onPressed: () {
-                  // Aquí puedes obtener el correo del cliente y llamar a sendEmailToCliente(clienteEmail)
-                  // Ejemplo:
-                  // String clienteEmail = 'cliente@example.com';
-                  // sendEmailToCliente(clienteEmail);
+                  sendEmailToClientes();
                 },
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -213,7 +227,7 @@ class SendEmailPage extends StatelessWidget {
                     Icon(Icons.email, size: 50),
                     SizedBox(height: 10),
                     Text(
-                      'Enviar Correo al Cliente',
+                      'Enviar Correo a Clientes',
                       style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                       textAlign: TextAlign.center,
                     ),

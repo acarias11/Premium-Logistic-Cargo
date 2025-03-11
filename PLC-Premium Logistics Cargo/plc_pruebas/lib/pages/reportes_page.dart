@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:plc_pruebas/pages/reports/grafica_casilleros_mensuales.dart';
 import 'package:plc_pruebas/pages/reports/grafica_prom_page.dart';
+import 'package:plc_pruebas/pages/reports/send_email.dart';
 import 'package:sidebarx/sidebarx.dart';
 import 'package:plc_pruebas/widgets/sidebar.dart';
 //import 'package:plc_pruebas/pages/reports/rcasilleros_page.dart';
@@ -46,7 +47,7 @@ class _ReportesPageState extends State<ReportesPage> {
                 children: [
                   _buildStyledButton(context, 'Casilleros Mensuales', Icons.calendar_today, GraficaCasillerosMensuales()),
                   _buildStyledButton(context, 'Reporte Gráfico de Modalidad', Icons.bar_chart, GraficaPromPage()),
-                  _buildStyledButton(context, 'Email Estados', Icons.email, null),
+                  _buildStyledButton(context, 'Email Estados', Icons.email, SendEmailPage()),
                   _buildStyledButton(context, 'Usuarios Activos e Inactivos', Icons.people, null),
                 ],
               ),

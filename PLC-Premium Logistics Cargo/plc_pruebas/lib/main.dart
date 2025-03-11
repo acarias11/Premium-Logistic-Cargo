@@ -7,6 +7,7 @@ import 'package:plc_pruebas/pages/clientes_page.dart';
 import 'package:plc_pruebas/pages/home_page.dart';
 import 'package:plc_pruebas/pages/paquetes_page.dart';
 import 'package:plc_pruebas/pages/reports/quejas_page.dart';
+import 'package:plc_pruebas/pages/reports/send_email.dart';
 import 'package:plc_pruebas/pages/signIn_page.dart';
 import 'package:plc_pruebas/pages/signUp_page.dart';
 import 'package:plc_pruebas/pages/warehouse_page.dart';
@@ -41,6 +42,7 @@ class MyApp extends StatelessWidget {
           final args = ModalRoute.of(context)?.settings.arguments as String?;
           return CargoPage(cargaId: args ?? '');
         },
+        '/SendEmailPage': (BuildContext context) => const SendEmailPage(),
         '/signIn': (BuildContext context) => SignInPage(),
         '/signUp': (BuildContext context) => const SignUpPage(),
         '/splash': (context) => SplashPage(),
