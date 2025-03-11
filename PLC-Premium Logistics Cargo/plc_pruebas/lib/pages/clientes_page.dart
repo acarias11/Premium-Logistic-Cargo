@@ -8,9 +8,7 @@ import 'package:sidebarx/sidebarx.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:pdf/pdf.dart';
 import 'package:printing/printing.dart';
-import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
-import 'package:flutter/services.dart' show rootBundle;
 
 class ClientesPage extends StatefulWidget {
   const ClientesPage({super.key});

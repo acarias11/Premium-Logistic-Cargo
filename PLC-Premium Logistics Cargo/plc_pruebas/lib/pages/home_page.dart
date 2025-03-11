@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:plc_pruebas/pages/reportes_page.dart';
+import 'package:plc_pruebas/pages/reports/quejas_page.dart';
 import 'package:plc_pruebas/widgets/sidebar.dart';
 import 'package:sidebarx/sidebarx.dart';
 import 'package:plc_pruebas/pages/clientes_page.dart';
@@ -78,9 +79,9 @@ class HomePage extends StatelessWidget {
                   _buildStyledButton(
                       context, 'Clientes', Icons.person, const ClientesPage()),
                   _buildStyledButton(
-                      context, 'Reportes', Icons.insert_chart, null),
+                      context, 'Reportes', Icons.insert_chart, ReportesPage()),
                    _buildStyledButton(
-                      context, 'Quejas', Icons.report_problem, null),
+                      context, 'Quejas', Icons.report_problem, QuejasPage()),
                 ],
               ),
             ],
@@ -110,7 +111,6 @@ class HomePage extends StatelessWidget {
             MaterialPageRoute(builder: (context) => page),
           );
         } else {
-          // Comentado porque la página de reportes aún no está creada
            Navigator.push(
              context,
              MaterialPageRoute(builder: (context) => const ReportesPage()),
