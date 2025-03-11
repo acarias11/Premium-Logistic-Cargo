@@ -17,6 +17,17 @@ class CargoPage extends StatefulWidget {
   _CargoPageState createState() => _CargoPageState();
 }
 
+Future<String> getClientFullNameById(String clientId, FirestoreService firestoreService) async {
+  DocumentSnapshot clientDoc = await firestoreService.getClientById(clientId);
+  if (clientDoc.exists) {
+    String nombre = clientDoc['nombre'] ?? 'Desconocido';
+    String apellido = clientDoc['apellido'] ?? '';
+    return '$nombre $apellido';
+  } else {
+    return 'Desconocido';
+  }
+}
+
 class _CargoPageState extends State<CargoPage> {
   final FirestoreService firestoreService = FirestoreService();
 
@@ -123,26 +134,6 @@ class _CargoPageState extends State<CargoPage> {
                       decoration: const InputDecoration(labelText: 'Paquetes'),
                       keyboardType: TextInputType.number,
                     ),
-                    DropdownButtonFormField<String>(
-                      decoration: const InputDecoration(labelText: 'Estatus'),
-                      items: estatusItems,
-                      value: selectedEstatus,
-                      onChanged: (newValue) {
-                        setState(() {
-                          selectedEstatus = newValue;
-                        });
-                      },
-                    ),
-                    DropdownButtonFormField<String>(
-                      decoration: const InputDecoration(labelText: 'Modalidad'),
-                      items: modalidadItems,
-                      value: selectedModalidad,
-                      onChanged: (newValue) {
-                        setState(() {
-                          selectedModalidad = newValue;
-                        });
-                      },
-                    ),
                   ],
                 ),
               ),
@@ -155,33 +146,27 @@ class _CargoPageState extends State<CargoPage> {
                 ),
                 TextButton(
                   onPressed: () async {
-                    if (selectedEstatus != null &&
-                        selectedModalidad != null &&
-                        selectedClientId != null) {
+                    if (selectedClientId != null) {
                       await firestoreService.addWarehouse(
                         widget.cargaId,
                         selectedClientId!,
                         direccionController.text,
-                        selectedEstatus!,
-                        selectedModalidad!,
                         double.tryParse(pesoController.text) ?? 0,
                         int.tryParse(piezasController.text) ?? 0,
                       );
                       setState(() {
-                        selectedModalidad = null;
                         selectedClientId = null;
-                        selectedEstatus = null;
                         piezasController.clear();
                         pesoController.clear();
                         direccionController.clear();
                       });
                       Navigator.of(context).pop();
                     } else {
-                      // Show error message if estatus, modalidad, or client is not selected
+                      // Show error message if client is not selected
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
                             content: Text(
-                                'Por favor seleccione Estatus, Modalidad y Cliente')),
+                                'Por favor seleccione un Cliente')),
                       );
                     }
                   },
@@ -193,76 +178,6 @@ class _CargoPageState extends State<CargoPage> {
         );
       },
     );
-  }
-
-  Future<String> getDocumentName(DocumentReference ref) async {
-    DocumentSnapshot snapshot = await ref.get();
-    if (snapshot.exists) {
-      return snapshot['Nombre'] ?? 'Desconocido';
-    }
-    return 'Desconocido';
-  }
-
-  Future<String> getEstatusName(DocumentReference ref) async {
-    DocumentSnapshot snapshot = await ref.get();
-    if (snapshot.exists) {
-      return snapshot['Nombre'] ?? 'Desconocido';
-    }
-    return 'Desconocido';
-  }
-
-  Future<String> getModalidadName(DocumentReference ref) async {
-    DocumentSnapshot snapshot = await ref.get();
-    if (snapshot.exists) {
-      return snapshot['Nombre'] ?? 'Desconocido';
-    }
-    return 'Desconocido';
-  }
-
-  Future<String> getClientFullName(DocumentReference ref) async {
-    DocumentSnapshot snapshot = await ref.get();
-    if (snapshot.exists) {
-      String nombre = snapshot['nombre'] ?? 'Desconocido';
-      String apellido = snapshot['apellido'] ?? '';
-      return '$nombre $apellido'.trim();
-    }
-    return 'Desconocido';
-  }
-
-  String formatDate(Timestamp? timestamp) {
-    if (timestamp == null) return 'Desconocido';
-    DateTime date = timestamp.toDate();
-    return DateFormat('dd/MM/yyyy').format(date);
-  }
-
-// Agregar funciones helper para obtener nombres por ID
-  Future<String> getEstatusNameById(String id) async {
-    DocumentSnapshot snapshot =
-        await FirebaseFirestore.instance.collection('Estatus').doc(id).get();
-    if (snapshot.exists) {
-      return snapshot['Nombre'] ?? 'Desconocido';
-    }
-    return 'Desconocido';
-  }
-
-  Future<String> getModalidadNameById(String id) async {
-    DocumentSnapshot snapshot =
-        await FirebaseFirestore.instance.collection('Modalidad').doc(id).get();
-    if (snapshot.exists) {
-      return snapshot['Nombre'] ?? 'Desconocido';
-    }
-    return 'Desconocido';
-  }
-
-  Future<String> getClientFullNameById(String id) async {
-    DocumentSnapshot snapshot =
-        await FirebaseFirestore.instance.collection('Clientes').doc(id).get();
-    if (snapshot.exists) {
-      String nombre = snapshot['nombre'] ?? 'Desconocido';
-      String apellido = snapshot['apellido'] ?? '';
-      return '$nombre $apellido'.trim();
-    }
-    return 'Desconocido';
   }
 
   Future<void> generatePdf() async {
@@ -286,20 +201,20 @@ class _CargoPageState extends State<CargoPage> {
         'Paquetes'
       ];
 
-      final data = warehouses.docs.map((doc) {
+      final data = await Future.wait(warehouses.docs.map((doc) async {
         final data = doc.data() as Map<String, dynamic>;
         final fecha = (data['fecha'] as Timestamp).toDate();
         return [
           data['warehouse_id'] ?? 'Desconocido',
-          data['cliente_id'] ?? 'Desconocido',
+          await getClientFullNameById(data['cliente_id'] ?? '', firestoreService) ?? 'Desconocido',
           data['direccion'] ?? 'Desconocido',
-          data['estatus_id'] ?? 'Desconocido',
+          await firestoreService.getEstatusNameById(data['estatus_id'] ?? ''),
           DateFormat('dd/MM/yyyy').format(fecha),
-          data['modalidad'] ?? 'Desconocido',
+          await firestoreService.getModalidadNameById(data['modalidad'] ?? ''),
           data['peso_total']?.toString() ?? 'Desconocido',
           data['piezas']?.toString() ?? 'Desconocido',
         ];
-      }).toList();
+      }).toList());
 
       pdf.addPage(
         pw.MultiPage(
@@ -379,6 +294,11 @@ class _CargoPageState extends State<CargoPage> {
     } catch (e) {
       print('Error generating PDF: $e');
     }
+  }
+
+  String formatDate(Timestamp? timestamp) {
+    if (timestamp == null) return 'Desconocido';
+    return DateFormat('dd/MM/yyyy').format(timestamp.toDate());
   }
 
   @override
@@ -461,8 +381,8 @@ class _CargoPageState extends State<CargoPage> {
                       DataColumn(label: Text('Peso')),
                       DataColumn(label: Text('Paquetes')),
                     ],
-                    source: _WarehousesDataSource(snapshot.data!.docs, getClientFullNameById, getEstatusNameById, getModalidadNameById, formatDate),
-                    rowsPerPage: 10,
+                    source: _WarehousesDataSource(snapshot.data!.docs, (clientId) => getClientFullNameById(clientId, firestoreService), firestoreService.getEstatusNameById, firestoreService.getModalidadNameById, formatDate),
+                    rowsPerPage: _rowsPerPage,
                     availableRowsPerPage: const [10, 20, 50],
                     onRowsPerPageChanged: (value) {
                       setState(() {
@@ -516,6 +436,10 @@ class _WarehousesDataSource extends DataTableSource {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Text('Cargando...');
           }
+          if (snapshot.hasError) {
+            print('Error: ${snapshot.error}');
+            return const Text('Error');
+          }
           return Text(snapshot.data ?? 'Desconocido');
         },
       )),
@@ -525,6 +449,10 @@ class _WarehousesDataSource extends DataTableSource {
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Text('Cargando...');
+          }
+          if (snapshot.hasError) {
+            print('Error: ${snapshot.error}');
+            return const Text('Error');
           }
           return Text(snapshot.data ?? 'Desconocido');
         },

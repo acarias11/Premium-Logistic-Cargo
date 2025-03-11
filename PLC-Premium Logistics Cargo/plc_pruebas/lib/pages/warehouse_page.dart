@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:data_table_2/data_table_2.dart';
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:intl/intl.dart';
 import 'package:plc_pruebas/services/firestore.dart';
 import 'package:plc_pruebas/widgets/sidebar.dart';
-
 import 'package:sidebarx/sidebarx.dart';
-import 'package:pdf/widgets.dart' as pw;
 import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
@@ -23,52 +23,42 @@ class _WarehousePageState extends State<WarehousePage> {
   final TextEditingController _searchController = TextEditingController();
   final SidebarXController _sidebarXController =
       SidebarXController(selectedIndex: 2);
-  String _searchTerm = '';
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  
+  // Variable para el término de búsqueda y filas por página
+  String _searchTerm = '';
   int _rowsPerPage = PaginatedDataTable.defaultRowsPerPage;
+  List<DocumentSnapshot> _currentFilteredDocs = [];
+
+  // GlobalKey para acceder al estado interno del widget de la tabla y obtener la página actual para el PDF.
+  final GlobalKey<_WarehouseTableState> warehouseTableKey =
+      GlobalKey<_WarehouseTableState>();
 
   @override
   void initState() {
     super.initState();
-    initializeDateFormatting(
-        'es', null); // Inicializar la configuración regional
+    initializeDateFormatting('es', null);
   }
 
+  // Obtiene los almacenes desde Firestore
   Stream<QuerySnapshot> getWare() {
     return firestoreService.getWarehouses();
   }
 
+  // Formatea la fecha de un Timestamp
   String formatDate(Timestamp? timestamp) {
-    if (timestamp == null) {
-      return 'Sujeta a cambio';
-    }
+    if (timestamp == null) return 'Sujeta a cambio';
     DateTime date = timestamp.toDate();
     return DateFormat('dd/MM/yyyy').format(date);
   }
 
-  Future<String> getEstatusNameById(String id) async {
-    DocumentSnapshot snapshot =
-        await FirebaseFirestore.instance.collection('Estatus').doc(id).get();
-    return snapshot.exists
-        ? (snapshot['Nombre'] ?? 'Desconocido')
-        : 'Desconocido';
-  }
-
-  Future<String> getModalidadNameById(String id) async {
-    DocumentSnapshot snapshot =
-        await FirebaseFirestore.instance.collection('Modalidad').doc(id).get();
-    return snapshot.exists
-        ? (snapshot['Nombre'] ?? 'Desconocido')
-        : 'Desconocido';
-  }
-
+  // Obtiene el nombre completo del cliente
   Future<String> getClientFullName(String clientId) async {
-    DocumentSnapshot snapshot = await FirebaseFirestore.instance
-        .collection('Clientes')
-        .doc(clientId)
-        .get();
+    DocumentSnapshot snapshot =
+        await _firestore.collection('Clientes').doc(clientId).get();
     if (snapshot.exists && snapshot.data() != null) {
-      Map<String, dynamic> clientData = snapshot.data() as Map<String, dynamic>;
+      Map<String, dynamic> clientData =
+          snapshot.data() as Map<String, dynamic>;
       String nombre = clientData['nombre'] ?? clientData['Nombre'] ?? '';
       String apellido = clientData['apellido'] ?? clientData['Apellido'] ?? '';
       String fullName = ('$nombre $apellido').trim();
@@ -80,9 +70,21 @@ class _WarehousePageState extends State<WarehousePage> {
   Future<void> generatePdf() async {
     try {
       final pdf = pw.Document();
+      // Se obtiene la página actual desde el estado del widget WarehouseTable
+      final int currentPage = warehouseTableKey.currentState?.currentPage ?? 0;
+      final int start = currentPage;
+      final int end = (currentPage + _rowsPerPage) > _currentFilteredDocs.length
+          ? _currentFilteredDocs.length
+          : (currentPage + _rowsPerPage);
+      final List<DocumentSnapshot> currentPageDocs =
+          _currentFilteredDocs.sublist(start, end);
 
-      final warehouses = await _firestore.collection('Warehouse').get();
+      // Cargar el logo desde los assets
+      final imageLogo = pw.MemoryImage(
+        (await rootBundle.load('assets/logo_PLC.jpg')).buffer.asUint8List(),
+      );
 
+      // Encabezados de la tabla PDF
       final headers = [
         'WarehouseID',
         'CargaID',
@@ -95,17 +97,18 @@ class _WarehousePageState extends State<WarehousePage> {
         'Paquetes'
       ];
 
-      final data = await Future.wait(warehouses.docs.map((doc) async {
-        final data = doc.data();
-        final fecha = (data['fecha'] as Timestamp).toDate();
+      // Construir los datos a mostrar (sólo los de la página actual)
+      final data = await Future.wait(currentPageDocs.map((doc) async {
+        final data = doc.data() as Map<String, dynamic>;
+        final fecha = data['fecha'] as Timestamp? ?? Timestamp.now();
         return [
           data['warehouse_id'] ?? 'Desconocido',
           data['carga_id'] ?? 'Desconocido',
-          await getClientFullName(data['cliente_id'] ?? '') ?? 'Desconocido',
+          await getClientFullName(data['cliente_id'] ?? ''),
           data['direccion'] ?? 'Desconocido',
-          data['estatus_id'] ?? 'Desconocido',
-          DateFormat('dd/MM/yyyy').format(fecha),
-          data['modalidad'] ?? 'Desconocido',
+          await firestoreService.getEstatusNameById(data['estatus_id'] ?? ''),
+          DateFormat('dd/MM/yyyy').format(fecha.toDate()),
+          await firestoreService.getModalidadNameById(data['modalidad'] ?? ''),
           data['peso_total']?.toString() ?? 'Desconocido',
           data['piezas']?.toString() ?? 'Desconocido',
         ];
@@ -115,52 +118,49 @@ class _WarehousePageState extends State<WarehousePage> {
         pw.MultiPage(
           pageFormat: PdfPageFormat.a3,
           margin: const pw.EdgeInsets.all(16),
-          build: (pw.Context context) {
+          // Encabezado que se repite en cada página
+          header: (context) {
+            return pw.Row(
+              mainAxisAlignment: pw.MainAxisAlignment.center,
+              children: [
+                pw.Image(imageLogo, height: 100, width: 70),
+              ],
+            );
+          },
+          // Pie de página
+          footer: (context) {
+            return pw.Container(
+              color: PdfColors.blue,
+              height: 50,
+              child: pw.Center(
+                child: pw.Text(
+                  'Premium Logistics Cargo',
+                  style: pw.TextStyle(color: PdfColors.white),
+                ),
+              ),
+            );
+          },
+          build: (context) {
             return [
               pw.Text(
                 "Reporte de warehouses",
-                style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold),
+                style: pw.TextStyle(
+                    fontSize: 18, fontWeight: pw.FontWeight.bold),
               ),
               pw.SizedBox(height: 10),
-              pw.Table(
-                columnWidths: {
-                  0: const pw.FixedColumnWidth(60),  // WarehouseID
-                  1: const pw.FixedColumnWidth(80),  // CargaID
-                  2: const pw.FixedColumnWidth(80),  // Nombre del cliente
-                  3: const pw.FixedColumnWidth(80),  // Dirección
-                  4: const pw.FixedColumnWidth(60),  // Estatus
-                  5: const pw.FixedColumnWidth(60),  // Fecha de creación
-                  6: const pw.FixedColumnWidth(60),  // Modalidad
-                  7: const pw.FixedColumnWidth(40),  // Peso
-                  8: const pw.FixedColumnWidth(40),  // Paquetes
-                },
+              // Uso de Table.fromTextArray para que se divida automáticamente en páginas
+              pw.Table.fromTextArray(
+                headers: headers,
+                data: data,
+                headerStyle: pw.TextStyle(
+                  fontWeight: pw.FontWeight.bold,
+                  color: PdfColors.white,
+                ),
+                headerDecoration: pw.BoxDecoration(color: PdfColors.blue),
+                cellStyle: pw.TextStyle(fontSize: 8),
+                cellAlignment: pw.Alignment.centerLeft,
                 border: pw.TableBorder.all(color: PdfColors.grey),
-                children: [
-                  pw.TableRow(
-                    decoration: const pw.BoxDecoration(color: PdfColors.blue),
-                    children: headers.map((header) => pw.Container(
-                      padding: const pw.EdgeInsets.all(5),
-                      child: pw.Text(
-                        header,
-                        style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold),
-                        softWrap: true,
-                      ),
-                    )).toList(),
-                  ),
-                  ...data.map((row) {
-                    return pw.TableRow(
-                      children: row.map((cell) => pw.Container(
-                        padding: const pw.EdgeInsets.all(5),
-                        child: pw.Text(
-                          cell.toString(),
-                          style: const pw.TextStyle(fontSize: 8),
-                          softWrap: true,
-                        ),
-                      )).toList(),
-                    );
-                  }),
-                ],
-              )
+              ),
             ];
           },
         ),
@@ -181,19 +181,18 @@ class _WarehousePageState extends State<WarehousePage> {
       drawer: Sidebar(selectedIndex: 2, controller: _sidebarXController),
       appBar: AppBar(
         backgroundColor: Colors.blue.shade900,
-        title: const Text(
-          'Warehouse',
-          style: TextStyle(color: Colors.white),
-        ),
+        title: const Text('Warehouse', style: TextStyle(color: Colors.white)),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(56.0),
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 6.0),
+            padding:
+                const EdgeInsets.symmetric(horizontal: 8.0, vertical: 6.0),
             child: TextField(
               controller: _searchController,
               style: const TextStyle(color: Colors.white),
               decoration: InputDecoration(
-                hintText: 'Buscar por warehouse_id, carga_id o cliente_id',
+                hintText:
+                    'Buscar por warehouse_id, carga_id o cliente_id',
                 hintStyle: const TextStyle(color: Colors.white70),
                 prefixIcon: const Icon(Icons.search, color: Colors.white),
                 filled: true,
@@ -203,6 +202,7 @@ class _WarehousePageState extends State<WarehousePage> {
                   borderSide: BorderSide.none,
                 ),
               ),
+              // Al cambiar el texto, actualizamos el término de búsqueda
               onChanged: (value) {
                 setState(() {
                   _searchTerm = value.toLowerCase();
@@ -217,11 +217,6 @@ class _WarehousePageState extends State<WarehousePage> {
             onPressed: generatePdf,
           ),
         ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: generatePdf,
-        backgroundColor: Colors.blue.shade800,
-        child: const Icon(Icons.picture_as_pdf, color: Colors.white),
       ),
       body: Container(
         width: double.infinity,
@@ -252,21 +247,25 @@ class _WarehousePageState extends State<WarehousePage> {
                       style: TextStyle(color: Colors.white)));
             }
 
+            // Filtrar documentos según el término de búsqueda
             var filteredDocs = snapshot.data!.docs.where((document) {
               Map<String, dynamic>? data =
                   document.data() as Map<String, dynamic>?;
               if (data == null) return false;
-
-              String whId = document['warehouse_id'].toString().toLowerCase();
-              String cargaId = data['carga_id']?.toString().toLowerCase() ?? '';
+              String whId =
+                  document['warehouse_id'].toString().toLowerCase();
+              String cargaId =
+                  data['carga_id']?.toString().toLowerCase() ?? '';
               String clientId =
                   data['cliente_id']?.toString().toLowerCase() ?? '';
-
               return _searchTerm.isEmpty ||
                   whId.contains(_searchTerm) ||
                   cargaId.contains(_searchTerm) ||
                   clientId.contains(_searchTerm);
             }).toList();
+
+            // Actualizamos la lista global de documentos filtrados
+            _currentFilteredDocs = filteredDocs;
 
             return SingleChildScrollView(
               scrollDirection: Axis.horizontal,
@@ -274,33 +273,14 @@ class _WarehousePageState extends State<WarehousePage> {
                 padding: const EdgeInsets.all(8.0),
                 child: SizedBox(
                   width: MediaQuery.of(context).size.width,
-                  child: PaginatedDataTable2(
-                    columnSpacing: 12,
-                    horizontalMargin: 12,
-                    minWidth: 600,
-                    dataRowHeight: 60,
-                    headingRowHeight: 40,
-                    headingTextStyle: const TextStyle(
-                        fontWeight: FontWeight.bold, color: Colors.black),
-                    columns: const [
-                      DataColumn(label: Text('WarehouseID')),
-                      DataColumn(label: Text('CargaID')),
-                      DataColumn(label: Text('Nombre del cliente')),
-                      DataColumn(label: Text('Dirección')),
-                      DataColumn(label: Text('Estatus')),
-                      DataColumn(label: Text('Fecha de creación')),
-                      DataColumn(label: Text('Modalidad')),
-                      DataColumn(label: Text('Peso')),
-                      DataColumn(label: Text('Paquetes')),
-                    ],
-                    source: _DataSource(filteredDocs, context, getClientFullName, getEstatusNameById, getModalidadNameById, formatDate),
-                    rowsPerPage: 10,
-                    availableRowsPerPage: const [10, 20, 50],
-                    onRowsPerPageChanged: (value) {
-                      setState(() {
-                        _rowsPerPage = value!;
-                      });
-                    },
+                  child: WarehouseTable(
+                    key: warehouseTableKey,
+                    docs: filteredDocs,
+                    rowsPerPage: _rowsPerPage,
+                    getClientFullName: getClientFullName,
+                    getEstatusNameById: firestoreService.getEstatusNameById,
+                    getModalidadNameById: firestoreService.getModalidadNameById,
+                    formatDate: formatDate,
                   ),
                 ),
               ),
@@ -312,16 +292,92 @@ class _WarehousePageState extends State<WarehousePage> {
   }
 }
 
-class _DataSource extends DataTableSource {
-  final List<DocumentSnapshot> _docs;
-  final BuildContext _context;
-
+class WarehouseTable extends StatefulWidget {
+  final List<DocumentSnapshot> docs;
+  final int rowsPerPage;
   final Future<String> Function(String) getClientFullName;
   final Future<String> Function(String) getEstatusNameById;
   final Future<String> Function(String) getModalidadNameById;
   final String Function(Timestamp?) formatDate;
 
-  _DataSource(this._docs, this._context, this.getClientFullName, this.getEstatusNameById, this.getModalidadNameById, this.formatDate);
+  const WarehouseTable({
+    Key? key,
+    required this.docs,
+    required this.rowsPerPage,
+    required this.getClientFullName,
+    required this.getEstatusNameById,
+    required this.getModalidadNameById,
+    required this.formatDate,
+  }) : super(key: key);
+
+  @override
+  _WarehouseTableState createState() => _WarehouseTableState();
+}
+
+class _WarehouseTableState extends State<WarehouseTable> {
+  int _currentPage = 0;
+
+  int get currentPage => _currentPage;
+
+  @override
+  Widget build(BuildContext context) {
+    return PaginatedDataTable2(
+      columnSpacing: 12,
+      horizontalMargin: 12,
+      minWidth: 600,
+      dataRowHeight: 60,
+      headingRowHeight: 40,
+      headingTextStyle: const TextStyle(
+          fontWeight: FontWeight.bold, color: Colors.black),
+      columns: const [
+        DataColumn(label: Text('WarehouseID')),
+        DataColumn(label: Text('Nombre del cliente')),
+        DataColumn(label: Text('Dirección')),
+        DataColumn(label: Text('Estatus')),
+        DataColumn(label: Text('Fecha de creación')),
+        DataColumn(label: Text('Modalidad')),
+        DataColumn(label: Text('Peso')),
+        DataColumn(label: Text('Paquetes')),
+      ],
+      source: _WarehousesDataSource(
+        widget.docs,
+        context,
+        widget.getClientFullName,
+        widget.getEstatusNameById,
+        widget.getModalidadNameById,
+        widget.formatDate,
+      ),
+      rowsPerPage: widget.rowsPerPage,
+      availableRowsPerPage: const [10, 20, 50],
+      initialFirstRowIndex: _currentPage,
+      onRowsPerPageChanged: (value) {
+        // Aquí podrías actualizar rowsPerPage si lo deseas.
+      },
+      onPageChanged: (firstRowIndex) {
+        setState(() {
+          _currentPage = firstRowIndex;
+        });
+      },
+    );
+  }
+}
+
+class _WarehousesDataSource extends DataTableSource {
+  final List<DocumentSnapshot> _docs;
+  final BuildContext _context;
+  final Future<String> Function(String) getClientFullName;
+  final Future<String> Function(String) getEstatusNameById;
+  final Future<String> Function(String) getModalidadNameById;
+  final String Function(Timestamp?) formatDate;
+
+  _WarehousesDataSource(
+    this._docs,
+    this._context,
+    this.getClientFullName,
+    this.getEstatusNameById,
+    this.getModalidadNameById,
+    this.formatDate,
+  );
 
   @override
   DataRow getRow(int index) {
@@ -329,40 +385,56 @@ class _DataSource extends DataTableSource {
     final data = document.data() as Map<String, dynamic>?;
 
     if (data == null) {
-      return const DataRow(cells: [DataCell(Text('Error al cargar datos'))]);
+      return const DataRow(
+          cells: [DataCell(Text('Error al cargar datos'))]);
     }
 
     return DataRow(cells: [
-      DataCell(Text(document['warehouse_id'])),
-      DataCell(Text(data['carga_id']?.toString() ?? 'Desconocido')),
-      DataCell(FutureBuilder(
+      DataCell(Text(data['warehouse_id']?.toString() ?? '')),
+      DataCell(FutureBuilder<String>(
         future: getClientFullName(data['cliente_id'] ?? ''),
-        builder: (context, snapshot) =>
-            Text(snapshot.data ?? 'Cargando...'),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Text('Cargando...');
+          }
+          return Text(snapshot.data ?? 'Desconocido');
+        },
       )),
       DataCell(Text(data['direccion'] ?? 'Desconocido')),
-      DataCell(FutureBuilder(
+      DataCell(FutureBuilder<String>(
         future: getEstatusNameById(data['estatus_id'] ?? ''),
-        builder: (context, snapshot) =>
-            Text(snapshot.data ?? 'Cargando...'),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Text('Cargando...');
+          }
+          if (snapshot.hasError) {
+            return const Text('Error');
+          }
+          return Text(snapshot.data ?? 'Desconocido');
+        },
       )),
       DataCell(Text(formatDate(data['fecha']))),
-      DataCell(FutureBuilder(
+      DataCell(FutureBuilder<String>(
         future: getModalidadNameById(data['modalidad'] ?? ''),
-        builder: (context, snapshot) =>
-            Text(snapshot.data ?? 'Cargando...'),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Text('Cargando...');
+          }
+          if (snapshot.hasError) {
+            return const Text('Error');
+          }
+          return Text(snapshot.data ?? 'Desconocido');
+        },
       )),
-      DataCell(Text(data['peso_total'].toString())),
-      DataCell(Text(data['piezas'].toString())),
+      DataCell(Text(data['peso_total']?.toString() ?? '')),
+      DataCell(Text(data['piezas']?.toString() ?? '')),
     ]);
   }
 
   @override
   bool get isRowCountApproximate => false;
-
   @override
   int get rowCount => _docs.length;
-
   @override
   int get selectedRowCount => 0;
 }

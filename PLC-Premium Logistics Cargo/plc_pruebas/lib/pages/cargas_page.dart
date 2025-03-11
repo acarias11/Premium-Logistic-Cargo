@@ -106,38 +106,61 @@ class _CargasPageState extends State<CargasPage> {
   }
 
   void _addCarga() async {
-    DateTime fechaInicial =
-        DateFormat('dd/MM/yyyy').parse(_fechaInicialController.text);
-    DateTime fechaFinal =
-        DateFormat('dd/MM/yyyy').parse(_fechaFinalController.text);
-    DateTime entregaInicial =
-        DateFormat('dd/MM/yyyy').parse(_entregaInicialController.text);
-    DateTime entregaFinal =
-        DateFormat('dd/MM/yyyy').parse(_entregaFinalController.text);
-    String estatusID = selectedEstatus!;
-    String modalidad = selectedModalidad!;
-    double peso = double.parse(_pesoController.text);
-    int piezas = int.parse(_piezasController.text);
+    try {
+      if (_fechaInicialController.text.isEmpty ||
+          _fechaFinalController.text.isEmpty ||
+          _entregaInicialController.text.isEmpty ||
+          _entregaFinalController.text.isEmpty ||
+          _pesoController.text.isEmpty ||
+          _piezasController.text.isEmpty ||
+          selectedEstatus == null ||
+          selectedModalidad == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Por favor, complete todos los campos')),
+        );
+        return;
+      }
 
-    await firestoreService.addCarga(
-      DateFormat('dd/MM/yyyy').format(entregaInicial),
-      DateFormat('dd/MM/yyyy').format(entregaFinal),
-      estatusID,
-      DateFormat('dd/MM/yyyy').format(fechaInicial),
-      DateFormat('dd/MM/yyyy').format(fechaFinal),
-      modalidad,
-      peso,
-      piezas,
-    );
+      // Convertir fechas
+      DateTime fechaInicial = DateFormat('dd/MM/yyyy').parse(_fechaInicialController.text);
+      DateTime fechaFinal = DateFormat('dd/MM/yyyy').parse(_fechaFinalController.text);
+      DateTime entregaInicial = DateFormat('dd/MM/yyyy').parse(_entregaInicialController.text);
+      DateTime entregaFinal = DateFormat('dd/MM/yyyy').parse(_entregaFinalController.text);
 
-    // Clear the text fields after adding the carga
-    _fechaInicialController.clear();
-    _fechaFinalController.clear();
-    _entregaInicialController.clear();
-    _entregaFinalController.clear();
-    _pesoController.clear();
-    _piezasController.clear();
+      // Convertir peso y piezas
+      double peso = double.parse(_pesoController.text);
+      int piezas = int.parse(_piezasController.text);
+
+      // Enviar nombres legibles directamente
+      await firestoreService.addCarga(
+        DateFormat('dd/MM/yyyy').format(entregaInicial),
+        DateFormat('dd/MM/yyyy').format(entregaFinal),
+        selectedEstatus!,        // Enviar 'Completado', 'En Transito', etc.
+        DateFormat('dd/MM/yyyy').format(fechaInicial),
+        DateFormat('dd/MM/yyyy').format(fechaFinal),
+        selectedModalidad!,      // Enviar 'Aereo', 'Maritimo'
+        peso,
+        piezas,
+      );
+
+      // Limpiar los campos después de agregar la carga
+      _fechaInicialController.clear();
+      _fechaFinalController.clear();
+      _entregaInicialController.clear();
+      _entregaFinalController.clear();
+      _pesoController.clear();
+      _piezasController.clear();
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Carga añadida exitosamente')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al añadir carga: $e')),
+      );
+    }
   }
+
 
   Future<void> generatePdf() async {
     try {
@@ -168,9 +191,10 @@ class _CargasPageState extends State<CargasPage> {
         } else {
           return false;
         }
-        return estatus == 'Completado' &&
-            fechaEntregaDate.month == currentMonth;
+        // Filtra cargas cuyo estatus_id sea 'EST1' (Completado) y que pertenezcan al mes actual.
+        return estatus == 'EST1' && fechaEntregaDate.month == DateTime.now().month;
       }).toList();
+
 
       final headers = [
         'ID',
@@ -182,7 +206,7 @@ class _CargasPageState extends State<CargasPage> {
         'Piezas'
       ];
 
-      final data = cargasFiltradas.map((doc) {
+      final data = await Future.wait(cargasFiltradas.map((doc) async {
         final data = doc.data();
         final fechaInicial = data['entrega_inicial'];
         final fechaFinal = data['entrega_final'];
@@ -214,12 +238,12 @@ class _CargasPageState extends State<CargasPage> {
           doc.id,
           DateFormat('dd/MM/yyyy').format(fechaInicialDate),
           DateFormat('dd/MM/yyyy').format(fechaFinalDate),
-          data['estatus_id'] ?? 'Desconocido',
-          data['modalidad'] ?? 'Desconocido',
+          await firestoreService.getEstatusNameById(data['estatus_id'] ?? 'Desconocido'),
+          await firestoreService.getModalidadNameById(data['modalidad'] ?? 'Desconocido'),
           '${data['peso']?.toString() ?? 'Sin peso'} kg',
           data['piezas']?.toString() ?? 'Sin piezas',
         ];
-      }).toList();
+      }).toList());
 
       pdf.addPage(
         pw.MultiPage(
@@ -420,9 +444,7 @@ class _CargasPageState extends State<CargasPage> {
                                         selectedEstatus = newValue;
                                       });
                                     },
-                                    items: estatuses
-                                        .map<DropdownMenuItem<String>>(
-                                            (String value) {
+                                    items: estatuses.map<DropdownMenuItem<String>>((String value) {
                                       return DropdownMenuItem<String>(
                                         value: value,
                                         child: Text(value),
@@ -437,9 +459,7 @@ class _CargasPageState extends State<CargasPage> {
                                         selectedModalidad = newValue;
                                       });
                                     },
-                                    items: modalidades
-                                        .map<DropdownMenuItem<String>>(
-                                            (String value) {
+                                    items: modalidades.map<DropdownMenuItem<String>>((String value) {
                                       return DropdownMenuItem<String>(
                                         value: value,
                                         child: Text(value),
@@ -529,7 +549,7 @@ class _CargasPageState extends State<CargasPage> {
                             DataColumn(label: Text('Peso')),
                             DataColumn(label: Text('Piezas')),
                           ],
-                          source: _CargasDataSource(context, filteredDocs, getDocumentName, formatDate),
+                          source: _CargasDataSource(context, filteredDocs, getDocumentName, formatDate, firestoreService),
                           rowsPerPage: 10,
                           availableRowsPerPage: const [10, 20, 50],
                           onRowsPerPageChanged: (value) {
@@ -560,11 +580,12 @@ class _CargasDataSource extends DataTableSource {
   final List<DocumentSnapshot> _docs;
   final Future<String> Function(DocumentReference) getDocumentName;
   final String Function(dynamic) formatDate;
+  final FirestoreService firestoreService;
 
-  _CargasDataSource(this.context, this._docs, this.getDocumentName, this.formatDate);
+  _CargasDataSource(this.context, this._docs, this.getDocumentName, this.formatDate, this.firestoreService);
 
   @override
-  DataRow getRow(int index) {
+  DataRow? getRow(int index) {
     final document = _docs[index];
     final data = document.data() as Map<String, dynamic>?;
 
@@ -572,15 +593,8 @@ class _CargasDataSource extends DataTableSource {
       return const DataRow(cells: [DataCell(Text('Error al cargar datos'))]);
     }
 
-    Future<String> estatusFuture =
-        data['estatus_id'] is DocumentReference
-            ? getDocumentName(data['estatus_id'] as DocumentReference)
-            : Future.value(data['estatus_id'] ?? 'Desconocido');
-
-    Future<String> modalidadFuture =
-        data['modalidad'] is DocumentReference
-            ? getDocumentName(data['modalidad'] as DocumentReference)
-            : Future.value(data['modalidad'] ?? 'Desconocido');
+    String estatusID = data['estatus_id'] ?? 'Desconocido';
+    String modalidadID = data['modalidad'] ?? 'Desconocido';
 
     String fechaInicial = 'Desconocido';
     if (data['fecha_inicial'] is Timestamp) {
@@ -614,19 +628,25 @@ class _CargasDataSource extends DataTableSource {
       DataCell(Text(fechaInicial)),
       DataCell(Text(fechaFinal)),
       DataCell(FutureBuilder<String>(
-        future: estatusFuture,
+        future: firestoreService.getEstatusNameById(estatusID),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Text('Cargando...');
+          }
+          if (snapshot.hasError) {
+            return const Text('Error');
           }
           return Text(snapshot.data ?? 'Desconocido');
         },
       )),
       DataCell(FutureBuilder<String>(
-        future: modalidadFuture,
+        future: firestoreService.getModalidadNameById(modalidadID),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Text('Cargando...');
+          }
+          if (snapshot.hasError) {
+            return const Text('Error');
           }
           return Text(snapshot.data ?? 'Desconocido');
         },
@@ -645,3 +665,4 @@ class _CargasDataSource extends DataTableSource {
   @override
   int get selectedRowCount => 0;
 }
+
