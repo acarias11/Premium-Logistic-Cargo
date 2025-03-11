@@ -60,14 +60,14 @@ class _ClientesEliminarPageState extends State<ClientesEliminarPage> {
 
     if (difference > 365) {
       return Colors.red.shade900;
-    } else if (difference > 180) {
-      return Colors.red.shade700;
     } else if (difference > 90) {
+      return Colors.red.shade700;
+    } else if (difference > 60) {
       return Colors.red.shade500;
     } else if (difference > 30) {
-      return Colors.red.shade300;
+      return Colors.red.shade400;
     } else {
-      return Colors.red.shade100;
+      return Colors.red.shade300;
     }
   }
 
@@ -115,8 +115,12 @@ class _ClientesEliminarPageState extends State<ClientesEliminarPage> {
                 return Card(
                   color: color,
                   margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
                   child: ListTile(
-                    title: Text(cliente['nombre'], style: const TextStyle(color: Colors.white)),
+                    contentPadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                    title: Text(cliente['nombre'], style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                     subtitle: Text('Teléfono: ${cliente['telefono']}', style: const TextStyle(color: Colors.white)),
                     trailing: Text('ID: ${cliente['cliente_id']}', style: const TextStyle(color: Colors.white)),
                   ),
