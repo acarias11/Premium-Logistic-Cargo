@@ -191,7 +191,7 @@ class SendEmailPage extends StatelessWidget {
                   elevation: 5,
                 ),
                 onPressed: () {
-                  sendEmailToGerente();
+                  _showConfirmationDialog(context, '¿Está seguro de enviar el correo al gerente?', sendEmailToGerente);
                 },
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -219,7 +219,7 @@ class SendEmailPage extends StatelessWidget {
                   elevation: 5,
                 ),
                 onPressed: () {
-                  sendEmailToClientes();
+                  _showConfirmationDialog(context, '¿Está seguro de enviar el correo a los clientes?', sendEmailToClientes);
                 },
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -238,6 +238,40 @@ class SendEmailPage extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+
+  Future<void> _showConfirmationDialog(BuildContext context, String message, Function onConfirm) async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false, // user must tap button!
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Confirmación'),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                Text(message),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Cancelar'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: const Text('Confirmar'),
+              onPressed: () {
+                onConfirm();
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
     );
   }
 }
