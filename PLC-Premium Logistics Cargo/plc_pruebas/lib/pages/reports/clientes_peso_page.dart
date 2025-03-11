@@ -167,42 +167,53 @@ class _ClientesPesoPageState extends State<ClientesPesoPage> {
           ),
         ],
       ),
-      body: FutureBuilder<List<Map<String, dynamic>>>(
-        future: fetchClientesPeso(),
-        builder: (BuildContext context, AsyncSnapshot<List<Map<String, dynamic>>> snapshot) {
-          if (snapshot.hasError) {
-            return Center(child: Text('Error al obtener los datos de los clientes: ${snapshot.error}'));
-          }
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text('No hay datos disponibles'));
-          }
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Colors.blue.shade900, Colors.orange.shade700],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
+        child: FutureBuilder<List<Map<String, dynamic>>>(
+          future: fetchClientesPeso(),
+          builder: (BuildContext context, AsyncSnapshot<List<Map<String, dynamic>>> snapshot) {
+            if (snapshot.hasError) {
+              return Center(child: Text('Error al obtener los datos de los clientes: ${snapshot.error}', style: const TextStyle(color: Colors.white)));
+            }
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator(color: Colors.white));
+            }
+            if (!snapshot.hasData || snapshot.data!.isEmpty) {
+              return const Center(child: Text('No hay datos disponibles', style: TextStyle(color: Colors.white)));
+            }
 
-          return ListView.builder(
-            itemCount: snapshot.data!.length,
-            itemBuilder: (context, index) {
-              final cliente = snapshot.data![index];
-              final color = getColorBasedOnWeight(cliente['peso_total']);
-              return Card(
-                color: color,
-                margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-                child: ListTile(
-                  title: Text(cliente['nombre']),
-                  subtitle: Text('Teléfono: ${cliente['telefono']}'),
-                  trailing: Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text('Peso total: ${cliente['peso_total']}'),
-                      Text('Total de warehouses: ${cliente['total_warehouses']}'),
-                    ],
+            return ListView.builder(
+              itemCount: snapshot.data!.length,
+              itemBuilder: (context, index) {
+                final cliente = snapshot.data![index];
+                final color = getColorBasedOnWeight(cliente['peso_total']);
+                return Card(
+                  color: color,
+                  margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                  child: ListTile(
+                    title: Text(cliente['nombre'], style: const TextStyle(color: Colors.white)),
+                    subtitle: Text('Teléfono: ${cliente['telefono']}', style: const TextStyle(color: Colors.white)),
+                    trailing: Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text('Peso total: ${cliente['peso_total']}', style: const TextStyle(color: Colors.white)),
+                        Text('Total de warehouses: ${cliente['total_warehouses']}', style: const TextStyle(color: Colors.white)),
+                      ],
+                    ),
                   ),
-                ),
-              );
-            },
-          );
-        },
+                );
+              },
+            );
+          },
+        ),
       ),
     );
   }

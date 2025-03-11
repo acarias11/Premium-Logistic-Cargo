@@ -109,39 +109,59 @@ class _GraficaActivosInactivosPageState extends State<GraficaActivosInactivosPag
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Clientes Activos/Inactivos'),
+        backgroundColor: Colors.blue.shade900,
+        title: const Text(
+          'Clientes Activos/Inactivos',
+          style: TextStyle(color: Colors.white),
+        ),
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _errorMessage.isNotEmpty
-              ? Center(child: Text(_errorMessage))
-              : Column(
-                  children: [
-                    ElevatedButton(
-                      onPressed: () => _selectMonth(context),
-                      child: Text(
-                          'Mes seleccionado: ${_selectedMonth.year}-${_selectedMonth.month}'),
-                    ),
-                    Expanded(
-                      child: _chartData.isEmpty // Check if _chartData is empty
-                          ? const Center(child: Text('No hay datos que mostrar para este mes.')) // Display message if no data
-                          : SfCircularChart(
-                              title: ChartTitle(text: 'Clientes Activos/Inactivos'),
-                              legend: Legend(isVisible: true),
-                              series: <CircularSeries<_ChartData, String>>[
-                                PieSeries<_ChartData, String>(
-                                  dataSource: _chartData,
-                                  xValueMapper: (_ChartData data, _) => data.label,
-                                  yValueMapper: (_ChartData data, _) => data.value,
-                                  dataLabelSettings: const DataLabelSettings(isVisible: true),
-                                  dataLabelMapper: (datum, index) =>
-                                      '${datum.label}: ${datum.value.toStringAsFixed(1)}%',
-                                )
-                              ],
-                            ),
-                    ),
-                  ],
-                ),
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Colors.blue.shade900, Colors.orange.shade700],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
+        child: _isLoading
+            ? const Center(child: CircularProgressIndicator(color: Colors.white))
+            : _errorMessage.isNotEmpty
+                ? Center(child: Text(_errorMessage, style: const TextStyle(color: Colors.white)))
+                : Column(
+                    children: [
+                      ElevatedButton(
+                        onPressed: () => _selectMonth(context),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blue.shade800,
+                        ),
+                        child: Text(
+                          'Mes seleccionado: ${_selectedMonth.year}-${_selectedMonth.month}',
+                          style: const TextStyle(color: Colors.white),
+                        ),
+                      ),
+                      Expanded(
+                        child: _chartData.isEmpty // Check if _chartData is empty
+                            ? const Center(child: Text('No hay datos que mostrar para este mes.', style: TextStyle(color: Colors.white))) // Display message if no data
+                            : SfCircularChart(
+                                title: ChartTitle(text: 'Clientes Activos/Inactivos'),
+                                legend: Legend(isVisible: true),
+                                series: <CircularSeries<_ChartData, String>>[
+                                  PieSeries<_ChartData, String>(
+                                    dataSource: _chartData,
+                                    xValueMapper: (_ChartData data, _) => data.label,
+                                    yValueMapper: (_ChartData data, _) => data.value,
+                                    dataLabelSettings: const DataLabelSettings(isVisible: true),
+                                    dataLabelMapper: (datum, index) =>
+                                        '${datum.label}: ${datum.value.toStringAsFixed(1)}%',
+                                  )
+                                ],
+                              ),
+                      ),
+                    ],
+                  ),
+      ),
     );
   }
 }

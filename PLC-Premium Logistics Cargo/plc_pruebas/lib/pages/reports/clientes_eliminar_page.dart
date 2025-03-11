@@ -84,36 +84,47 @@ class _ClientesEliminarPageState extends State<ClientesEliminarPage> {
           },
         ),
       ),
-      body: FutureBuilder<List<Map<String, dynamic>>>(
-        future: fetchClientesSinPeso(),
-        builder: (BuildContext context, AsyncSnapshot<List<Map<String, dynamic>>> snapshot) {
-          if (snapshot.hasError) {
-            return Center(child: Text('Error al obtener los datos de los clientes: ${snapshot.error}'));
-          }
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text('No hay datos disponibles'));
-          }
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Colors.blue.shade900, Colors.orange.shade700],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
+        child: FutureBuilder<List<Map<String, dynamic>>>(
+          future: fetchClientesSinPeso(),
+          builder: (BuildContext context, AsyncSnapshot<List<Map<String, dynamic>>> snapshot) {
+            if (snapshot.hasError) {
+              return Center(child: Text('Error al obtener los datos de los clientes: ${snapshot.error}', style: const TextStyle(color: Colors.white)));
+            }
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator(color: Colors.white));
+            }
+            if (!snapshot.hasData || snapshot.data!.isEmpty) {
+              return const Center(child: Text('No hay datos disponibles', style: TextStyle(color: Colors.white)));
+            }
 
-          return ListView.builder(
-            itemCount: snapshot.data!.length,
-            itemBuilder: (context, index) {
-              final cliente = snapshot.data![index];
-              final color = getColorBasedOnDate(cliente['fecha_creacion']);
-              return Card(
-                color: color,
-                margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-                child: ListTile(
-                  title: Text(cliente['nombre']),
-                  subtitle: Text('Teléfono: ${cliente['telefono']}'),
-                  trailing: Text('ID: ${cliente['cliente_id']}'),
-                ),
-              );
-            },
-          );
-        },
+            return ListView.builder(
+              itemCount: snapshot.data!.length,
+              itemBuilder: (context, index) {
+                final cliente = snapshot.data![index];
+                final color = getColorBasedOnDate(cliente['fecha_creacion']);
+                return Card(
+                  color: color,
+                  margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                  child: ListTile(
+                    title: Text(cliente['nombre'], style: const TextStyle(color: Colors.white)),
+                    subtitle: Text('Teléfono: ${cliente['telefono']}', style: const TextStyle(color: Colors.white)),
+                    trailing: Text('ID: ${cliente['cliente_id']}', style: const TextStyle(color: Colors.white)),
+                  ),
+                );
+              },
+            );
+          },
+        ),
       ),
     );
   }

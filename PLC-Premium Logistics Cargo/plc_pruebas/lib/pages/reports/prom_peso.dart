@@ -84,43 +84,61 @@ class _PromPesoPageState extends State<PromPesoPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Promedios del Mes'),
+        title: const Text('Promedios del Mes'),
+        backgroundColor: Colors.blue.shade900,
       ),
-      body: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              ElevatedButton(
-                onPressed: () => _selectMonth(context),
-                child: Text('Seleccionar Mes: ${DateFormat.yMMM().format(_selectedMonth)}'),
-              ),
-            ],
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Colors.blue.shade900, Colors.orange.shade700],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
           ),
-          Expanded(
-            child: ListView(
+        ),
+        child: Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _buildTable('Promedio de Peso de las Cargas', avgPeso),
-                _buildTable('Promedio de Peso de los Warehouse', avgWarehouse),
-                _buildTable('Promedio de Peso de los Paquetes', avgPaquetes),
+                ElevatedButton(
+                  onPressed: () => _selectMonth(context),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue.shade800,
+                  ),
+                  child: Text(
+                    'Seleccionar Mes: ${DateFormat.yMMM().format(_selectedMonth)}',
+                    style: const TextStyle(color: Colors.white),
+                  ),
+                ),
               ],
             ),
-          ),
-        ],
+            Expanded(
+              child: ListView(
+                children: [
+                  _buildTable('Promedio de Peso de las Cargas', avgPeso),
+                  _buildTable('Promedio de Peso de los Warehouse', avgWarehouse),
+                  _buildTable('Promedio de Peso de los Paquetes', avgPaquetes),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildTable(String title, double average) {
     return Card(
-      margin: EdgeInsets.all(10.0),
+      margin: const EdgeInsets.all(10.0),
       child: Column(
         children: [
           ListTile(
             title: Text(title),
           ),
           DataTable(
-            columns: [
+            columns: const [
               DataColumn(label: Text('Mes')),
               DataColumn(label: Text('Promedio')),
             ],

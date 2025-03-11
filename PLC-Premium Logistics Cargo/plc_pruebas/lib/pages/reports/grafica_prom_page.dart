@@ -108,40 +108,67 @@ class _GraficaPromPageState extends State<GraficaPromPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Promedio de Clientes'),
+        backgroundColor: Colors.blue.shade900,
+        title: const Text(
+          'Promedio de Clientes',
+          style: TextStyle(color: Colors.white),
+        ),
       ),
-      body: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              ElevatedButton(
-                onPressed: () => _selectMonth(context),
-                child: Text('Seleccionar Mes: ${DateFormat.yMMM().format(_selectedMonth)}'),
-              ),
-              ElevatedButton(
-                onPressed: () => _selectDateRange(context),
-                child: Text('Seleccionar Rango de Fechas'),
-              ),
-            ],
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Colors.blue.shade900, Colors.orange.shade700],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
           ),
-          Expanded(
-            child: SfCircularChart(
-              title: ChartTitle(text: 'Promedio de Clientes por Modalidad'),
-              legend: Legend(isVisible: true),
-              tooltipBehavior: TooltipBehavior(enable: true),
-              series: <CircularSeries<_ChartData, String>>[
-                PieSeries<_ChartData, String>(
-                  dataSource: _chartData,
-                  xValueMapper: (_ChartData data, _) => data.mode,
-                  yValueMapper: (_ChartData data, _) => data.average,
-                  dataLabelSettings: DataLabelSettings(isVisible: true),
-                  dataLabelMapper: (_ChartData data, _) => '${data.average.toStringAsFixed(1)}%',
-                )
+        ),
+        child: Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                ElevatedButton(
+                  onPressed: () => _selectMonth(context),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue.shade800,
+                  ),
+                  child: Text(
+                    'Seleccionar Mes: ${DateFormat.yMMM().format(_selectedMonth)}',
+                    style: const TextStyle(color: Colors.white),
+                  ),
+                ),
+                ElevatedButton(
+                  onPressed: () => _selectDateRange(context),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue.shade800,
+                  ),
+                  child: const Text(
+                    'Seleccionar Rango de Fechas',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ),
               ],
             ),
-          ),
-        ],
+            Expanded(
+              child: SfCircularChart(
+                title: ChartTitle(text: 'Promedio de Clientes por Modalidad'),
+                legend: Legend(isVisible: true),
+                tooltipBehavior: TooltipBehavior(enable: true),
+                series: <CircularSeries<_ChartData, String>>[
+                  PieSeries<_ChartData, String>(
+                    dataSource: _chartData,
+                    xValueMapper: (_ChartData data, _) => data.mode,
+                    yValueMapper: (_ChartData data, _) => data.average,
+                    dataLabelSettings: const DataLabelSettings(isVisible: true),
+                    dataLabelMapper: (_ChartData data, _) => '${data.average.toStringAsFixed(1)}%',
+                  )
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
