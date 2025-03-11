@@ -35,11 +35,13 @@ class _ClientesEliminarPageState extends State<ClientesEliminarPage> {
           Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
           String clienteNombre = data['nombre'] ?? 'Desconocido';
           String clienteTelefono = data['telefono'] ?? 'Desconocido';
+          Timestamp fechaCreacion = data['fecha_creacion'] ?? Timestamp.now();
 
           clientesSinPeso.add({
             'nombre': clienteNombre,
             'telefono': clienteTelefono,
             'cliente_id': clienteId,
+            'fecha_creacion': fechaCreacion,
           });
         }
       }
@@ -48,6 +50,24 @@ class _ClientesEliminarPageState extends State<ClientesEliminarPage> {
     } catch (e) {
       print('Error al obtener los datos de los clientes: $e');
       return [];
+    }
+  }
+
+  Color getColorBasedOnDate(Timestamp fechaCreacion) {
+    final now = DateTime.now();
+    final creationDate = fechaCreacion.toDate();
+    final difference = now.difference(creationDate).inDays;
+
+    if (difference > 365) {
+      return Colors.red.shade900;
+    } else if (difference > 180) {
+      return Colors.red.shade700;
+    } else if (difference > 90) {
+      return Colors.red.shade500;
+    } else if (difference > 30) {
+      return Colors.red.shade300;
+    } else {
+      return Colors.red.shade100;
     }
   }
 
@@ -81,10 +101,15 @@ class _ClientesEliminarPageState extends State<ClientesEliminarPage> {
             itemCount: snapshot.data!.length,
             itemBuilder: (context, index) {
               final cliente = snapshot.data![index];
-              return ListTile(
-                title: Text(cliente['nombre']),
-                subtitle: Text('Teléfono: ${cliente['telefono']}'),
-                trailing: Text('ID: ${cliente['cliente_id']}'),
+              final color = getColorBasedOnDate(cliente['fecha_creacion']);
+              return Card(
+                color: color,
+                margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                child: ListTile(
+                  title: Text(cliente['nombre']),
+                  subtitle: Text('Teléfono: ${cliente['telefono']}'),
+                  trailing: Text('ID: ${cliente['cliente_id']}'),
+                ),
               );
             },
           );

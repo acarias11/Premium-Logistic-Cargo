@@ -4,7 +4,6 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import 'package:flutter/services.dart' show ByteData, Uint8List, rootBundle;
-import 'package:data_table_2/data_table_2.dart';
 
 class ClientesPesoPage extends StatefulWidget {
   const ClientesPesoPage({super.key});
@@ -15,7 +14,6 @@ class ClientesPesoPage extends StatefulWidget {
 
 class _ClientesPesoPageState extends State<ClientesPesoPage> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  int _rowsPerPage = PaginatedDataTable.defaultRowsPerPage;
 
   Future<List<Map<String, dynamic>>> fetchClientesPeso() async {
     try {
@@ -68,6 +66,21 @@ class _ClientesPesoPageState extends State<ClientesPesoPage> {
     } catch (e) {
       print('Error al obtener los datos de los clientes: $e');
       return [];
+    }
+  }
+
+  Color getColorBasedOnWeight(double pesoTotal) {
+    pesoTotal *= 2; // Multiplicamos el peso por 2 para que el verde sea más fuerte
+    if (pesoTotal > 1000) {
+      return Colors.green.shade900;
+    } else if (pesoTotal > 500) {
+      return Colors.green.shade700;
+    } else if (pesoTotal > 100) {
+      return Colors.green.shade500;
+    } else if (pesoTotal > 50) {
+      return Colors.green.shade300;
+    } else {
+      return Colors.green.shade100;
     }
   }
 
@@ -154,81 +167,43 @@ class _ClientesPesoPageState extends State<ClientesPesoPage> {
           ),
         ],
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: FutureBuilder<List<Map<String, dynamic>>>(
-              future: fetchClientesPeso(),
-              builder: (context, snapshot) {
-                if (snapshot.hasError) {
-                  return Center(child: Text('Error: ${snapshot.error}'));
-                }
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-                if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return const Center(child: Text('No hay datos disponibles'));
-                }
+      body: FutureBuilder<List<Map<String, dynamic>>>(
+        future: fetchClientesPeso(),
+        builder: (BuildContext context, AsyncSnapshot<List<Map<String, dynamic>>> snapshot) {
+          if (snapshot.hasError) {
+            return Center(child: Text('Error al obtener los datos de los clientes: ${snapshot.error}'));
+          }
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            return const Center(child: Text('No hay datos disponibles'));
+          }
 
-                return SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(
-                      maxWidth: MediaQuery.of(context).size.width,
-                    ),
-                    child: PaginatedDataTable2(
-                      columnSpacing: 12,
-                      horizontalMargin: 12,
-                      minWidth: 600,
-                      columns: const [
-                        DataColumn2(label: Text('Nombre del cliente')),
-                        DataColumn2(label: Text('Número')),
-                        DataColumn2(label: Text('Peso total')),
-                        DataColumn2(label: Text('Total de warehouses')),
-                      ],
-                      source: ClientesPesoDataSource(snapshot.data!),
-                      rowsPerPage: _rowsPerPage,
-                      availableRowsPerPage: const [10, 20, 50],
-                      onRowsPerPageChanged: (value) {
-                        setState(() {
-                          _rowsPerPage = value!;
-                        });
-                      },
-                    ),
+          return ListView.builder(
+            itemCount: snapshot.data!.length,
+            itemBuilder: (context, index) {
+              final cliente = snapshot.data![index];
+              final color = getColorBasedOnWeight(cliente['peso_total']);
+              return Card(
+                color: color,
+                margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                child: ListTile(
+                  title: Text(cliente['nombre']),
+                  subtitle: Text('Teléfono: ${cliente['telefono']}'),
+                  trailing: Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text('Peso total: ${cliente['peso_total']}'),
+                      Text('Total de warehouses: ${cliente['total_warehouses']}'),
+                    ],
                   ),
-                );
-              },
-            ),
-          ),
-        ],
+                ),
+              );
+            },
+          );
+        },
       ),
     );
   }
-}
-
-class ClientesPesoDataSource extends DataTableSource {
-  final List<Map<String, dynamic>> data;
-
-  ClientesPesoDataSource(this.data);
-
-  @override
-  DataRow getRow(int index) {
-    final cliente = data[index];
-
-    return DataRow.byIndex(index: index, cells: [
-      DataCell(Text(cliente['nombre'])),
-      DataCell(Text(cliente['telefono'] ?? 'Desconocido')),
-      DataCell(Text(cliente['peso_total'].toString())),
-      DataCell(Text(cliente['total_warehouses'].toString())),
-    ]);
-  }
-
-  @override
-  bool get isRowCountApproximate => false;
-
-  @override
-  int get rowCount => data.length;
-
-  @override
-  int get selectedRowCount => 0;
 }
