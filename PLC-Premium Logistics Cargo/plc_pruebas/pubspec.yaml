@@ -21,6 +21,7 @@ dependencies:
   pdf: ^3.11.3
   flutter_charts: ^0.5.0
   month_picker_dialog: ^6.0.2
+  fl_chart: ^0.70.2
   flutter:
     sdk: flutter
   mailer: ^6.4.1

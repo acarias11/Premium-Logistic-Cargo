@@ -90,7 +90,7 @@ class FirestoreService {
       });
     } catch (e) {
       print('Error al agregar paquete: $e');
-      throw e;
+      rethrow;
     }
   }
 

@@ -27,7 +27,7 @@ class _WarehousePageState extends State<WarehousePage> {
   
   // Variable para el término de búsqueda y filas por página
   String _searchTerm = '';
-  int _rowsPerPage = PaginatedDataTable.defaultRowsPerPage;
+  final int _rowsPerPage = PaginatedDataTable.defaultRowsPerPage;
   List<DocumentSnapshot> _currentFilteredDocs = [];
 
   // GlobalKey para acceder al estado interno del widget de la tabla y obtener la página actual para el PDF.
@@ -327,14 +327,14 @@ class WarehouseTable extends StatefulWidget {
   final String Function(Timestamp?) formatDate;
 
   const WarehouseTable({
-    Key? key,
+    super.key,
     required this.docs,
     required this.rowsPerPage,
     required this.getClientFullName,
     required this.getEstatusNameById,
     required this.getModalidadNameById,
     required this.formatDate,
-  }) : super(key: key);
+  });
 
   @override
   _WarehouseTableState createState() => _WarehouseTableState();

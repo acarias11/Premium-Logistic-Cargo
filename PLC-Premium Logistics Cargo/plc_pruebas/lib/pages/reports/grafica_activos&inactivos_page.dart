@@ -4,7 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:month_picker_dialog/month_picker_dialog.dart';
 
 class GraficaActivosInactivosPage extends StatefulWidget {
-  const GraficaActivosInactivosPage({Key? key}) : super(key: key);
+  const GraficaActivosInactivosPage({super.key});
 
   @override
   _GraficaActivosInactivosPageState createState() => _GraficaActivosInactivosPageState();

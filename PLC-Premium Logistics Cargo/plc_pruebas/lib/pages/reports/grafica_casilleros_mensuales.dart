@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter_charts/flutter_charts.dart';
+import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:month_picker_dialog/month_picker_dialog.dart';
@@ -14,10 +14,12 @@ class GraficaCasillerosMensuales extends StatefulWidget {
 }
 
 class _GraficaCasillerosMensualesState
-    extends State<GraficaCasillerosMensuales> {
+    extends State<GraficaCasillerosMensuales> with SingleTickerProviderStateMixin {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   List<_ChartData> _chartData = [];
   DateTime _selectedMonth = DateTime.now();
+  int touchedIndex = -1;
+  late AnimationController _animationController;
 
   @override
   void initState() {
@@ -25,6 +27,16 @@ class _GraficaCasillerosMensualesState
     initializeDateFormatting(
         'es', null); // Inicializar la configuración regional
     _getChartData();
+    _animationController = AnimationController(
+      duration: const Duration(seconds: 1),
+      vsync: this,
+    );
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
   }
 
   Future<void> _getChartData() async {
@@ -137,29 +149,123 @@ class _GraficaCasillerosMensualesState
   }
 
   Widget _buildChart() {
-    ChartData chartData = ChartData(
-      dataRows: [
-        _chartData.map((e) => e.value).toList(),
-      ],
-      xUserLabels: _chartData.map((e) => e.label).toList(),
-      dataRowsLegends: const ["Clientes"],
-      chartOptions: const ChartOptions(),
-    );
-
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final width = constraints.maxWidth > 0 ? constraints.maxWidth : 300;
-        return SizedBox(
-          width: width.toDouble(),
-          height: 300,
-          child: VerticalBarChart(
-            painter: VerticalBarChartPainter(
-              verticalBarChartContainer:
-                  VerticalBarChartTopContainer(chartData: chartData),
+    return Stack(
+      children: [
+        Container(
+          decoration: BoxDecoration(
+            border: Border.all(color: Colors.black, width: 2),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          padding: const EdgeInsets.all(16),
+          child: BarChart(
+            BarChartData(
+              alignment: BarChartAlignment.spaceAround,
+              maxY: _chartData.map((e) => e.value).reduce((a, b) => a > b ? a : b) + 1,
+              barTouchData: BarTouchData(
+                touchTooltipData: BarTouchTooltipData(
+                  tooltipPadding: const EdgeInsets.all(8),
+                  tooltipMargin: 8,
+                  getTooltipItem: (group, groupIndex, rod, rodIndex) {
+                    final day = _chartData[group.x.toInt()].label;
+                    return BarTooltipItem(
+                      '$day\n',
+                      const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      children: <TextSpan>[
+                        TextSpan(
+                          text: (rod.toY).toString(),
+                          style: const TextStyle(
+                            color: Colors.yellow,
+                            fontWeight: FontWeight.w500,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                ),
+                touchCallback: (FlTouchEvent event, barTouchResponse) {
+                  setState(() {
+                    if (!event.isInterestedForInteractions ||
+                        barTouchResponse == null ||
+                        barTouchResponse.spot == null) {
+                      touchedIndex = -1;
+                      _animationController.stop();
+                      return;
+                    }
+                    touchedIndex = barTouchResponse.spot!.touchedBarGroupIndex;
+                    _animationController.repeat();
+                  });
+                },
+              ),
+              titlesData: FlTitlesData(
+                show: true,
+                bottomTitles: AxisTitles(
+                  sideTitles: SideTitles(
+                    showTitles: true,
+                    getTitlesWidget: (double value, TitleMeta meta) {
+                      final index = value.toInt();
+                      if (index >= 0 && index < _chartData.length) {
+                        return Text(_chartData[index].label);
+                      }
+                      return const Text('');
+                    },
+                  ),
+                ),
+                leftTitles: AxisTitles(
+                  sideTitles: SideTitles(
+                    showTitles: true,
+                    getTitlesWidget: (double value, TitleMeta meta) {
+                      return Text(value.toInt().toString());
+                    },
+                  ),
+                ),
+              ),
+              borderData: FlBorderData(show: false),
+              barGroups: _chartData
+                  .asMap()
+                  .map((index, data) => MapEntry(
+                        index,
+                        BarChartGroupData(
+                          x: index,
+                          barRods: [
+                            BarChartRodData(
+                              toY: data.value,
+                              color: index == touchedIndex ? Colors.yellow : Colors.blue,
+                              width: 16,
+                              borderRadius: BorderRadius.circular(4),
+                              backDrawRodData: BackgroundBarChartRodData(
+                                show: true,
+                                toY: _chartData.map((e) => e.value).reduce((a, b) => a > b ? a : b) + 1,
+                                color: Colors.blue.withOpacity(0.2),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ))
+                  .values
+                  .toList(),
             ),
           ),
-        );
-      },
+        ),
+        Positioned(
+          bottom: 0,
+          left: 0,
+          right: 0,
+          child: Center(
+            child: RotationTransition(
+              turns: _animationController,
+              child: Icon(
+                Icons.circle,
+                size: 50,
+                color: Colors.blue,
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
