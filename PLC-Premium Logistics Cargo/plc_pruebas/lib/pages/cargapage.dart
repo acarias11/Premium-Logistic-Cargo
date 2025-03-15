@@ -121,10 +121,6 @@ class _CargoPageState extends State<CargoPage> {
                       },
                     ),
                     TextField(
-                      controller: direccionController,
-                      decoration: const InputDecoration(labelText: 'Direccion'),
-                    ),
-                    TextField(
                       controller: pesoController,
                       decoration: const InputDecoration(labelText: 'Peso'),
                       keyboardType: TextInputType.number,
@@ -150,7 +146,6 @@ class _CargoPageState extends State<CargoPage> {
                       await firestoreService.addWarehouse(
                         widget.cargaId,
                         selectedClientId!,
-                        direccionController.text,
                         double.tryParse(pesoController.text) ?? 0,
                         int.tryParse(piezasController.text) ?? 0,
                       );
@@ -183,7 +178,7 @@ class _CargoPageState extends State<CargoPage> {
   Future<void> generatePdf() async {
     try {
       final pdf = pw.Document();
-
+      final formattedDate = DateFormat('dd/MM/yyyy').format(DateTime.now());
       final warehouses = await firestoreService.getWarehousesCarga(widget.cargaId).first;
 
       final imageLogo = pw.MemoryImage(
@@ -216,24 +211,31 @@ class _CargoPageState extends State<CargoPage> {
         ];
       }).toList());
 
-      pdf.addPage(
+      pdf.addPage( // ESTRUCTURA: ENCABEZADO(HEADER), BUILD (CUERPO DEL PDF), FOOTER(PIE DE PAGINA)
         pw.MultiPage(
           pageFormat: PdfPageFormat.a3,
           margin: const pw.EdgeInsets.all(16),
-          build: (pw.Context context) {
-            return [
-              pw.Row(
-                mainAxisAlignment: pw.MainAxisAlignment.center,
+          header: (context) { //ENCABEZADO DEL PDF
+            return pw.Row(
+                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                 children: [
-                  pw.Image(imageLogo, height: 100, width: 70),
+                  pw.Image(imageLogo, height: 150, width: 500),
+                  pw.Text(
+                    'Premium Logistics Cargo',
+                    style: pw.TextStyle(
+                      fontSize: 24,
+                      fontWeight: pw.FontWeight.bold,
+                    ),
+                  ),
+                  pw.Text(
+                    'Reporte emitido el: $formattedDate',
+                    style: pw.TextStyle(fontSize: 12),
+                  ),
                 ],
-              ),
-              pw.SizedBox(height: 20),
-              pw.Text(
-                'Reporte de Warehouses',
-                style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold),
-              ),
-              pw.SizedBox(height: 10),
+              );
+           },
+          build: (context) { //Cuerpo del PDF
+            return [
               pw.Table(
                 columnWidths: {
                   0: const pw.FixedColumnWidth(60),  // WarehouseID
@@ -264,7 +266,7 @@ class _CargoPageState extends State<CargoPage> {
                         padding: const pw.EdgeInsets.all(5),
                         child: pw.Text(
                           cell.toString(),
-                          style: const pw.TextStyle(fontSize: 8),
+                          style: const pw.TextStyle(fontSize: 12),
                           softWrap: true,
                         ),
                       )).toList(),
@@ -272,18 +274,33 @@ class _CargoPageState extends State<CargoPage> {
                   }),
                 ],
               ),
-              pw.Spacer(),
-              pw.Container(
-                color: PdfColors.blue,
-                height: 50,
-                child: pw.Center(
-                  child: pw.Text(
-                    'Premium Logistics Cargo',
-                    style: const pw.TextStyle(color: PdfColors.white),
-                  ),
-                ),
-              ),
             ];
+          },
+          footer: (pw.Context context) {
+            final currentPage = context.pageNumber;
+            final totalPages = context.pagesCount;
+            return pw.Container(
+              padding: const pw.EdgeInsets.symmetric(vertical: 10),
+              decoration: const pw.BoxDecoration(color: PdfColors.blue),
+              child: pw.Row(
+                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                children: [
+                  // Nombre de la compañía centrado
+                  pw.Expanded(
+                    child: pw.Center(
+                      child: pw.Text(
+                        'Premium Logistics Cargo',
+                        style: pw.TextStyle(fontSize: 18, color: PdfColors.white),
+                      ),
+                    ),
+                  ),              // Número de página en el formato "1/5"
+                  pw.Text(
+                    '$currentPage/$totalPages',
+                    style: pw.TextStyle(fontSize: 14, color: PdfColors.white),
+                  ),
+                ],
+              ),
+            );
           },
         ),
       );

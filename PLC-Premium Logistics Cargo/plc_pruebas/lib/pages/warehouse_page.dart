@@ -70,6 +70,7 @@ class _WarehousePageState extends State<WarehousePage> {
   Future<void> generatePdf() async {
     try {
       final pdf = pw.Document();
+      final formattedDate = DateFormat('dd/MM/yyyy').format(DateTime.now());
       // Se obtiene la página actual desde el estado del widget WarehouseTable
       final int currentPage = warehouseTableKey.currentState?.currentPage ?? 0;
       final int start = currentPage;
@@ -118,29 +119,54 @@ class _WarehousePageState extends State<WarehousePage> {
         pw.MultiPage(
           pageFormat: PdfPageFormat.a3,
           margin: const pw.EdgeInsets.all(16),
-          // Encabezado que se repite en cada página
+          // Encabezado que se repite en cada página : header
           header: (context) {
             return pw.Row(
-              mainAxisAlignment: pw.MainAxisAlignment.center,
+                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                children: [
+                  pw.Image(imageLogo, height: 150, width: 500),
+                  pw.Text(
+                    'Premium Logistics Cargo',
+                    style: pw.TextStyle(
+                      fontSize: 24,
+                      fontWeight: pw.FontWeight.bold,
+                    ),
+                  ),
+                  pw.Text(
+                    'Reporte emitido el: $formattedDate',
+                    style: pw.TextStyle(fontSize: 12),
+                  ),
+                ],
+              );
+           },
+          // Pie de página: footer
+        footer: (pw.Context context) {
+          final currentPage = context.pageNumber;
+          final totalPages = context.pagesCount;
+          return pw.Container(
+            padding: const pw.EdgeInsets.symmetric(vertical: 10),
+            decoration: const pw.BoxDecoration(color: PdfColors.blue),
+            child: pw.Row(
+              mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
               children: [
-                pw.Image(imageLogo, height: 100, width: 70),
-              ],
-            );
-          },
-          // Pie de página
-          footer: (context) {
-            return pw.Container(
-              color: PdfColors.blue,
-              height: 50,
-              child: pw.Center(
-                child: pw.Text(
-                  'Premium Logistics Cargo',
-                  style: pw.TextStyle(color: PdfColors.white),
+                // Nombre de la compañía centrado
+                pw.Expanded(
+                  child: pw.Center(
+                    child: pw.Text(
+                      'Premium Logistics Cargo',
+                      style: pw.TextStyle(fontSize: 18, color: PdfColors.white),
+                    ),
+                  ),
+                ),              // Número de página en el formato "1/5"
+                pw.Text(
+                  '$currentPage/$totalPages',
+                  style: pw.TextStyle(fontSize: 14, color: PdfColors.white),
                 ),
-              ),
-            );
-          },
-          build: (context) {
+              ],
+            ),
+          );
+        },
+          build: (context) { //build Contenido
             return [
               pw.Text(
                 "Reporte de warehouses",
@@ -157,7 +183,7 @@ class _WarehousePageState extends State<WarehousePage> {
                   color: PdfColors.white,
                 ),
                 headerDecoration: pw.BoxDecoration(color: PdfColors.blue),
-                cellStyle: pw.TextStyle(fontSize: 8),
+                cellStyle: pw.TextStyle(fontSize: 12),
                 cellAlignment: pw.Alignment.centerLeft,
                 border: pw.TableBorder.all(color: PdfColors.grey),
               ),

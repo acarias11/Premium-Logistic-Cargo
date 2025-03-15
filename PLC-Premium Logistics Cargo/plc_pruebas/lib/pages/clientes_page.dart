@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:data_table_2/data_table_2.dart';
+import 'package:flutter/services.dart' show rootBundle;
+import 'package:intl/intl.dart' show DateFormat;
 import 'package:plc_pruebas/services/firestore.dart';
 import 'package:plc_pruebas/controllers/controladores.dart';
 import 'package:plc_pruebas/widgets/sidebar.dart';
@@ -127,8 +129,11 @@ class _ClientesPageState extends State<ClientesPage> {
   Future<void> generatePdf() async {
     try {
       final pdf = pw.Document();
-
+      final formattedDate = DateFormat('dd/MM/yyyy').format(DateTime.now());
       final clientes = await _firestore.collection('Clientes').get();
+      final imageLogo = pw.MemoryImage(
+        (await rootBundle.load('assets/logo_PLC.jpg')).buffer.asUint8List(),
+      );
 
       final headers = [
         'Nombre',
@@ -161,6 +166,25 @@ class _ClientesPageState extends State<ClientesPage> {
         pw.MultiPage(
           pageFormat: PdfPageFormat.a3,
           margin: const pw.EdgeInsets.all(16),
+          header: (context) { //ENCABEZADO DEL PDF
+            return pw.Row(
+                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                children: [
+                  pw.Image(imageLogo, height: 150, width: 500),
+                  pw.Text(
+                    'Premium Logistics Cargo',
+                    style: pw.TextStyle(
+                      fontSize: 24,
+                      fontWeight: pw.FontWeight.bold,
+                    ),
+                  ),
+                  pw.Text(
+                    'Reporte emitido el: $formattedDate',
+                    style: pw.TextStyle(fontSize: 12),
+                  ),
+                ],
+              );
+           },
           build: (pw.Context context) {
             return [
               pw.Text(
@@ -206,8 +230,34 @@ class _ClientesPageState extends State<ClientesPage> {
                     );
                   }),
                 ],
-              )
+              ),
             ];
+          },
+          footer: (pw.Context context) {
+            final currentPage = context.pageNumber;
+            final totalPages = context.pagesCount;
+            return pw.Container(
+              padding: const pw.EdgeInsets.symmetric(vertical: 10),
+              decoration: const pw.BoxDecoration(color: PdfColors.blue),
+              child: pw.Row(
+                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                children: [
+                  // Nombre de la compañía centrado
+                  pw.Expanded(
+                    child: pw.Center(
+                      child: pw.Text(
+                        'Premium Logistics Cargo',
+                        style: pw.TextStyle(fontSize: 18, color: PdfColors.white),
+                      ),
+                    ),
+                  ),              // Número de página en el formato "1/5"
+                  pw.Text(
+                    '$currentPage/$totalPages',
+                    style: pw.TextStyle(fontSize: 14, color: PdfColors.white),
+                  ),
+                ],
+              ),
+            );
           },
         ),
       );

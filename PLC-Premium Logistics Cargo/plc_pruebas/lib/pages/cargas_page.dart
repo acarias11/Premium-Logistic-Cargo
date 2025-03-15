@@ -170,10 +170,13 @@ class _CargasPageState extends State<CargasPage> {
 
       final monthName = DateFormat.MMMM('es').format(DateTime.now());
       final currentMonth = DateTime.now().month;
+      final yearName = DateFormat('yyyy', 'es').format(DateTime.now());
 
       final imageLogo = pw.MemoryImage(
         (await rootBundle.load('assets/logo_PLC.jpg')).buffer.asUint8List(),
       );
+
+      final formattedDate = DateFormat('dd/MM/yyyy').format(DateTime.now());
 
       final cargasFiltradas = cargas.docs.where((doc) {
         final data = doc.data();
@@ -249,17 +252,29 @@ class _CargasPageState extends State<CargasPage> {
         pw.MultiPage(
           pageFormat: PdfPageFormat.a3,
           margin: const pw.EdgeInsets.all(16),
+          header: (context) { //ENCABEZADO DEL PDF
+            return pw.Row(
+                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                children: [
+                  pw.Image(imageLogo, height: 150, width: 500),
+                  pw.Text(
+                    'Premium Logistics Cargo',
+                    style: pw.TextStyle(
+                      fontSize: 24,
+                      fontWeight: pw.FontWeight.bold,
+                    ),
+                  ),
+                  pw.Text(
+                    'Reporte emitido el: $formattedDate',
+                    style: pw.TextStyle(fontSize: 12),
+                  ),
+                ],
+              );
+           },
           build: (pw.Context context) {
             return [
-              pw.Row(
-                mainAxisAlignment: pw.MainAxisAlignment.center,
-                children: [
-                  pw.Image(imageLogo, height: 100, width: 70),
-                ],
-              ),
-              pw.SizedBox(height: 20),
               pw.Text(
-                'Cargas exitosas del mes de $monthName',
+                'Cargas exitosas del mes de $monthName del año $yearName',
                 style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold),
               ),
               pw.SizedBox(height: 10),
@@ -297,7 +312,7 @@ class _CargasPageState extends State<CargasPage> {
                         padding: const pw.EdgeInsets.all(5),
                         child: pw.Text(
                           cell.toString(),
-                          style: const pw.TextStyle(fontSize: 8),
+                          style: const pw.TextStyle(fontSize: 12),
                           softWrap: true,
                         ),
                       )).toList(),
@@ -305,18 +320,33 @@ class _CargasPageState extends State<CargasPage> {
                   }),
                 ],
               ),
-              pw.Spacer(),
-              pw.Container(
-                color: PdfColors.blue,
-                height: 50,
-                child: pw.Center(
-                  child: pw.Text(
-                    'Premium Logistics Cargo',
-                    style: const pw.TextStyle(color: PdfColors.white),
-                  ),
-                ),
-              ),
             ];
+          },
+          footer: (pw.Context context) {
+            final currentPage = context.pageNumber;
+            final totalPages = context.pagesCount;
+            return pw.Container(
+              padding: const pw.EdgeInsets.symmetric(vertical: 10),
+              decoration: const pw.BoxDecoration(color: PdfColors.blue),
+              child: pw.Row(
+                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                children: [
+                  // Nombre de la compañía centrado
+                  pw.Expanded(
+                    child: pw.Center(
+                      child: pw.Text(
+                        'Premium Logistics Cargo',
+                        style: pw.TextStyle(fontSize: 18, color: PdfColors.white),
+                      ),
+                    ),
+                  ),              // Número de página en el formato "1/5"
+                  pw.Text(
+                    '$currentPage/$totalPages',
+                    style: pw.TextStyle(fontSize: 14, color: PdfColors.white),
+                  ),
+                ],
+              ),
+            );
           },
         ),
       );
