@@ -363,14 +363,17 @@ class FirestoreService {
   }
 
   // CREATE: agregar nuevo warehouse 
-  Future<void> addWarehouse(String cargaID, String clienteID, String direccion, double pesoTotal, num piezas) async {
+  Future<void> addWarehouse(String cargaID, String clienteID, double pesoTotal, num piezas) async {
     DocumentSnapshot cargaSnapshot = await cargas.doc(cargaID).get();
+    DocumentSnapshot clienteSnapshot = await clientes.doc(clienteID).get();
     if (!cargaSnapshot.exists) {
       print('Error: La carga con ID $cargaID no existe');
       return;
     }
     String estatusID = cargaSnapshot['estatus_id'];
     String modalidadValue = cargaSnapshot['modalidad'];
+    String direccion = clienteSnapshot['direccion'];
+
     
     String warehouseID = await _getNextWarehouseId(); // Obtener el siguiente warehouse_id
     DateTime fecha = DateTime.now(); // Obtener la fecha y hora actual
