@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:intl/intl.dart' show DateFormat;
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:printing/printing.dart';
+import 'package:flutter/services.dart' show ByteData, Uint8List, rootBundle;
 
 class ClientesEliminarPage extends StatefulWidget {
   const ClientesEliminarPage({super.key});
@@ -71,6 +76,129 @@ class _ClientesEliminarPageState extends State<ClientesEliminarPage> {
     }
   }
 
+  Future<void> generatePdf() async {
+    try {
+      final pdf = pw.Document();
+      final clientesSinPeso = await fetchClientesSinPeso();
+      final formattedDate = DateFormat('dd/MM/yyyy').format(DateTime.now());
+
+      final imageLogo = pw.MemoryImage(
+        (await rootBundle.load('assets/logo_PLC.jpg')).buffer.asUint8List(),
+      );
+
+      final headers = [
+        'Nombre del cliente',
+        'Número',
+        'Fecha de creación',
+        'ID del cliente'
+      ];
+
+      final data = clientesSinPeso.map((cliente) {
+        return [
+          cliente['nombre'],
+          cliente['telefono'],
+          DateFormat('dd/MM/yyyy').format(cliente['fecha_creacion'].toDate()),
+          cliente['cliente_id'],
+        ];
+      }).toList();
+
+      pdf.addPage(
+        pw.MultiPage(
+          pageFormat: PdfPageFormat.a3,
+          margin: const pw.EdgeInsets.all(16),
+          header: (context) { //ENCABEZADO DEL PDF
+            return pw.Row(
+              mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+              children: [
+                pw.Image(imageLogo, height: 150, width: 500),
+                pw.Text(
+                  'Premium Logistics Cargo',
+                  style: pw.TextStyle(fontSize: 20, fontWeight: pw.FontWeight.bold),
+                ),
+                pw.Text(
+                  'Reporte emitido el: $formattedDate',
+                  style: pw.TextStyle(fontSize: 12),
+                ),
+              ],
+            );
+          },
+          build: (pw.Context context) {
+            return [
+              pw.Table(
+                columnWidths: {
+                  0: const pw.FixedColumnWidth(150),  // Nombre del cliente
+                  1: const pw.FixedColumnWidth(100),  // Número
+                  2: const pw.FixedColumnWidth(100),  // Fecha de creación
+                  3: const pw.FixedColumnWidth(100),  // ID del cliente
+                },
+                border: pw.TableBorder.all(color: PdfColors.grey),
+                children: [
+                  pw.TableRow(
+                    decoration: const pw.BoxDecoration(color: PdfColors.blue),
+                    children: headers.map((header) => pw.Container(
+                      padding: const pw.EdgeInsets.all(5),
+                      child: pw.Text(
+                        header,
+                        style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold),
+                        softWrap: true,
+                      ),
+                    )).toList(),
+                  ),
+                  ...data.map((row) {
+                    return pw.TableRow(
+                      children: row.map((cell) => pw.Container(
+                        padding: const pw.EdgeInsets.all(5),
+                        child: pw.Text(
+                          cell.toString(),
+                          style: const pw.TextStyle(fontSize: 12),
+                          softWrap: true,
+                        ),
+                      )).toList(),
+                    );
+                  }),
+                ],
+              ),
+            ];
+          },
+          footer: (pw.Context context) {
+            final currentPage = context.pageNumber;
+            final totalPages = context.pagesCount;
+            return pw.Container(
+              padding: const pw.EdgeInsets.symmetric(vertical: 10),
+              decoration: const pw.BoxDecoration(color: PdfColors.blue),
+              child: pw.Row(
+                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                children: [
+                  // Nombre de la compañía centrado
+                  pw.Expanded(
+                    child: pw.Center(
+                      child: pw.Text(
+                        'Premium Logistics Cargo',
+                        style: pw.TextStyle(fontSize: 18, color: PdfColors.white),
+                      ),
+                    ),
+                  ),
+                  // Número de página en el formato "1/5"
+                  pw.Text(
+                    '$currentPage/$totalPages',
+                    style: pw.TextStyle(fontSize: 14, color: PdfColors.white),
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
+      );
+
+      await Printing.layoutPdf(
+        onLayout: (format) async => pdf.save(),
+        name: 'Clientes_Sin_Peso.pdf',
+      );
+    } catch (e) {
+      print('Error al generar el PDF: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -83,6 +211,12 @@ class _ClientesEliminarPageState extends State<ClientesEliminarPage> {
             Navigator.of(context).pop();
           },
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.picture_as_pdf),
+            onPressed: generatePdf,
+          ),
+        ],
       ),
       body: Container(
         width: double.infinity,

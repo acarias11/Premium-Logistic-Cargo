@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:intl/intl.dart' show DateFormat;
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
@@ -88,6 +89,11 @@ class _ClientesPesoPageState extends State<ClientesPesoPage> {
     try {
       final pdf = pw.Document();
       final clientesPeso = await fetchClientesPeso();
+      final formattedDate = DateFormat('dd/MM/yyyy').format(DateTime.now());
+
+      final imageLogo = pw.MemoryImage(
+        (await rootBundle.load('assets/logo_PLC.jpg')).buffer.asUint8List(),
+      );
 
       final headers = [
         'Nombre del cliente',
@@ -105,36 +111,90 @@ class _ClientesPesoPageState extends State<ClientesPesoPage> {
         ];
       }).toList();
 
-      final ByteData bytes = await rootBundle.load('assets/Logo_PLC.jpg');
-      final Uint8List logo = bytes.buffer.asUint8List();
-
       pdf.addPage(
         pw.MultiPage(
-          pageFormat: PdfPageFormat.a4,
+          pageFormat: PdfPageFormat.a3,
           margin: const pw.EdgeInsets.all(16),
+          header: (context) { //ENCABEZADO DEL PDF
+            return pw.Row(
+              mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+              children: [
+                pw.Image(imageLogo, height: 150, width: 500),
+                pw.Text(
+                  'Premium Logistics Cargo',
+                  style: pw.TextStyle(fontSize: 20, fontWeight: pw.FontWeight.bold),
+                ),
+                pw.Text(
+                  'Reporte emitido el: $formattedDate',
+                  style: pw.TextStyle(fontSize: 12),
+                ),
+              ],
+            );
+          },
           build: (pw.Context context) {
             return [
-              pw.Row(
-                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+              pw.Table(
+                columnWidths: {
+                  0: const pw.FixedColumnWidth(150),  // Nombre del cliente
+                  1: const pw.FixedColumnWidth(100),  // Número
+                  2: const pw.FixedColumnWidth(80),   // Peso total
+                  3: const pw.FixedColumnWidth(80),   // Total de warehouses
+                },
+                border: pw.TableBorder.all(color: PdfColors.grey),
                 children: [
-                  pw.Text(
-                    "Clientes con más peso en sus warehouses",
-                    style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold),
+                  pw.TableRow(
+                    decoration: const pw.BoxDecoration(color: PdfColors.blue),
+                    children: headers.map((header) => pw.Container(
+                      padding: const pw.EdgeInsets.all(5),
+                      child: pw.Text(
+                        header,
+                        style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold),
+                        softWrap: true,
+                      ),
+                    )).toList(),
                   ),
-                  pw.Image(pw.MemoryImage(logo), width: 100, height: 100),
+                  ...data.map((row) {
+                    return pw.TableRow(
+                      children: row.map((cell) => pw.Container(
+                        padding: const pw.EdgeInsets.all(5),
+                        child: pw.Text(
+                          cell.toString(),
+                          style: const pw.TextStyle(fontSize: 12),
+                          softWrap: true,
+                        ),
+                      )).toList(),
+                    );
+                  }),
                 ],
               ),
-              pw.SizedBox(height: 10),
-              // ignore: deprecated_member_use
-              pw.Table.fromTextArray(
-                headers: headers,
-                data: data,
-                border: pw.TableBorder.all(color: PdfColors.grey),
-                headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold),
-                cellStyle: pw.TextStyle(fontSize: 10),
-                cellAlignment: pw.Alignment.centerLeft,
-              ),
             ];
+          },
+          footer: (pw.Context context) {
+            final currentPage = context.pageNumber;
+            final totalPages = context.pagesCount;
+            return pw.Container(
+              padding: const pw.EdgeInsets.symmetric(vertical: 10),
+              decoration: const pw.BoxDecoration(color: PdfColors.blue),
+              child: pw.Row(
+                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                children: [
+                  // Nombre de la compañía centrado
+                  pw.Expanded(
+                    child: pw.Center(
+                      child: pw.Text(
+                        'Premium Logistics Cargo',
+                        style: pw.TextStyle(fontSize: 18, color: PdfColors.white),
+                      ),
+                    ),
+                  ),
+                  // Número de página en el formato "1/5"
+                  pw.Text(
+                    '$currentPage/$totalPages',
+                    style: pw.TextStyle(fontSize: 14, color: PdfColors.white),
+                  ),
+                ],
+              ),
+            );
           },
         ),
       );
