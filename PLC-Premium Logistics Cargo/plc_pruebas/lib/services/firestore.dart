@@ -30,8 +30,8 @@ class FirestoreService {
   };
 
   final Map<String, String> modalidadMap = {
-    'MOD1': 'Aéreo',
-    'MOD2': 'Marítimo',
+    'MOD1': 'Aereo',
+    'MOD2': 'Maritimo',
     'MOD3': 'Terrestre',
   };
 
@@ -67,7 +67,7 @@ class FirestoreService {
 
       // Obtener el estatus y modalidad del warehouse
       String estatusID = warehouseSnapshot['estatus_id'] ?? 'Desconocido';
-      String modalidadEnvio = warehouseSnapshot['modalidad'] ?? 'Desconocido';
+      String modalidadEnvio = await getModalidadNameById(warehouseSnapshot['modalidad'] as String);
 
       // Obtener el siguiente paquete_id
       String paqueteId = await _getNextPaqueteId();
@@ -95,16 +95,25 @@ class FirestoreService {
   }
 
   Future<String> _getNextPaqueteId() async {
-    QuerySnapshot querySnapshot = await paquetes.orderBy('paquete_id', descending: true).limit(1).get();
-    if (querySnapshot.docs.isNotEmpty) {
-      String lastPaqueteId = querySnapshot.docs.first['paquete_id'];
-      int nextId = int.parse(lastPaqueteId.replaceAll('PKG', '')) + 1;
-      return 'PKG$nextId';
-    } else {
-      return 'PKG1';
+    try {
+      QuerySnapshot querySnapshot = await paquetes.get();
+      int maxId = 0;
+      for (var doc in querySnapshot.docs) {
+        String paqueteId = doc['paquete_id'];
+        if (paqueteId.startsWith('PKG')) {
+          String numStr = paqueteId.replaceAll('PKG', '');
+          int currentId = int.tryParse(numStr) ?? 0;
+          if (currentId > maxId) {
+            maxId = currentId;
+          }
+        }
+      }
+      return 'PKG${maxId + 1}';
+    } catch (e) {
+      print('Error al obtener el siguiente paquete_id: $e');
+      rethrow;
     }
   }
-
   // READ: obtener todos los paquetes por el id del documento
   Stream<QuerySnapshot> getPaquetes() {
     return paquetes.orderBy('paquete_id', descending: true).snapshots();
@@ -195,17 +204,29 @@ class FirestoreService {
     });
   }
 
-  // Función para obtener el siguiente cliente_id
+  // Función para obtener el siguiente cliente_id CORREGIDA
   Future<String> _getNextClienteId() async {
-    QuerySnapshot querySnapshot = await clientes.orderBy('cliente_id', descending: true).limit(1).get();
-    if (querySnapshot.docs.isNotEmpty) {
-      String lastClienteId = querySnapshot.docs.first['cliente_id'];
-      int nextId = int.parse(lastClienteId.replaceAll('CLR', '')) + 1;
-      return 'CLR$nextId';
-    } else {
-      return 'CLR1';
+    try {
+      QuerySnapshot querySnapshot = await clientes.get();
+      int maxId = 0;
+
+      for (var doc in querySnapshot.docs) {
+        String clienteId = doc['cliente_id'];
+        if (clienteId.startsWith('CLR')) {
+          String numStr = clienteId.replaceAll('CLR', '');
+          int currentId = int.tryParse(numStr) ?? 0;
+          if (currentId > maxId) {
+            maxId = currentId;
+          }
+        }
+      }
+      return 'CLR${maxId + 1}';
+    } catch (e) {
+      print('Error al obtener siguiente cliente_id: $e');
+      rethrow;
     }
   }
+
 
   // READ: obtener todos los clientes
   Stream<QuerySnapshot> getClientes(String text) {

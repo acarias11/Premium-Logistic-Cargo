@@ -34,6 +34,8 @@ class ControladorPaquetes {
   final TextEditingController direccionController = TextEditingController();
   final TextEditingController fechaController = TextEditingController();
   final TextEditingController modalidadController = TextEditingController();
+
+  void clearControllers() {}
 }
 
 class ControladorWarehouse {
