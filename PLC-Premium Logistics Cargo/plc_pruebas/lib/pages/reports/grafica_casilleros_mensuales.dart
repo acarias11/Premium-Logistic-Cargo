@@ -138,9 +138,74 @@ class _GraficaCasillerosMensualesState
             ),
             const SizedBox(height: 20),
             Expanded(
-              child: _chartData.isEmpty
-                  ? const Center(child: Text('No hay clientes disponibles'))
-                  : _buildChart(),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // Table
+                  SizedBox(
+                    width: 300,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(10),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.grey.withOpacity(0.3),
+                            spreadRadius: 2,
+                            blurRadius: 5,
+                            offset: const Offset(0, 3),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Text(
+                              'Clientes por Día',
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.blue.shade900,
+                              ),
+                            ),
+                          ),
+                          Expanded(
+                            child: ListView.builder(
+                              itemCount: _chartData.length,
+                              itemBuilder: (context, index) {
+                                final data = _chartData[index];
+                                final date = DateTime(_selectedMonth.year, _selectedMonth.month, int.parse(data.label));
+                                final formattedDate = DateFormat('dd MMM yyyy', 'es').format(date);
+                                return Container(
+                                  decoration: BoxDecoration(
+                                    border: Border(
+                                      bottom: BorderSide(
+                                        color: Colors.grey.shade200,
+                                      ),
+                                    ),
+                                  ),
+                                  child: ListTile(
+                                    title: Text(formattedDate),
+                                    trailing: Text('${data.value.toInt()} clientes'),
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 40),
+                  // Chart
+                  Expanded(
+                    child: _chartData.isEmpty
+                        ? const Center(child: Text('No hay clientes disponibles'))
+                        : _buildChart(),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
