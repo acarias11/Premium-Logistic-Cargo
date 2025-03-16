@@ -3,7 +3,7 @@ import 'package:plc_pruebas/pages/reports/clientes_eliminar_page.dart';
 import 'package:plc_pruebas/pages/reports/clientes_peso_page.dart';
 import 'package:plc_pruebas/pages/reports/grafica_activos&inactivos_page.dart';
 import 'package:plc_pruebas/pages/reports/grafica_casilleros_mensuales.dart';
-import 'package:plc_pruebas/pages/reports/grafica_prom_page.dart';
+import 'package:plc_pruebas/pages/reports/grafica_prom_page.dart'; // Ensure this file contains the GraficaPromPage class
 import 'package:plc_pruebas/pages/reports/prom_peso.dart';
 import 'package:plc_pruebas/pages/reports/quejas_page.dart';
 import 'package:plc_pruebas/pages/reports/send_email.dart';

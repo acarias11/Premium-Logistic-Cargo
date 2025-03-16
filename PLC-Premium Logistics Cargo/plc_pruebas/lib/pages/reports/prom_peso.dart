@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart'; // Asegúrate de tener esta dependencia en tu pubspec.yaml
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 import 'package:month_picker_dialog/month_picker_dialog.dart';
+import 'package:fl_chart/fl_chart.dart';
 
 class PromPesoPage extends StatefulWidget {
-  const PromPesoPage({super.key});
+  const PromPesoPage({Key? key}) : super(key: key);
 
   @override
   _PromPesoPageState createState() => _PromPesoPageState();
@@ -35,10 +36,14 @@ class _PromPesoPageState extends State<PromPesoPage> {
         .where('Fecha', isGreaterThanOrEqualTo: _selectedMonth, isLessThan: DateTime(_selectedMonth.year, _selectedMonth.month + 1))
         .get();
     double totalPeso = 0;
-    for (var doc in querySnapshot.docs) {
-      totalPeso += doc['Peso'];
+    if (querySnapshot.docs.isNotEmpty) {
+      for (var doc in querySnapshot.docs) {
+        totalPeso += (doc['Peso'] as num).toDouble();
+      }
+      return totalPeso / querySnapshot.size;
+    } else {
+      return 0.0;
     }
-    return totalPeso / querySnapshot.size;
   }
 
   Future<double> getPromedioWarehouse() async {
@@ -47,10 +52,14 @@ class _PromPesoPageState extends State<PromPesoPage> {
         .where('fecha', isGreaterThanOrEqualTo: _selectedMonth, isLessThan: DateTime(_selectedMonth.year, _selectedMonth.month + 1))
         .get();
     double totalPeso = 0;
-    for (var doc in querySnapshot.docs) {
-      totalPeso += doc['peso_total'];
+    if (querySnapshot.docs.isNotEmpty) {
+      for (var doc in querySnapshot.docs) {
+        totalPeso += (doc['peso_total'] as num).toDouble();
+      }
+      return totalPeso / querySnapshot.size;
+    } else {
+      return 0.0;
     }
-    return totalPeso / querySnapshot.size;
   }
 
   Future<double> getPromedioCargas() async {
@@ -59,10 +68,14 @@ class _PromPesoPageState extends State<PromPesoPage> {
         .where('fecha', isGreaterThanOrEqualTo: _selectedMonth, isLessThan: DateTime(_selectedMonth.year, _selectedMonth.month + 1))
         .get();
     double totalPeso = 0;
-    for (var doc in querySnapshot.docs) {
-      totalPeso += doc['peso'];
+    if (querySnapshot.docs.isNotEmpty) {
+      for (var doc in querySnapshot.docs) {
+        totalPeso += (doc['peso'] as num).toDouble();
+      }
+      return totalPeso / querySnapshot.size;
+    } else {
+      return 0.0;
     }
-    return totalPeso / querySnapshot.size;
   }
 
   void _selectMonth(BuildContext context) async {
@@ -99,6 +112,7 @@ class _PromPesoPageState extends State<PromPesoPage> {
         ),
         child: Column(
           children: [
+            const SizedBox(height: 20), // Adjust space above the button
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
@@ -114,12 +128,34 @@ class _PromPesoPageState extends State<PromPesoPage> {
                 ),
               ],
             ),
+            const SizedBox(height: 20), // Adjust space above the table and chart
             Expanded(
-              child: ListView(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center, // Center the content horizontally
                 children: [
-                  _buildTable('Promedio de Peso de las Cargas', avgPeso),
-                  _buildTable('Promedio de Peso de los Warehouse', avgWarehouse),
-                  _buildTable('Promedio de Peso de los Paquetes', avgPaquetes),
+                  // Table
+                  Expanded(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center, // Center the table vertically
+                      children: [
+                        _buildTable('Promedio de Peso de las Cargas', avgPeso),
+                        _buildTable('Promedio de Peso de los Warehouse', avgWarehouse),
+                        _buildTable('Promedio de Peso de los Paquetes', avgPaquetes),
+                      ],
+                    ),
+                  ),
+                  // Chart
+                  Expanded(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center, // Center the chart vertically
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: _buildChart(),
+                        ),
+                      ],
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -130,27 +166,94 @@ class _PromPesoPageState extends State<PromPesoPage> {
   }
 
   Widget _buildTable(String title, double average) {
-    return Card(
-      margin: const EdgeInsets.all(10.0),
-      child: Column(
-        children: [
-          ListTile(
-            title: Text(title),
-          ),
-          DataTable(
-            columns: const [
-              DataColumn(label: Text('Mes')),
-              DataColumn(label: Text('Promedio')),
-            ],
-            rows: [
-              DataRow(cells: [
-                DataCell(Text(DateFormat.yMMM().format(_selectedMonth))),
-                DataCell(Text(average.toStringAsFixed(2))),
-              ]),
-            ],
-          ),
-        ],
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0), // Add padding
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(10),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.3),
+              spreadRadius: 2,
+              blurRadius: 5,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Text(
+                title,
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.blue.shade900,
+                ),
+              ),
+            ),
+            Container(
+              decoration: BoxDecoration(
+                border: Border(
+                  bottom: BorderSide(
+                    color: Colors.grey.shade200,
+                  ),
+                ),
+              ),
+              child: ListTile(
+                leading: const Icon(Icons.calendar_today, color: Colors.blue),
+                title: Text(
+                  DateFormat.yMMM().format(_selectedMonth),
+                  style: const TextStyle(fontSize: 16),
+                ),
+                trailing: Text(
+                  '${average.toStringAsFixed(2)} kg',
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
+
+  Widget _buildChart() {
+    return SizedBox(
+      width: 300, // Set a fixed width
+      height: 300, // Set a fixed height
+      child: PieChart(
+        PieChartData(
+          sections: [
+            PieChartSectionData(
+              value: avgPeso,
+              color: Colors.blueAccent,
+              title: 'Cargas',
+              radius: 120,
+            ),
+            PieChartSectionData(
+              value: avgWarehouse,
+              color: Colors.greenAccent,
+              title: 'Warehouse',
+              radius: 120,
+            ),
+            PieChartSectionData(
+              value: avgPaquetes,
+              color: Colors.orangeAccent,
+              title: 'Paquetes',
+              radius: 120,
+            ),
+          ],
+          borderData: FlBorderData(
+            show: false,
+          ),
+          sectionsSpace: 0,
+          centerSpaceRadius: 50,
+        ),
+      ),
+    );
+  }
+
 }
