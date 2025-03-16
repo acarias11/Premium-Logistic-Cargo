@@ -37,12 +37,100 @@ class SendEmailPage extends StatelessWidget {
         }
       }
 
-      // Crear el contenido del correo
-      String emailContent = 'Estado de los Paquetes:\n\n';
+      // Crear el contenido del correo en HTML
+      String emailContent = '''
+      <html>
+      <head>
+        <style>
+          body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
+          }
+          .container {
+            width: 80%;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+          }
+          .header {
+            text-align: center;
+            padding: 10px 0;
+          }
+          .header img {
+            width: 150px;
+          }
+          .header h1 {
+            color: #ff6600;
+          }
+          .content {
+            margin: 20px 0;
+          }
+          .content h2 {
+            color: #0066cc;
+          }
+          .content p {
+            line-height: 1.6;
+          }
+          .footer {
+            text-align: center;
+            padding: 10px 0;
+            color: #777;
+          }
+          table {
+            width: 100%;
+            border-collapse: collapse;
+          }
+          table, th, td {
+            border: 1px solid #ddd;
+          }
+          th, td {
+            padding: 8px;
+            text-align: left;
+          }
+          th {
+            background-color: #ff6600;
+            color: white;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <img src="https://i.imgur.com/8cYBfkm.jpeg" alt="Premium Logistics Cargo">
+            <h1>Estado de los Paquetes</h1>
+          </div>
+          <div class="content">
+            <h2>Estimado Gerente,</h2>
+            <p>A continuación se muestra el estado de los paquetes:</p>
+            <table>
+              <tr>
+                <th>Paquete ID</th>
+                <th>Estado</th>
+              </tr>
+      ''';
+
       for (var paquete in paquetesData) {
-        emailContent +=
-            'Paquete ID: ${paquete['paquete_id'] ?? 'Desconocido'}, Estado: ${paquete['Nombre'] ?? 'Desconocido'}\n';
+        emailContent += '''
+              <tr>
+                <td>${paquete['paquete_id'] ?? 'Desconocido'}</td>
+                <td>${paquete['Nombre'] ?? 'Desconocido'}</td>
+              </tr>
+        ''';
       }
+
+      emailContent += '''
+            </table>
+          </div>
+          <div class="footer">
+            <p>PREMIUM LOGISTICS CARGO</p>
+          </div>
+        </div>
+      </body>
+      </html>
+      ''';
 
       // Enviar el correo utilizando EmailJS
       const serviceId = 'service_u5n9hww';
@@ -62,7 +150,7 @@ class SendEmailPage extends StatelessWidget {
           'template_params': {
             'to_email': gerenteEmail,
             'subject': 'Estado de los Paquetes',
-            'message': emailContent,
+            'html': emailContent,
           },
         }),
       );
