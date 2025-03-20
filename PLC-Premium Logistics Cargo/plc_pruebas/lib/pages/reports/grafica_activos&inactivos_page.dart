@@ -11,6 +11,7 @@ import 'package:printing/printing.dart';
 import 'package:flutter/services.dart' show ByteData, Uint8List, rootBundle;
 import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
+import 'package:fl_chart/fl_chart.dart';
 
 class PdfData {
   final List<List<String>> activeData;
@@ -345,24 +346,173 @@ class _GraficaActivosInactivosPageState extends State<GraficaActivosInactivosPag
   }
 
   Widget _buildChartOrMessage() {
-    return _chartData.isEmpty 
-        ? const Center(child: Text('No hay datos disponibles', style: TextStyle(color: Colors.white)))
-        : RepaintBoundary(
-            key: _chartKey,
-            child: SfCircularChart(
-              title: ChartTitle(text: 'Clientes Activos/Inactivos'),
-              legend: Legend(isVisible: true, overflowMode: LegendItemOverflowMode.wrap),
-              series: <CircularSeries<_ChartData, String>>[
-                PieSeries<_ChartData, String>(
-                  dataSource: _chartData,
-                  xValueMapper: (data, _) => data.label,
-                  yValueMapper: (data, _) => data.value,
-                  dataLabelSettings: const DataLabelSettings(isVisible: true),
-                  dataLabelMapper: (data, _) => '${data.label}\n${data.value.toStringAsFixed(1)}%',
-                )
+    if (_chartData.isEmpty) {
+      return const Center(
+        child: Text('No hay datos disponibles', style: TextStyle(color: Colors.white)),
+      );
+    }
+
+    return RepaintBoundary(
+      key: _chartKey,
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: 16.0), // Agrega margen inferior
+        child: SizedBox(
+          height: 400,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              SizedBox(
+                width: 300,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(10),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.grey.withOpacity(0.3),
+                        spreadRadius: 2,
+                        blurRadius: 5,
+                        offset: const Offset(0, 3),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Text(
+                          'Clientes Activos/Inactivos',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.blue.shade900,
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        child: ListView.builder(
+                          itemCount: _chartData.length,
+                          itemBuilder: (context, index) {
+                            final data = _chartData[index];
+                            return Container(
+                              decoration: BoxDecoration(
+                                border: Border(
+                                  bottom: BorderSide(
+                                    color: Colors.grey.shade200,
+                                  ),
+                                ),
+                              ),
+                              child: ListTile(
+                                leading: Icon(
+                                  Icons.circle,
+                                  color: data.label == 'Activos' ? Colors.green : Colors.red,
+                                ),
+                                title: Text(data.label, style: const TextStyle(fontSize: 14)),
+                                trailing: Text('${data.value.toStringAsFixed(1)}%', style: const TextStyle(fontSize: 14)),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              SizedBox(
+                width: 400,
+                height: 400,
+                child: PieChart(
+                  PieChartData(
+                    borderData: FlBorderData(
+                      show: false,
+                    ),
+                    sectionsSpace: 0,
+                    centerSpaceRadius: 40,
+                    sections: _chartData.map((data) {
+                      return PieChartSectionData(
+                        color: data.label == 'Activos' ? Colors.green : Colors.red,
+                        value: data.value,
+                        title: '${data.value.toStringAsFixed(1)}%',
+                        radius: 120,
+                        titleStyle: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTableView() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Clientes Activos',
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black),
+        ),
+        const SizedBox(height: 10),
+        Expanded(
+          child: SingleChildScrollView(
+            child: DataTable(
+              columns: const [
+                DataColumn(label: Text('ID', style: TextStyle(color: Colors.black))),
+                DataColumn(label: Text('Nombre', style: TextStyle(color: Colors.black))),
+                DataColumn(label: Text('Teléfono', style: TextStyle(color: Colors.black))),
               ],
+              rows: _clientesActivos
+                  .map(
+                    (cliente) => DataRow(
+                      cells: [
+                        DataCell(Text(cliente['cliente_id'], style: const TextStyle(color: Colors.black))),
+                        DataCell(Text(cliente['nombre'], style: const TextStyle(color: Colors.black))),
+                        DataCell(Text(cliente['telefono'], style: const TextStyle(color: Colors.black))),
+                      ],
+                    ),
+                  )
+                  .toList(),
             ),
-          );
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPieChart() {
+    return Column(
+      children: [
+        const Text(
+          'Distribución de Clientes',
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black),
+        ),
+        const SizedBox(height: 10),
+        Expanded(
+          child: PieChart(
+            PieChartData(
+              sections: _chartData.map((data) {
+                final isActive = data.label == 'Activos';
+                return PieChartSectionData(
+                  value: data.value,
+                  title: '${data.value.toStringAsFixed(1)}%',
+                  color: isActive ? Colors.green : Colors.red,
+                  titleStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white),
+                );
+              }).toList(),
+              sectionsSpace: 2,
+              centerSpaceRadius: 40,
+            ),
+          ),
+        ),
+      ],
+    );
   }
 }
 

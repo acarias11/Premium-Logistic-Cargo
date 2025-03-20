@@ -175,11 +175,10 @@ class _GraficaCasillerosMensualesState
 
   List<pw.Widget> _buildPdfContent(Uint8List chartImage, pw.Context context) {
     return [
-      pw.Text('Clientes Registrados en el Mes Seleccionado',
-          style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold)),
-      pw.SizedBox(height: 10),
+      // Display the chart at the top
       pw.Image(pw.MemoryImage(chartImage)),
       pw.SizedBox(height: 20),
+      // Display the generated table below the chart
       pw.Table(
         columnWidths: {
           0: const pw.FixedColumnWidth(100),
