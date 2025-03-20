@@ -148,7 +148,7 @@ class SendEmailPage extends StatelessWidget {
           'template_id': templateId,
           'user_id': userId,
           'template_params': {
-            'to_email': gerenteEmail,
+            'gerenteEmail': gerenteEmail,
             'subject': 'Estado de los Paquetes',
             'html': emailContent,
           },
@@ -165,84 +165,166 @@ class SendEmailPage extends StatelessWidget {
     }
   }
 
-  Future<void> sendEmailToClientes() async {
+  Future<void> sendEmailToCliente(String paqueteId) async {
     try {
-      // Obtener el estado de los paquetes
-      QuerySnapshot paquetesSnapshot =
-          await FirebaseFirestore.instance.collection('Paquetes').get();
+      // Obtener el paquete específico
+      DocumentSnapshot paqueteSnapshot = await FirebaseFirestore.instance
+          .collection('Paquetes')
+          .doc(paqueteId)
+          .get();
 
-      for (var doc in paquetesSnapshot.docs) {
-        try {
-          Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-          String estatusId = data['EstatusID'] ?? 'Desconocido';
-          String paqueteId = data['paquete_id'] ?? 'Desconocido';
-          DocumentSnapshot estadoSnapshot = await FirebaseFirestore.instance
-              .collection('Estatus')
-              .doc(estatusId)
-              .get();
-          String estadoNombre = estadoSnapshot.exists ? estadoSnapshot['Nombre'] : 'Desconocido';
+      if (!paqueteSnapshot.exists) {
+        print('Paquete no encontrado');
+        return;
+      }
 
-          // Obtener el warehouseID y luego el cliente_id
-          String warehouseId = data['warehouseID'] ?? 'Desconocido';
-          DocumentSnapshot warehouseSnapshot = await FirebaseFirestore.instance
-              .collection('Warehouse')
-              .doc(warehouseId)
-              .get();
-          String clienteId = warehouseSnapshot.exists ? warehouseSnapshot['cliente_id'] : 'Desconocido';
+      Map<String, dynamic> data = paqueteSnapshot.data() as Map<String, dynamic>;
+      String estatusId = data['EstatusID'] ?? 'Desconocido';
+      DocumentSnapshot estadoSnapshot = await FirebaseFirestore.instance
+          .collection('Estatus')
+          .doc(estatusId)
+          .get();
+      String estadoNombre = estadoSnapshot.exists ? estadoSnapshot['Nombre'] : 'Desconocido';
 
-          // Obtener el correo y nombre del cliente
-          DocumentSnapshot clienteSnapshot = await FirebaseFirestore.instance
-              .collection('Clientes')
-              .doc(clienteId)
-              .get();
-          String clienteEmail = clienteSnapshot.exists ? clienteSnapshot['email'] : 'desconocido@example.com';
-          String clienteNombre = clienteSnapshot.exists ? clienteSnapshot['nombre'] : 'Cliente';
+      // Obtener el warehouseID y luego el cliente_id
+      String warehouseId = data['WarehouseID'] ?? 'Desconocido';
+      DocumentSnapshot warehouseSnapshot = await FirebaseFirestore.instance
+          .collection('Warehouse')
+          .doc(warehouseId)
+          .get();
+      String clienteId = warehouseSnapshot.exists ? warehouseSnapshot['cliente_id'] : 'Desconocido';
 
-          // Validar el correo electrónico
-          if (!clienteEmail.contains('@gmail.com')) {
-            clienteEmail = 'cariasangel60@gmail.com';
+      // Obtener el correo y nombre del cliente
+      DocumentSnapshot clienteSnapshot = await FirebaseFirestore.instance
+          .collection('Clientes')
+          .doc(clienteId)
+          .get();
+      String? clienteEmail = clienteSnapshot.exists ? clienteSnapshot['email'] : null;
+      String clienteNombre = clienteSnapshot.exists ? clienteSnapshot['nombre'] : 'Cliente';
+
+      // Validar el correo electrónico
+      if (clienteEmail == null || !clienteEmail.contains('@')) {
+        print('Correo electrónico no válido para el cliente $clienteId');
+        return;
+      }
+
+      // Crear el contenido del correo en HTML
+      String emailContent = '''
+      <html>
+      <head>
+        <style>
+          body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
           }
-
-          // Crear el contenido del correo
-          String emailContent = 
-              'El estado de su paquete $paqueteId es:\n\n'
-              '$estadoNombre\n\n';
-
-          // Enviar el correo utilizando EmailJS
-          const serviceId = 'service_u5n9hww';
-          const templateId = 'estado_paquetes';
-          const userId = '67JFCnhnFGGRXFSJD';
-
-          final url = Uri.parse('https://api.emailjs.com/api/v1.0/email/send');
-          final response = await http.post(
-            url,
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: json.encode({
-              'service_id': serviceId,
-              'template_id': templateId,
-              'user_id': userId,
-              'template_params': {
-                'to_email': clienteEmail,
-                'ClienteNombre': clienteNombre,
-                'paqueteID': paqueteId,
-                'message': emailContent,
-              },
-            }),
-          );
-
-          if (response.statusCode == 200) {
-            print('Correo enviado al cliente $clienteEmail');
-          } else {
-            print('Error al enviar correo al cliente $clienteEmail: ${response.body}');
+          .container {
+            width: 80%;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
           }
-        } catch (e) {
-          print('Error al obtener datos del paquete o enviar correo: $e');
-        }
+          .header {
+            text-align: center;
+            padding: 10px 0;
+          }
+          .header img {
+            width: 150px;
+          }
+          .header h1 {
+            color: #ff6600;
+          }
+          .content {
+            margin: 20px 0;
+          }
+          .content h2 {
+            color: #0066cc;
+          }
+          .content p {
+            line-height: 1.6;
+          }
+          .footer {
+            text-align: center;
+            padding: 10px 0;
+            color: #777;
+          }
+          table {
+            width: 100%;
+            border-collapse: collapse;
+          }
+          table, th, td {
+            border: 1px solid #ddd;
+          }
+          th, td {
+            padding: 8px;
+            text-align: left;
+          }
+          th {
+            background-color: #ff6600;
+            color: white;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <img src="https://i.imgur.com/8cYBfkm.jpeg" alt="Premium Logistics Cargo">
+            <h1>Estado de su Paquete</h1>
+          </div>
+          <div class="content">
+            <h2>Estimado $clienteNombre,</h2>
+            <p>A continuación se muestra el estado de su paquete:</p>
+            <table>
+              <tr>
+                <th>Paquete ID</th>
+                <th>Estado</th>
+              </tr>
+              <tr>
+                <td>$paqueteId</td>
+                <td>$estadoNombre</td>
+              </tr>
+            </table>
+          </div>
+          <div class="footer">
+            <p>PREMIUM LOGISTICS CARGO</p>
+          </div>
+        </div>
+      </body>
+      </html>
+      ''';
+
+      // Enviar el correo utilizando EmailJS
+      const serviceId = 'service_u5n9hww';
+      const templateId = 'estado_paquetes';
+      const userId = '67JFCnhnFGGRXFSJD';
+
+      final url = Uri.parse('https://api.emailjs.com/api/v1.0/email/send');
+      final response = await http.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: json.encode({
+          'service_id': serviceId,
+          'template_id': templateId,
+          'user_id': userId,
+          'template_params': {
+            'clienteEmail': clienteEmail,
+            'subject': 'Estado de su Paquete',
+            'html': emailContent,
+          },
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        print('Correo enviado al cliente $clienteEmail');
+      } else {
+        print('Error al enviar correo al cliente $clienteEmail: ${response.body}');
       }
     } catch (e) {
-      print('Error al enviar correos a los clientes: $e');
+      print('Error al obtener datos del paquete o enviar correo: $e');
     }
   }
 
@@ -307,7 +389,7 @@ class SendEmailPage extends StatelessWidget {
                   elevation: 5,
                 ),
                 onPressed: () {
-                  _showConfirmationDialog(context, '¿Está seguro de enviar el correo a los clientes?', sendEmailToClientes);
+                  _showPackageDialog(context);
                 },
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -315,7 +397,7 @@ class SendEmailPage extends StatelessWidget {
                     Icon(Icons.email, size: 50),
                     SizedBox(height: 10),
                     Text(
-                      'Enviar Correo a Clientes',
+                      'Enviar Correo a Cliente',
                       style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                       textAlign: TextAlign.center,
                     ),
@@ -354,6 +436,46 @@ class SendEmailPage extends StatelessWidget {
               child: const Text('Confirmar'),
               onPressed: () {
                 onConfirm();
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _showPackageDialog(BuildContext context) async {
+    final TextEditingController _controller = TextEditingController();
+
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false, // user must tap button!
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Enviar Correo a Cliente'),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                const Text('Ingrese el ID del paquete:'),
+                TextField(
+                  controller: _controller,
+                  decoration: const InputDecoration(hintText: 'Paquete ID'),
+                ),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Cancelar'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: const Text('Enviar'),
+              onPressed: () {
+                sendEmailToCliente(_controller.text);
                 Navigator.of(context).pop();
               },
             ),
