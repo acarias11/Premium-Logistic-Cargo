@@ -249,157 +249,177 @@ class _GraficaPromPageState extends State<GraficaPromPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.blue.shade900,
-        title: const Text(
-          'Promedio de Clientes',
-          style: TextStyle(color: Colors.white),
-        ),
+        backgroundColor: const Color.fromARGB(255, 10, 50, 110),
         actions: [
           IconButton(
             icon: const Icon(Icons.picture_as_pdf),
             onPressed: generatePdf,
+            color: Colors.white,
           ),
         ],
       ),
       body: Container(
-        width: double.infinity,
-        height: double.infinity,
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [Colors.blue.shade900, Colors.orange.shade700],
+            colors: [const Color.fromARGB(255, 10, 50, 110), const Color.fromARGB(255, 10, 50, 110)],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
         ),
+        padding: const EdgeInsets.all(16.0),
         child: _isLoading
-            ? const Center(child: CircularProgressIndicator(color: Colors.white))
-            : SingleChildScrollView(
-                padding: const EdgeInsets.all(16.0),
-                child: Center(
-                  child: Column(
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+            ? const Center(
+                child: CircularProgressIndicator(color: Colors.white),
+              )
+            : Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Header Section
+                  Card(
+                    elevation: 5,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
+                          Text(
+                            'Promedio de Clientes por Modalidad',
+                            style: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black87,
+                            ),
+                          ),
                           ElevatedButton(
                             onPressed: () => _selectMonth(context),
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.blue.shade800,
+                              backgroundColor: Colors.blue,
+                              foregroundColor: Colors.white,
                             ),
                             child: Text(
-                              'Seleccionar Mes: ${DateFormat.yMMM().format(_selectedMonth)}',
-                              style: const TextStyle(color: Colors.white),
-                            ),
-                          ),
-                          ElevatedButton(
-                            onPressed: () => _selectDateRange(context),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.blue.shade800,
-                            ),
-                            child: const Text(
-                              'Seleccionar Rango de Fechas',
-                              style: TextStyle(color: Colors.white),
-                            ),
+                                'Seleccionar Mes: ${DateFormat.yMMM().format(_selectedMonth)}'),
                           ),
                         ],
                       ),
-                      SizedBox(height: 20),
-                      RepaintBoundary( // Move RepaintBoundary here
-                        key: _chartKey,
-                        child: SizedBox(
-                          height: 400,
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              SizedBox(
-                                width: 300,
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(10),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.grey.withOpacity(0.3),
-                                        spreadRadius: 2,
-                                        blurRadius: 5,
-                                        offset: const Offset(0, 3),
-                                      ),
-                                    ],
-                                  ),
-                                  child: Column(
-                                    children: [
-                                      Padding(
-                                        padding: const EdgeInsets.all(8.0),
-                                        child: Text(
-                                          'Promedio de Clientes por Modalidad',
-                                          style: TextStyle(
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.blue.shade900,
-                                          ),
-                                        ),
-                                      ),
-                                      Expanded(
-                                        child: ListView.builder(
-                                          itemCount: _chartData.length,
-                                          itemBuilder: (context, index) {
-                                            final data = _chartData[index];
-                                            return Container(
-                                              decoration: BoxDecoration(
-                                                border: Border(
-                                                  bottom: BorderSide(
-                                                    color: Colors.grey.shade200,
-                                                  ),
-                                                ),
-                                              ),
-                                              child: ListTile(
-                                                leading: Icon(Icons.circle, color: data.color),
-                                                title: Text(data.mode),
-                                                trailing: Text('${data.average.toStringAsFixed(1)}%'),
-                                              ),
-                                            );
-                                          },
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                              SizedBox(
-                                width: 400,
-                                height: 400,
-                                child: PieChart(
-                                  PieChartData(
-                                    borderData: FlBorderData(
-                                      show: false,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  // Main Content
+                  Expanded(
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Data Table Section (moved to the left)
+                        Expanded(
+                          flex: 1,
+                          child: Card(
+                            elevation: 5,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.all(16.0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Resumen de Modalidades',
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.blue.shade900,
                                     ),
-                                    sectionsSpace: 0,
-                                    centerSpaceRadius: 40,
-                                    sections: _chartData.map((data) {
-                                      return PieChartSectionData(
-                                        color: data.color,
-                                        value: data.average,
-                                        title: '${data.average.toStringAsFixed(1)}%',
-                                        radius: 120,
-                                        titleStyle: const TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.white,
-                                        ),
-                                      );
-                                    }).toList(),
                                   ),
-                                ),
+                                  const SizedBox(height: 10),
+                                  Expanded(
+                                    child: ListView.builder(
+                                      itemCount: _chartData.length,
+                                      itemBuilder: (context, index) {
+                                        final data = _chartData[index];
+                                        return Container(
+                                          decoration: BoxDecoration(
+                                            border: Border(
+                                              bottom: BorderSide(
+                                                color: Colors.grey.shade200,
+                                              ),
+                                            ),
+                                          ),
+                                          child: ListTile(
+                                            leading: Icon(Icons.circle, color: data.color),
+                                            title: Text(data.mode),
+                                            trailing: Text('${data.average.toStringAsFixed(1)}%'),
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                  ),
+                                ],
                               ),
-                            ],
+                            ),
                           ),
                         ),
-                      ),
-                    ],
+                        const SizedBox(width: 20),
+                        // Chart Section (moved to the right)
+                        Expanded(
+                          flex: 2,
+                          child: Card(
+                            elevation: 5,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.all(16.0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  const Text(
+                                    'Distribución de Clientes por Modalidad',
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.black87,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 20),
+                                  Expanded(
+                                    child: RepaintBoundary(
+                                      key: _chartKey,
+                                      child: PieChart(
+                                        PieChartData(
+                                          borderData: FlBorderData(show: false),
+                                          sectionsSpace: 0,
+                                          centerSpaceRadius: 40,
+                                          sections: _chartData.map((data) {
+                                            return PieChartSectionData(
+                                              color: data.color,
+                                              value: data.average,
+                                              title: '${data.average.toStringAsFixed(1)}%',
+                                              radius: 120,
+                                              titleStyle: const TextStyle(
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.bold,
+                                                color: Colors.white,
+                                              ),
+                                            );
+                                          }).toList(),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
+                ],
               ),
-      )
+      ),
     );
   }
 }

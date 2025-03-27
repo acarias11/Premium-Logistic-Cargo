@@ -67,7 +67,7 @@ class _GraficaCasillerosMensualesState
 
     final clientesPorDia = <int, int>{};
     for (var doc in snapshot.docs) {
-      final data = doc.data() as Map<String, dynamic>;
+      final data = doc.data();
       if (data['fecha'] is Timestamp) {
         final fecha = (data['fecha'] as Timestamp).toDate();
         clientesPorDia[fecha.day] = (clientesPorDia[fecha.day] ?? 0) + 1;
@@ -80,7 +80,7 @@ class _GraficaCasillerosMensualesState
         ..sort((a, b) => int.parse(a.label).compareTo(int.parse(b.label)));
 
     final clientesData = snapshot.docs.map((doc) {
-      final data = doc.data() as Map<String, dynamic>;
+      final data = doc.data();
       return {
         'cliente_id': doc.id,
         'nombre': data['nombre'] ?? 'Desconocido',
@@ -243,112 +243,167 @@ class _GraficaCasillerosMensualesState
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Reporte de Casilleros Mensuales'),
-        backgroundColor: Colors.orange.shade700,
+        backgroundColor: const Color.fromARGB(255, 10, 50, 110),
         actions: [
           IconButton(
             icon: const Icon(Icons.picture_as_pdf),
             onPressed: generatePdf,
+            color: Colors.white,
           ),
         ],
-      ),
+      ),  
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [Colors.orange.shade700, Colors.blue.shade300],
+            colors: [const Color.fromARGB(255, 10, 50, 110), const Color.fromARGB(255, 10, 50, 110)],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
         ),
         padding: const EdgeInsets.all(16.0),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                ElevatedButton(
-                  onPressed: () => _selectMonth(context),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue,
-                    foregroundColor: Colors.white,
-                  ),
-                  child: Text(
-                      'Seleccionar Mes: ${DateFormat.yMMM('es').format(_selectedMonth)}'),
+            // Header Section
+            Card(
+              elevation: 5,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Clientes registrados en el mes seleccionado',
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    ElevatedButton(
+                      onPressed: () => _selectMonth(context),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue,
+                        foregroundColor: Colors.white,
+                      ),
+                      child: Text(
+                          'Seleccionar Mes: ${DateFormat.yMMM('es').format(_selectedMonth)}'),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
             const SizedBox(height: 20),
-            Text(
-              'Clientes registrados en el mes seleccionado',
-              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 20),
+            // Main Content
             Expanded(
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Table
-                  SizedBox(
-                    width: 300,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(10),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.grey.withOpacity(0.3),
-                            spreadRadius: 2,
-                            blurRadius: 5,
-                            offset: const Offset(0, 3),
-                          ),
-                        ],
+                  // Table Section
+                  Expanded(
+                    flex: 1,
+                    child: Card(
+                      elevation: 5,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                      child: Column(
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Text(
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
                               'Clientes por Día',
                               style: TextStyle(
-                                fontSize: 20,
+                                fontSize: 18,
                                 fontWeight: FontWeight.bold,
-                                color: Colors.blue.shade900,
+                                color: Colors.orange.shade700,
                               ),
                             ),
-                          ),
-                          Expanded(
-                            child: ListView.builder(
-                              itemCount: _chartData.length,
-                              itemBuilder: (context, index) {
-                                final data = _chartData[index];
-                                final date = DateTime(_selectedMonth.year, _selectedMonth.month, int.parse(data.label));
-                                final formattedDate = DateFormat('dd MMM yyyy', 'es').format(date);
-                                return Container(
-                                  decoration: BoxDecoration(
-                                    border: Border(
-                                      bottom: BorderSide(
-                                        color: Colors.grey.shade200,
+                            const SizedBox(height: 10),
+                            Expanded(
+                              child: _chartData.isEmpty
+                                  ? const Center(
+                                      child: Text(
+                                        'No hay datos disponibles',
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          color: Colors.grey,
+                                        ),
                                       ),
+                                    )
+                                  : Column(
+                                      children: [
+                                        Expanded(
+                                          child: ListView.builder(
+                                            itemCount: _chartData.length,
+                                            itemBuilder: (context, index) {
+                                              final data = _chartData[index];
+                                              final date = DateTime(
+                                                _selectedMonth.year,
+                                                _selectedMonth.month,
+                                                int.parse(data.label),
+                                              );
+                                              final formattedDate =
+                                                  DateFormat('dd MMM yyyy', 'es').format(date);
+                                              return ListTile(
+                                                title: Text(formattedDate),
+                                                trailing: Text(
+                                                  '${data.value.toInt()} clientes',
+                                                  style: const TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                              );
+                                            },
+                                          ),
+                                        ),
+                                        // Fila para el total
+                                        Padding(
+                                          padding: const EdgeInsets.symmetric(vertical: 8.0),
+                                          child: ListTile(
+                                            tileColor: Colors.orange.shade100,
+                                            title: const Text(
+                                              'Total de Clientes',
+                                              style: TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 16,
+                                              ),
+                                            ),
+                                            trailing: Text(
+                                              '${_chartData.fold<int>(0, (sum, item) => sum + item.value.toInt())} clientes',
+                                              style: const TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 16,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
                                     ),
-                                  ),
-                                  child: ListTile(
-                                    title: Text(formattedDate),
-                                    trailing: Text('${data.value.toInt()} clientes'),
-                                  ),
-                                );
-                              },
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                   ),
-                  const SizedBox(width: 40),
-                  // Chart
+                  const SizedBox(width: 20),
+                  // Chart Section
                   Expanded(
-                    child: _chartData.isEmpty
-                        ? const Center(child: Text('No hay clientes disponibles'))
-                        : _buildChart(),
+                    flex: 2,
+                    child: Card(
+                      elevation: 5,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: _buildChart(),
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -360,14 +415,22 @@ class _GraficaCasillerosMensualesState
   }
 
   Widget _buildChart() {
-    return Stack(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Container(
-          decoration: BoxDecoration(
-            border: Border.all(color: Colors.black, width: 2),
-            borderRadius: BorderRadius.circular(12),
+        // Título del gráfico
+        const Padding(
+          padding: EdgeInsets.only(bottom: 8.0),
+          child: Text(
+            'Clientes Registrados por Día',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.black87,
+            ),
           ),
-          padding: const EdgeInsets.all(16),
+        ),
+        Expanded(
           child: RepaintBoundary(
             key: _chartKey,
             child: BarChart(
@@ -383,14 +446,14 @@ class _GraficaCasillerosMensualesState
                     getTooltipItem: (group, groupIndex, rod, rodIndex) {
                       final day = _chartData[group.x.toInt()].label;
                       return BarTooltipItem(
-                        '$day\n',
+                        'Día $day\n',
                         const TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.bold,
                         ),
                         children: <TextSpan>[
                           TextSpan(
-                            text: (rod.toY).toString(),
+                            text: '${rod.toY.toInt()} clientes',
                             style: const TextStyle(
                               color: Colors.yellow,
                               fontWeight: FontWeight.w500,
@@ -401,19 +464,6 @@ class _GraficaCasillerosMensualesState
                       );
                     },
                   ),
-                  touchCallback: (FlTouchEvent event, barTouchResponse) {
-                    setState(() {
-                      if (!event.isInterestedForInteractions ||
-                          barTouchResponse == null ||
-                          barTouchResponse.spot == null) {
-                        touchedIndex = -1;
-                        _animationController.stop();
-                        return;
-                      }
-                      touchedIndex = barTouchResponse.spot!.touchedBarGroupIndex;
-                      _animationController.repeat();
-                    });
-                  },
                 ),
                 titlesData: FlTitlesData(
                   show: true,
@@ -423,9 +473,15 @@ class _GraficaCasillerosMensualesState
                       getTitlesWidget: (double value, TitleMeta meta) {
                         final index = value.toInt();
                         if (index >= 0 && index < _chartData.length) {
-                          return Text(_chartData[index].label);
+                          return Text(
+                            'Día ${_chartData[index].label}',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12,
+                            ),
+                          );
                         }
-                        return const Text('');
+                        return const SizedBox.shrink(); // No mostrar nada para valores fuera de rango
                       },
                     ),
                   ),
@@ -433,8 +489,29 @@ class _GraficaCasillerosMensualesState
                     sideTitles: SideTitles(
                       showTitles: true,
                       getTitlesWidget: (double value, TitleMeta meta) {
-                        return Text(value.toInt().toString());
+                        // Mostrar solo números enteros
+                        if (value % 1 == 0) {
+                          return Text(
+                            value.toInt().toString(),
+                            style: const TextStyle(fontSize: 12),
+                          );
+                        }
+                        return const SizedBox.shrink(); // No mostrar nada para valores no enteros
                       },
+                    ),
+                    axisNameWidget: const Padding(
+                      padding: EdgeInsets.only(right: 6.0),
+                      child: RotatedBox(
+                        quarterTurns: 1,
+                        child: Text(
+                          'C\nL\nI\nE\nN\nT\nE\nS',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black87,
+                          ),
+                        ),
+                      ),
                     ),
                   ),
                 ),
@@ -448,13 +525,18 @@ class _GraficaCasillerosMensualesState
                             barRods: [
                               BarChartRodData(
                                 toY: data.value,
-                                color: index == touchedIndex ? Colors.yellow : Colors.blue,
+                                color: index == touchedIndex
+                                    ? Colors.orange
+                                    : Colors.blue.shade700,
                                 width: 16,
                                 borderRadius: BorderRadius.circular(4),
                                 backDrawRodData: BackgroundBarChartRodData(
                                   show: true,
                                   toY: _chartData.isNotEmpty
-                                      ? _chartData.map((e) => e.value).reduce((a, b) => a > b ? a : b) + 1
+                                      ? _chartData
+                                              .map((e) => e.value)
+                                              .reduce((a, b) => a > b ? a : b) +
+                                          1
                                       : 1,
                                   color: Colors.blue.withOpacity(0.2),
                                 ),
@@ -468,19 +550,18 @@ class _GraficaCasillerosMensualesState
             ),
           ),
         ),
-        Positioned(
-          bottom: 0,
-          left: 0,
-          right: 0,
-          child: Center(
-            child: RotationTransition(
-              turns: _animationController,
-              child: const Icon(
-                Icons.circle,
-                size: 50,
-                color: Colors.blue,
+        // Leyenda
+        const Padding(
+          padding: EdgeInsets.only(top: 8.0),
+          child: Row(
+            children: [
+              Icon(Icons.square, color: Colors.blue, size: 16),
+              SizedBox(width: 4),
+              Text(
+                'Clientes registrados',
+                style: TextStyle(fontSize: 14, color: Colors.black87),
               ),
-            ),
+            ],
           ),
         ),
       ],

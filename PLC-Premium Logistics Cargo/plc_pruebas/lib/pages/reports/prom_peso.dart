@@ -5,7 +5,7 @@ import 'package:month_picker_dialog/month_picker_dialog.dart';
 import 'package:fl_chart/fl_chart.dart';
 
 class PromPesoPage extends StatefulWidget {
-  const PromPesoPage({Key? key}) : super(key: key);
+  const PromPesoPage({super.key});
 
   @override
   _PromPesoPageState createState() => _PromPesoPageState();
@@ -97,63 +97,117 @@ class _PromPesoPageState extends State<PromPesoPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Promedios del Mes'),
-        backgroundColor: Colors.blue.shade900,
+        backgroundColor: const Color.fromARGB(255, 10, 50, 110),
       ),
       body: Container(
-        width: double.infinity,
-        height: double.infinity,
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [Colors.blue.shade900, Colors.orange.shade700],
+            colors: [const Color.fromARGB(255, 10, 50, 110), const Color.fromARGB(255, 10, 50, 110)],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
         ),
+        padding: const EdgeInsets.all(16.0),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SizedBox(height: 20), // Adjust space above the button
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                ElevatedButton(
-                  onPressed: () => _selectMonth(context),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue.shade800,
-                  ),
-                  child: Text(
-                    'Seleccionar Mes: ${DateFormat.yMMM().format(_selectedMonth)}',
-                    style: const TextStyle(color: Colors.white),
-                  ),
+            // Header Section
+            Card(
+              elevation: 5,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Promedios de Peso por Categoría',
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    ElevatedButton(
+                      onPressed: () => _selectMonth(context),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue,
+                        foregroundColor: Colors.white,
+                      ),
+                      child: Text(
+                          'Seleccionar Mes: ${DateFormat.yMMM().format(_selectedMonth)}'),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
-            const SizedBox(height: 20), // Adjust space above the table and chart
+            const SizedBox(height: 20),
+            // Main Content
             Expanded(
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.center, // Center the content horizontally
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Table
+                  // Table Section
                   Expanded(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center, // Center the table vertically
-                      children: [
-                        _buildTable('Promedio de Peso de las Cargas', avgPeso),
-                        _buildTable('Promedio de Peso de los Warehouse', avgWarehouse),
-                        _buildTable('Promedio de Peso de los Paquetes', avgPaquetes),
-                      ],
+                    flex: 1,
+                    child: Card(
+                      elevation: 5,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Resumen de Promedios',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.blue.shade900,
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                            _buildTable('Promedio de Peso de las Cargas', avgPeso),
+                            _buildTable('Promedio de Peso de los Warehouse', avgWarehouse),
+                            _buildTable('Promedio de Peso de los Paquetes', avgPaquetes),
+                          ],
+                        ),
+                      ),
                     ),
                   ),
-                  // Chart
+                  const SizedBox(width: 20),
+                  // Chart Section
                   Expanded(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center, // Center the chart vertically
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: _buildChart(),
+                    flex: 2,
+                    child: Card(
+                      elevation: 5,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            const Text(
+                              'Distribución de Promedios',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black87,
+                              ),
+                            ),
+                            const SizedBox(height: 20),
+                            Expanded(
+                              child: _buildChart(),
+                            ),
+                          ],
                         ),
-                      ],
+                      ),
                     ),
                   ),
                 ],

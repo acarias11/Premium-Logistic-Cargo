@@ -19,7 +19,7 @@ class HomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.blue.shade900,
+        backgroundColor: const Color.fromARGB(255, 10, 50, 110),
         title: const Text(
           'Premium Logistics Cargo',
           style: TextStyle(color: Colors.white),
@@ -28,6 +28,9 @@ class HomePage extends StatelessWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
+            style: ButtonStyle(
+              foregroundColor: WidgetStateProperty.all(Colors.orange.shade400),
+            ),
             onPressed: () async {
               // Lógica para cerrar sesión con Firebase Auth
               await FirebaseAuth.instance.signOut();
@@ -45,7 +48,7 @@ class HomePage extends StatelessWidget {
         height: double.infinity,
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [Colors.blue.shade900, Colors.orange.shade700],
+            colors: [const Color.fromARGB(255, 10, 50, 110), const Color.fromARGB(255, 10, 50, 110)],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
@@ -57,17 +60,20 @@ class HomePage extends StatelessWidget {
               // Logo
               Padding(
                 padding: const EdgeInsets.all(16.0),
-                child: Image.asset(
-                  'assets/logo_PLC.jpg', // imagen
-                  height: 200,
-                  width: 200,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(100),
+                  child: Image.asset(
+                    'assets/logo_PLC.jpg', // imagen
+                    height: 200,
+                    width: 200,
+                  ),
                 ),
               ),
               const SizedBox(height: 20),
               // Buttons Section
               Wrap(
-                spacing: 20,
-                runSpacing: 20,
+                spacing: 30,
+                runSpacing: 30,
                 alignment: WrapAlignment.center,
                 children: [
                   _buildStyledButton(context, 'Cargas', Icons.local_shipping,
@@ -93,40 +99,68 @@ class HomePage extends StatelessWidget {
 
   Widget _buildStyledButton(
       BuildContext context, String title, IconData icon, Widget? page) {
-    return ElevatedButton(
-      style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.orange.shade700,
-        foregroundColor: Colors.white,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(15.0),
-        ),
-        padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 30),
-        minimumSize: const Size(160, 160),
-        elevation: 5,
-      ),
-      onPressed: () {
-        if (page != null) {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => page),
-          );
-        } else {
-           Navigator.push(
-             context,
-             MaterialPageRoute(builder: (context) => const ReportesPage()),
-           );
-        }
-      },
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(icon, size: 50),
-          const SizedBox(height: 10),
-          Text(
-            title,
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+    return Container(
+      width: 200,
+      height: 200,
+      decoration: BoxDecoration(
+        color: const Color.fromARGB(255, 9, 77, 205), // Fondo azul oscuro
+        borderRadius: BorderRadius.circular(15.0), // Bordes redondeados
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.2), // Sombra ligera
+            blurRadius: 8,
+            offset: const Offset(0, 4),
           ),
         ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(15.0),
+          onTap: () {
+            if (page != null) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => page),
+              );
+            } else {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const ReportesPage()),
+              );
+            }
+          },
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 10),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.orange.withOpacity(0.2), // Fondo translúcido
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    icon,
+                    size: 40,
+                    color: Colors.orange.shade400, // Icono en naranja
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white, // Texto en blanco
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }

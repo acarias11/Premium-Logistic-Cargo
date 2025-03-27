@@ -9,9 +9,8 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import 'package:flutter/services.dart' show ByteData, Uint8List, rootBundle;
-import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
-import 'package:fl_chart/fl_chart.dart';
+import 'package:intl/date_symbol_data_local.dart'; // Asegúrate de importar esto
 
 class PdfData {
   final List<List<String>> activeData;
@@ -161,8 +160,11 @@ class _GraficaActivosInactivosPageState extends State<GraficaActivosInactivosPag
   @override
   void initState() {
     super.initState();
-    _loadLogo();
-    _loadData();
+    initializeDateFormatting('es', null).then((_) {
+      // Una vez inicializado, carga los datos
+      _loadLogo();
+      _loadData();
+    });
   }
 
   Future<void> _loadLogo() async {
@@ -263,17 +265,38 @@ class _GraficaActivosInactivosPageState extends State<GraficaActivosInactivosPag
   }
 
   Future<Uint8List> _captureChart() async {
+    // Espera un breve momento para asegurarte de que el gráfico esté renderizado
+    await Future.delayed(const Duration(milliseconds: 500));
+
     final boundary = _chartKey.currentContext?.findRenderObject() as RenderRepaintBoundary?;
-    if (boundary == null) throw Exception("Widget no renderizado");
-    
-    final image = await boundary.toImage(pixelRatio: 0.7); // Reducción de resolución
+    if (boundary == null) {
+      throw Exception("El gráfico no está renderizado. Asegúrate de que esté visible en la pantalla.");
+    }
+
+    final image = await boundary.toImage(pixelRatio: 2.0); // Ajusta la resolución si es necesario
     final byteData = await image.toByteData(format: ImageByteFormat.png);
     return byteData!.buffer.asUint8List();
   }
 
   Future<void> generatePdf() async {
     try {
+      // Verifica si el gráfico está renderizado
+      if (_chartKey.currentContext == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('El gráfico no está visible. Asegúrate de que esté en pantalla.')),
+        );
+        throw Exception("El gráfico no está renderizado. Intenta nuevamente.");
+      }
+
+      // Captura la imagen del gráfico
       final chartImage = await _captureChart();
+
+      // Verifica si el logo está cargado
+      if (_logoBytes == null) {
+        throw Exception("El logo no está cargado. Verifica el archivo 'assets/logo_PLC.jpg'.");
+      }
+
+      // Crea los datos para el PDF
       final pdfData = PdfData(
         activeData: _clientesActivos.map((c) => [c['cliente_id'] as String, c['nombre'] as String, c['telefono'] as String]).toList(),
         inactiveData: _clientesInactivos.map((c) => [c['cliente_id'] as String, c['nombre'] as String, c['telefono'] as String]).toList(),
@@ -282,11 +305,17 @@ class _GraficaActivosInactivosPageState extends State<GraficaActivosInactivosPag
         formattedDate: DateFormat('dd/MM/yyyy').format(DateTime.now()),
       );
 
+      // Genera el PDF
       final pdfBytes = await compute(generatePdfBytes, pdfData);
+
+      // Muestra el PDF
       await Printing.layoutPdf(onLayout: (_) => pdfBytes);
-      
     } catch (e) {
-      print('Error al generar PDF: $e');
+      // Manejo de errores
+      print('Error al generar el PDF: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al generar el PDF: $e')),
+      );
     }
   }
 
@@ -294,224 +323,374 @@ class _GraficaActivosInactivosPageState extends State<GraficaActivosInactivosPag
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.blue.shade900,
-        title: const Text('Clientes Activos/Inactivos', style: TextStyle(color: Colors.white)),
+        backgroundColor: const Color.fromARGB(255, 10, 50, 110),
         actions: [
           IconButton(
             icon: const Icon(Icons.picture_as_pdf),
             onPressed: _isLoading ? null : generatePdf,
+            color: Colors.white
           ),
         ],
       ),
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [Colors.blue.shade900, Colors.orange.shade700],
+            colors: [const Color.fromARGB(255, 10, 50, 110), const Color.fromARGB(255, 10, 50, 110)],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
         ),
-        child: _buildContent(),
-      ),
-    );
-  }
-
-  Widget _buildContent() {
-    if (_isLoading) return const Center(child: CircularProgressIndicator(color: Colors.white));
-    if (_errorMessage.isNotEmpty) return Center(child: Text(_errorMessage, style: const TextStyle(color: Colors.white)));
-    
-    return Column(
-      children: [
-        _buildMonthSelector(),
-        Expanded(child: _buildChartOrMessage()),
-      ],
-    );
-  }
-
-  Widget _buildMonthSelector() {
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: ElevatedButton(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.blue.shade800,
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-        ),
-        onPressed: () => _selectMonth(context),
-        child: Text(
-          'Mes: ${DateFormat('MMM yyyy').format(_selectedMonth)}',
-          style: const TextStyle(fontSize: 16, color: Colors.white),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildChartOrMessage() {
-    if (_chartData.isEmpty) {
-      return const Center(
-        child: Text('No hay datos disponibles', style: TextStyle(color: Colors.white)),
-      );
-    }
-
-    return RepaintBoundary(
-      key: _chartKey,
-      child: Padding(
-        padding: const EdgeInsets.only(bottom: 16.0), // Agrega margen inferior
-        child: SizedBox(
-          height: 400,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              SizedBox(
-                width: 300,
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(10),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.grey.withOpacity(0.3),
-                        spreadRadius: 2,
-                        blurRadius: 5,
-                        offset: const Offset(0, 3),
+        padding: const EdgeInsets.all(16.0),
+        child: _isLoading
+            ? const Center(
+                child: CircularProgressIndicator(color: Colors.white),
+              )
+            : Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Header Section
+                  Card(
+                    elevation: 5,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Clientes activos e inactivos en el mes seleccionado',
+                            style: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black87,
+                            ),
+                          ),
+                          ElevatedButton(
+                            onPressed: () => _selectMonth(context),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.blue,
+                              foregroundColor: Colors.white,
+                            ),
+                            child: Text(
+                                'Seleccionar Mes: ${DateFormat.yMMM('es').format(_selectedMonth)}'),
+                          ),
+                        ],
                       ),
-                    ],
+                    ),
                   ),
-                  child: Column(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Text(
-                          'Clientes Activos/Inactivos',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.blue.shade900,
+                  const SizedBox(height: 20),
+                  // Main Content
+                  Expanded(
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Table Section
+                        Expanded(
+                          flex: 1,
+                          child: Card(
+                            elevation: 5,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.all(16.0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Resumen de Casilleros',
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.blue.shade900,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 10),
+                                  Table(
+                                    border: TableBorder.all(color: Colors.grey.shade300),
+                                    columnWidths: const {
+                                      0: FlexColumnWidth(2),
+                                      1: FlexColumnWidth(1),
+                                    },
+                                    children: [
+                                      TableRow(
+                                        decoration: BoxDecoration(color: Colors.blue.shade100),
+                                        children: const [
+                                          Padding(
+                                            padding: EdgeInsets.all(8.0),
+                                            child: Text(
+                                              'Estado',
+                                              style: TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 16,
+                                              ),
+                                            ),
+                                          ),
+                                          Padding(
+                                            padding: EdgeInsets.all(8.0),
+                                            child: Text(
+                                              'Total',
+                                              style: TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 16,
+                                              ),
+                                              textAlign: TextAlign.center,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      TableRow(
+                                        children: [
+                                          const Padding(
+                                            padding: EdgeInsets.all(8.0),
+                                            child: Text('Activos'),
+                                          ),
+                                          Padding(
+                                            padding: const EdgeInsets.all(8.0),
+                                            child: Text(
+                                              '${_clientesActivos.length}',
+                                              textAlign: TextAlign.center,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      TableRow(
+                                        children: [
+                                          const Padding(
+                                            padding: EdgeInsets.all(8.0),
+                                            child: Text('Inactivos'),
+                                          ),
+                                          Padding(
+                                            padding: const EdgeInsets.all(8.0),
+                                            child: Text(
+                                              '${_clientesInactivos.length}',
+                                              textAlign: TextAlign.center,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 20),
+                                  // Active Clients Table
+                                  Expanded(
+                                    child: SingleChildScrollView(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            'Clientes Activos',
+                                            style: TextStyle(
+                                              fontSize: 18,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.green.shade700,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 10),
+                                          Table(
+                                            border: TableBorder.all(color: Colors.grey.shade300),
+                                            columnWidths: const {
+                                              0: FlexColumnWidth(2),
+                                              1: FlexColumnWidth(3),
+                                              2: FlexColumnWidth(2),
+                                            },
+                                            children: [
+                                              TableRow(
+                                                decoration: BoxDecoration(color: Colors.green.shade100),
+                                                children: const [
+                                                  Padding(
+                                                    padding: EdgeInsets.all(8.0),
+                                                    child: Text(
+                                                      'ID Cliente',
+                                                      style: TextStyle(
+                                                        fontWeight: FontWeight.bold,
+                                                        fontSize: 16,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  Padding(
+                                                    padding: EdgeInsets.all(8.0),
+                                                    child: Text(
+                                                      'Nombre',
+                                                      style: TextStyle(
+                                                        fontWeight: FontWeight.bold,
+                                                        fontSize: 16,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  Padding(
+                                                    padding: EdgeInsets.all(8.0),
+                                                    child: Text(
+                                                      'Teléfono',
+                                                      style: TextStyle(
+                                                        fontWeight: FontWeight.bold,
+                                                        fontSize: 16,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                              ..._clientesActivos.map((cliente) {
+                                                return TableRow(
+                                                  children: [
+                                                    Padding(
+                                                      padding: const EdgeInsets.all(8.0),
+                                                      child: Text(cliente['cliente_id']),
+                                                    ),
+                                                    Padding(
+                                                      padding: const EdgeInsets.all(8.0),
+                                                      child: Text(cliente['nombre']),
+                                                    ),
+                                                    Padding(
+                                                      padding: const EdgeInsets.all(8.0),
+                                                      child: Text(cliente['telefono']),
+                                                    ),
+                                                  ],
+                                                );
+                                              }),
+                                            ],
+                                          ),
+                                          const SizedBox(height: 20),
+                                          // Inactive Clients Table
+                                          Text(
+                                            'Clientes Inactivos',
+                                            style: TextStyle(
+                                              fontSize: 18,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.red.shade700,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 10),
+                                          Table(
+                                            border: TableBorder.all(color: Colors.grey.shade300),
+                                            columnWidths: const {
+                                              0: FlexColumnWidth(2),
+                                              1: FlexColumnWidth(3),
+                                              2: FlexColumnWidth(2),
+                                            },
+                                            children: [
+                                              TableRow(
+                                                decoration: BoxDecoration(color: Colors.red.shade100),
+                                                children: const [
+                                                  Padding(
+                                                    padding: EdgeInsets.all(8.0),
+                                                    child: Text(
+                                                      'ID Cliente',
+                                                      style: TextStyle(
+                                                        fontWeight: FontWeight.bold,
+                                                        fontSize: 16,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  Padding(
+                                                    padding: EdgeInsets.all(8.0),
+                                                    child: Text(
+                                                      'Nombre',
+                                                      style: TextStyle(
+                                                        fontWeight: FontWeight.bold,
+                                                        fontSize: 16,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  Padding(
+                                                    padding: EdgeInsets.all(8.0),
+                                                    child: Text(
+                                                      'Teléfono',
+                                                      style: TextStyle(
+                                                        fontWeight: FontWeight.bold,
+                                                        fontSize: 16,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                              ..._clientesInactivos.map((cliente) {
+                                                return TableRow(
+                                                  children: [
+                                                    Padding(
+                                                      padding: const EdgeInsets.all(8.0),
+                                                      child: Text(cliente['cliente_id']),
+                                                    ),
+                                                    Padding(
+                                                      padding: const EdgeInsets.all(8.0),
+                                                      child: Text(cliente['nombre']),
+                                                    ),
+                                                    Padding(
+                                                      padding: const EdgeInsets.all(8.0),
+                                                      child: Text(cliente['telefono']),
+                                                    ),
+                                                  ],
+                                                );
+                                              }),
+                                            ],
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
                           ),
                         ),
-                      ),
-                      Expanded(
-                        child: ListView.builder(
-                          itemCount: _chartData.length,
-                          itemBuilder: (context, index) {
-                            final data = _chartData[index];
-                            return Container(
-                              decoration: BoxDecoration(
-                                border: Border(
-                                  bottom: BorderSide(
-                                    color: Colors.grey.shade200,
+                        const SizedBox(width: 20),
+                        // Chart Section
+                        Expanded(
+                          flex: 2,
+                          child: Card(
+                            elevation: 5,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.all(16.0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  const Text(
+                                    'Distribución de Clientes Activos/Inactivos',
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.black87,
+                                    ),
                                   ),
-                                ),
+                                  const SizedBox(height: 20),
+                                  Expanded(
+                                    child: RepaintBoundary(
+                                      key: _chartKey, // Asegúrate de que este key esté asociado al gráfico
+                                      child: SfCircularChart(
+                                        legend: Legend(
+                                          isVisible: true,
+                                          overflowMode: LegendItemOverflowMode.wrap,
+                                          position: LegendPosition.bottom,
+                                        ),
+                                        series: <CircularSeries<_ChartData, String>>[
+                                          PieSeries<_ChartData, String>(
+                                            dataSource: _chartData,
+                                            xValueMapper: (data, _) => data.label,
+                                            yValueMapper: (data, _) => data.value,
+                                            dataLabelSettings: const DataLabelSettings(isVisible: true),
+                                            dataLabelMapper: (data, _) =>
+                                                '${data.label}\n${data.value.toStringAsFixed(1)}%',
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
-                              child: ListTile(
-                                leading: Icon(
-                                  Icons.circle,
-                                  color: data.label == 'Activos' ? Colors.green : Colors.red,
-                                ),
-                                title: Text(data.label, style: const TextStyle(fontSize: 14)),
-                                trailing: Text('${data.value.toStringAsFixed(1)}%', style: const TextStyle(fontSize: 14)),
-                              ),
-                            );
-                          },
+                            ),
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              SizedBox(
-                width: 400,
-                height: 400,
-                child: PieChart(
-                  PieChartData(
-                    borderData: FlBorderData(
-                      show: false,
-                    ),
-                    sectionsSpace: 0,
-                    centerSpaceRadius: 40,
-                    sections: _chartData.map((data) {
-                      return PieChartSectionData(
-                        color: data.label == 'Activos' ? Colors.green : Colors.red,
-                        value: data.value,
-                        title: '${data.value.toStringAsFixed(1)}%',
-                        radius: 120,
-                        titleStyle: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      );
-                    }).toList(),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTableView() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Clientes Activos',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black),
-        ),
-        const SizedBox(height: 10),
-        Expanded(
-          child: SingleChildScrollView(
-            child: DataTable(
-              columns: const [
-                DataColumn(label: Text('ID', style: TextStyle(color: Colors.black))),
-                DataColumn(label: Text('Nombre', style: TextStyle(color: Colors.black))),
-                DataColumn(label: Text('Teléfono', style: TextStyle(color: Colors.black))),
-              ],
-              rows: _clientesActivos
-                  .map(
-                    (cliente) => DataRow(
-                      cells: [
-                        DataCell(Text(cliente['cliente_id'], style: const TextStyle(color: Colors.black))),
-                        DataCell(Text(cliente['nombre'], style: const TextStyle(color: Colors.black))),
-                        DataCell(Text(cliente['telefono'], style: const TextStyle(color: Colors.black))),
                       ],
                     ),
-                  )
-                  .toList(),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildPieChart() {
-    return Column(
-      children: [
-        const Text(
-          'Distribución de Clientes',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black),
-        ),
-        const SizedBox(height: 10),
-        Expanded(
-          child: PieChart(
-            PieChartData(
-              sections: _chartData.map((data) {
-                final isActive = data.label == 'Activos';
-                return PieChartSectionData(
-                  value: data.value,
-                  title: '${data.value.toStringAsFixed(1)}%',
-                  color: isActive ? Colors.green : Colors.red,
-                  titleStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white),
-                );
-              }).toList(),
-              sectionsSpace: 2,
-              centerSpaceRadius: 40,
-            ),
-          ),
-        ),
-      ],
+                  ),
+                ],
+              ),
+      ),
     );
   }
 }
