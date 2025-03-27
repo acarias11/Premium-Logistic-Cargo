@@ -446,7 +446,7 @@ class SendEmailPage extends StatelessWidget {
   }
 
   Future<void> _showPackageDialog(BuildContext context) async {
-    final TextEditingController _controller = TextEditingController();
+    final TextEditingController controller = TextEditingController();
 
     return showDialog<void>(
       context: context,
@@ -459,7 +459,7 @@ class SendEmailPage extends StatelessWidget {
               children: <Widget>[
                 const Text('Ingrese el ID del paquete:'),
                 TextField(
-                  controller: _controller,
+                  controller: controller,
                   decoration: const InputDecoration(hintText: 'Paquete ID'),
                 ),
               ],
@@ -475,7 +475,7 @@ class SendEmailPage extends StatelessWidget {
             TextButton(
               child: const Text('Enviar'),
               onPressed: () {
-                sendEmailToCliente(_controller.text);
+                sendEmailToCliente(controller.text);
                 Navigator.of(context).pop();
               },
             ),
