@@ -8,8 +8,11 @@ import 'package:plc_pruebas/pages/paquetes_page.dart';
 import 'package:plc_pruebas/pages/warehouse_page.dart';
 import 'package:plc_pruebas/pages/cargas_page.dart';
 import 'package:firebase_auth/firebase_auth.dart'; // Importar Firebase Auth
+import 'package:provider/provider.dart';
+import 'package:plc_pruebas/pages/provider/theme_provider.dart';
 
 class HomePage extends StatelessWidget {
+
   HomePage({super.key});
 
   final SidebarXController _sidebarXController =
@@ -17,22 +20,32 @@ class HomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final _isDarkMode = themeProvider.isDarkMode;
+
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: const Color.fromARGB(255, 10, 50, 110),
+        backgroundColor: _isDarkMode ? Color.fromARGB(255, 0, 0, 0) : Color.fromARGB(255, 10, 50, 110),
         title: const Text(
           'Premium Logistics Cargo',
           style: TextStyle(color: Colors.white),
         ),
         centerTitle: true,
         actions: [
+          // Botón para alternar entre modo claro y oscuro
+          IconButton(
+            icon: Icon(themeProvider.isDarkMode
+                ? Icons.nightlight_round
+                : Icons.wb_sunny),
+            onPressed: () {
+              themeProvider.toggleTheme(); // Alterna el estado global del tema
+            },
+            color: Colors.white,
+          ),
+          // Botón para cerrar sesión
           IconButton(
             icon: const Icon(Icons.logout),
-            style: ButtonStyle(
-              foregroundColor: WidgetStateProperty.all(Colors.orange.shade400),
-            ),
             onPressed: () async {
-              // Lógica para cerrar sesión con Firebase Auth
               await FirebaseAuth.instance.signOut();
               Navigator.of(context).pop();
             },
@@ -48,7 +61,7 @@ class HomePage extends StatelessWidget {
         height: double.infinity,
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [const Color.fromARGB(255, 10, 50, 110), const Color.fromARGB(255, 10, 50, 110)],
+            colors: _isDarkMode ? [Color.fromARGB(255, 0, 0, 0), Color.fromARGB(255, 0, 0, 0)] : [Color.fromARGB(255, 10, 50, 110), const Color.fromARGB(255, 10, 50, 110)],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
@@ -70,7 +83,7 @@ class HomePage extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 20),
-              // Buttons Section
+              // Sección de botones
               Wrap(
                 spacing: 30,
                 runSpacing: 30,
@@ -86,7 +99,7 @@ class HomePage extends StatelessWidget {
                       context, 'Clientes', Icons.person, const ClientesPage()),
                   _buildStyledButton(
                       context, 'Reportes', Icons.insert_chart, ReportesPage()),
-                   _buildStyledButton(
+                  _buildStyledButton(
                       context, 'Quejas', Icons.report_problem, QuejasPage()),
                 ],
               ),
@@ -99,11 +112,13 @@ class HomePage extends StatelessWidget {
 
   Widget _buildStyledButton(
       BuildContext context, String title, IconData icon, Widget? page) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final _isDarkMode = themeProvider.isDarkMode;
     return Container(
       width: 200,
       height: 200,
       decoration: BoxDecoration(
-        color: const Color.fromARGB(255, 9, 77, 205), // Fondo azul oscuro
+        color: _isDarkMode ? Color.fromRGBO(30, 30, 30, 1) : const Color.fromARGB(255, 9, 77, 205), // Fondo azul oscuro
         borderRadius: BorderRadius.circular(15.0), // Bordes redondeados
         boxShadow: [
           BoxShadow(
@@ -122,11 +137,6 @@ class HomePage extends StatelessWidget {
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => page),
-              );
-            } else {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const ReportesPage()),
               );
             }
           },

@@ -11,6 +11,8 @@ import 'package:printing/printing.dart';
 import 'package:flutter/services.dart' show ByteData, Uint8List, rootBundle;
 import 'package:flutter/foundation.dart';
 import 'package:intl/date_symbol_data_local.dart'; // Asegúrate de importar esto
+import 'package:plc_pruebas/pages/provider/theme_provider.dart';
+import 'package:provider/provider.dart';
 
 class PdfData {
   final List<List<String>> activeData;
@@ -18,6 +20,7 @@ class PdfData {
   final Uint8List logoBytes;
   final Uint8List chartImage;
   final String formattedDate;
+  final colorFondo = Color.fromARGB(255, 10, 50, 110);
 
   PdfData({
     required this.activeData,
@@ -156,6 +159,7 @@ class _GraficaActivosInactivosPageState extends State<GraficaActivosInactivosPag
   List<Map<String, dynamic>> _clientesInactivos = [];
   Uint8List? _logoBytes;
   final GlobalKey _chartKey = GlobalKey();
+  bool _isDarkMode = false; // Variable para controlar el modo oscuro
 
   @override
   void initState() {
@@ -321,21 +325,35 @@ class _GraficaActivosInactivosPageState extends State<GraficaActivosInactivosPag
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    bool _isDarkMode = themeProvider.isDarkMode;
+
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: const Color.fromARGB(255, 10, 50, 110),
+        backgroundColor: _isDarkMode
+            ? const Color.fromARGB(255, 0, 0, 0)
+            : const Color.fromARGB(255, 10, 50, 110),
         actions: [
           IconButton(
             icon: const Icon(Icons.picture_as_pdf),
             onPressed: _isLoading ? null : generatePdf,
-            color: Colors.white
+            color: Colors.white,
+          ),
+          IconButton(
+            icon: Icon(_isDarkMode ? Icons.nightlight_round : Icons.wb_sunny),
+            onPressed: () {
+              setState(() {
+                themeProvider.toggleTheme(); // Alterna el estado global del tema
+              });
+            },
+            color: Colors.white,
           ),
         ],
       ),
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [const Color.fromARGB(255, 10, 50, 110), const Color.fromARGB(255, 10, 50, 110)],
+            colors: _isDarkMode ? [const Color.fromARGB(255, 0, 0, 0), const Color.fromARGB(255, 0, 0, 0)] : [const Color.fromARGB(255, 10, 50, 110), const Color.fromARGB(255, 10, 50, 110)],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
@@ -354,6 +372,7 @@ class _GraficaActivosInactivosPageState extends State<GraficaActivosInactivosPag
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
+                    color: _isDarkMode ? Color.fromRGBO(30, 30, 30, 1) : Colors.white, // Cambiar color según el modo
                     child: Padding(
                       padding: const EdgeInsets.all(16.0),
                       child: Row(
@@ -361,16 +380,16 @@ class _GraficaActivosInactivosPageState extends State<GraficaActivosInactivosPag
                         children: [
                           Text(
                             'Clientes activos e inactivos en el mes seleccionado',
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
-                              color: Colors.black87,
+                              color: _isDarkMode ? Colors.white : Colors.black87, // Cambiar texto según el modo
                             ),
                           ),
                           ElevatedButton(
                             onPressed: () => _selectMonth(context),
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.blue,
+                              backgroundColor: _isDarkMode ? Colors.grey.shade800 : Colors.blue,
                               foregroundColor: Colors.white,
                             ),
                             child: Text(
@@ -394,6 +413,7 @@ class _GraficaActivosInactivosPageState extends State<GraficaActivosInactivosPag
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
                             ),
+                            color: _isDarkMode ? Color.fromRGBO(30, 30, 30, 1) : Colors.white, // Cambiar color según el modo
                             child: Padding(
                               padding: const EdgeInsets.all(16.0),
                               child: Column(
@@ -404,20 +424,25 @@ class _GraficaActivosInactivosPageState extends State<GraficaActivosInactivosPag
                                     style: TextStyle(
                                       fontSize: 18,
                                       fontWeight: FontWeight.bold,
-                                      color: Colors.blue.shade900,
+                                      color: _isDarkMode ? Colors.white : Colors.blue.shade900, // Cambiar texto según el modo
                                     ),
                                   ),
                                   const SizedBox(height: 10),
                                   Table(
-                                    border: TableBorder.all(color: Colors.grey.shade300),
+                                    border: TableBorder.all(
+                                      color: _isDarkMode ? Colors.blue.shade900 : Colors.blue.shade300,
+                                      width: 4.0, // Aumenta el grosor del borde
+                                    ),
                                     columnWidths: const {
                                       0: FlexColumnWidth(2),
                                       1: FlexColumnWidth(1),
                                     },
                                     children: [
                                       TableRow(
-                                        decoration: BoxDecoration(color: Colors.blue.shade100),
-                                        children: const [
+                                        decoration: BoxDecoration(
+                                          color: _isDarkMode ? Colors.blue.shade600 : Colors.blue.shade300, // Cambiar color según el modo
+                                        ),
+                                        children: [
                                           Padding(
                                             padding: EdgeInsets.all(8.0),
                                             child: Text(
@@ -425,6 +450,7 @@ class _GraficaActivosInactivosPageState extends State<GraficaActivosInactivosPag
                                               style: TextStyle(
                                                 fontWeight: FontWeight.bold,
                                                 fontSize: 16,
+                                                color: _isDarkMode ? Colors.white : Colors.black87, // Cambia el color si dependiendo del modo
                                               ),
                                             ),
                                           ),
@@ -435,6 +461,7 @@ class _GraficaActivosInactivosPageState extends State<GraficaActivosInactivosPag
                                               style: TextStyle(
                                                 fontWeight: FontWeight.bold,
                                                 fontSize: 16,
+                                                color: _isDarkMode ? Colors.white : Colors.black87, // Cambia el color si dependiendo del modo
                                               ),
                                               textAlign: TextAlign.center,
                                             ),
@@ -443,14 +470,24 @@ class _GraficaActivosInactivosPageState extends State<GraficaActivosInactivosPag
                                       ),
                                       TableRow(
                                         children: [
-                                          const Padding(
+                                          Padding(
                                             padding: EdgeInsets.all(8.0),
-                                            child: Text('Activos'),
+                                            child: Text('Activos',
+                                                style: TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 16,
+                                                  color: _isDarkMode ? Colors.white : Colors.black87, // Cambia el color si dependiendo del modo
+                                                )),
                                           ),
                                           Padding(
                                             padding: const EdgeInsets.all(8.0),
                                             child: Text(
                                               '${_clientesActivos.length}',
+                                              style: TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 16,
+                                                color: _isDarkMode ? Colors.white : Colors.black87, // Cambia el color si dependiendo del modo
+                                              ),
                                               textAlign: TextAlign.center,
                                             ),
                                           ),
@@ -458,14 +495,25 @@ class _GraficaActivosInactivosPageState extends State<GraficaActivosInactivosPag
                                       ),
                                       TableRow(
                                         children: [
-                                          const Padding(
+                                          Padding(
                                             padding: EdgeInsets.all(8.0),
-                                            child: Text('Inactivos'),
+                                            child: Text('Inactivos',
+                                              style: TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 16,
+                                                color: _isDarkMode ? Colors.white : Colors.black87, // Cambia el color si dependiendo del modo
+                                              ),
+                                            ),
                                           ),
                                           Padding(
                                             padding: const EdgeInsets.all(8.0),
                                             child: Text(
                                               '${_clientesInactivos.length}',
+                                              style: TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 16,
+                                                color: _isDarkMode ? Colors.white : Colors.black87, // Cambia el color si dependiendo del modo
+                                              ),
                                               textAlign: TextAlign.center,
                                             ),
                                           ),
@@ -485,12 +533,15 @@ class _GraficaActivosInactivosPageState extends State<GraficaActivosInactivosPag
                                             style: TextStyle(
                                               fontSize: 18,
                                               fontWeight: FontWeight.bold,
-                                              color: Colors.green.shade700,
+                                              color: _isDarkMode ? Colors.green.shade700 : Colors.green.shade900,
                                             ),
                                           ),
                                           const SizedBox(height: 10),
                                           Table(
-                                            border: TableBorder.all(color: Colors.grey.shade300),
+                                            border: TableBorder.all(
+                                              color: _isDarkMode ? Colors.green.shade900 : Colors.green.shade300,
+                                              width: 4.0, // Aumenta el grosor del borde
+                                            ),
                                             columnWidths: const {
                                               0: FlexColumnWidth(2),
                                               1: FlexColumnWidth(3),
@@ -498,35 +549,40 @@ class _GraficaActivosInactivosPageState extends State<GraficaActivosInactivosPag
                                             },
                                             children: [
                                               TableRow(
-                                                decoration: BoxDecoration(color: Colors.green.shade100),
-                                                children: const [
+                                                decoration: BoxDecoration(
+                                                  color: _isDarkMode ? Colors.green.shade800 : Colors.green.shade300, // Color diferenciado para las filas
+                                                ),
+                                                children: [
                                                   Padding(
-                                                    padding: EdgeInsets.all(8.0),
+                                                    padding: const EdgeInsets.all(8.0),
                                                     child: Text(
                                                       'ID Cliente',
                                                       style: TextStyle(
                                                         fontWeight: FontWeight.bold,
                                                         fontSize: 16,
+                                                        color: _isDarkMode ? Colors.white : Colors.black87, // Cambia el color en modo oscuro o claro
                                                       ),
                                                     ),
                                                   ),
                                                   Padding(
-                                                    padding: EdgeInsets.all(8.0),
+                                                    padding: const EdgeInsets.all(8.0),
                                                     child: Text(
                                                       'Nombre',
                                                       style: TextStyle(
                                                         fontWeight: FontWeight.bold,
                                                         fontSize: 16,
+                                                        color: _isDarkMode ? Colors.white : Colors.black87, // Cambia el color en modo oscuro o claro
                                                       ),
                                                     ),
                                                   ),
                                                   Padding(
-                                                    padding: EdgeInsets.all(8.0),
+                                                    padding: const EdgeInsets.all(8.0),
                                                     child: Text(
                                                       'Teléfono',
                                                       style: TextStyle(
                                                         fontWeight: FontWeight.bold,
                                                         fontSize: 16,
+                                                        color: _isDarkMode ? Colors.white : Colors.black87, // Cambia el color en modo oscuro o claro
                                                       ),
                                                     ),
                                                   ),
@@ -537,15 +593,36 @@ class _GraficaActivosInactivosPageState extends State<GraficaActivosInactivosPag
                                                   children: [
                                                     Padding(
                                                       padding: const EdgeInsets.all(8.0),
-                                                      child: Text(cliente['cliente_id']),
+                                                      child: Text(
+                                                        cliente['cliente_id'],
+                                                        style: TextStyle(
+                                                          fontWeight: FontWeight.bold,
+                                                          fontSize: 16,
+                                                          color: _isDarkMode ? Colors.white : Colors.black87, // Cambia el color en modo oscuro o claro
+                                                        ),
+                                                      ),
                                                     ),
                                                     Padding(
                                                       padding: const EdgeInsets.all(8.0),
-                                                      child: Text(cliente['nombre']),
+                                                      child: Text(
+                                                        cliente['nombre'],
+                                                        style: TextStyle(
+                                                          fontWeight: FontWeight.bold,
+                                                          fontSize: 16,
+                                                          color: _isDarkMode ? Colors.white : Colors.black87, // Cambia el color en modo oscuro o claro
+                                                        ),
+                                                      ),
                                                     ),
                                                     Padding(
                                                       padding: const EdgeInsets.all(8.0),
-                                                      child: Text(cliente['telefono']),
+                                                      child: Text(
+                                                        cliente['telefono'],
+                                                        style: TextStyle(
+                                                          fontWeight: FontWeight.bold,
+                                                          fontSize: 16,
+                                                          color: _isDarkMode ? Colors.white : Colors.black87, // Cambia el color en modo oscuro o claro
+                                                        ),
+                                                      ),
                                                     ),
                                                   ],
                                                 );
@@ -564,7 +641,10 @@ class _GraficaActivosInactivosPageState extends State<GraficaActivosInactivosPag
                                           ),
                                           const SizedBox(height: 10),
                                           Table(
-                                            border: TableBorder.all(color: Colors.grey.shade300),
+                                            border: TableBorder.all(
+                                              color: _isDarkMode ? Colors.red.shade900 : Colors.red.shade300,
+                                              width: 4, // Aumenta el grosor del borde
+                                              ),
                                             columnWidths: const {
                                               0: FlexColumnWidth(2),
                                               1: FlexColumnWidth(3),
@@ -572,8 +652,8 @@ class _GraficaActivosInactivosPageState extends State<GraficaActivosInactivosPag
                                             },
                                             children: [
                                               TableRow(
-                                                decoration: BoxDecoration(color: Colors.red.shade100),
-                                                children: const [
+                                                decoration: BoxDecoration(color: _isDarkMode ? Colors.red.shade600 : Colors.red.shade100),
+                                                children: [
                                                   Padding(
                                                     padding: EdgeInsets.all(8.0),
                                                     child: Text(
@@ -581,6 +661,7 @@ class _GraficaActivosInactivosPageState extends State<GraficaActivosInactivosPag
                                                       style: TextStyle(
                                                         fontWeight: FontWeight.bold,
                                                         fontSize: 16,
+                                                        color: _isDarkMode ? Colors.white : Colors.black87, //Cambia el color en modo oscuro o claro
                                                       ),
                                                     ),
                                                   ),
@@ -591,6 +672,7 @@ class _GraficaActivosInactivosPageState extends State<GraficaActivosInactivosPag
                                                       style: TextStyle(
                                                         fontWeight: FontWeight.bold,
                                                         fontSize: 16,
+                                                        color: _isDarkMode ? Colors.white : Colors.black87, //Cambia el color en modo oscuro o claro
                                                       ),
                                                     ),
                                                   ),
@@ -601,6 +683,7 @@ class _GraficaActivosInactivosPageState extends State<GraficaActivosInactivosPag
                                                       style: TextStyle(
                                                         fontWeight: FontWeight.bold,
                                                         fontSize: 16,
+                                                        color: _isDarkMode ? Colors.white : Colors.black87, //Cambia el color en modo oscuro o claro
                                                       ),
                                                     ),
                                                   ),
@@ -611,15 +694,33 @@ class _GraficaActivosInactivosPageState extends State<GraficaActivosInactivosPag
                                                   children: [
                                                     Padding(
                                                       padding: const EdgeInsets.all(8.0),
-                                                      child: Text(cliente['cliente_id']),
+                                                      child: Text(cliente['cliente_id'],
+                                                        style: TextStyle(
+                                                          fontWeight: FontWeight.bold,
+                                                          fontSize: 16,
+                                                          color: _isDarkMode ? Colors.white : Colors.black87, //Cambia el color en modo oscuro o claro
+                                                        ),
+                                                      ),
                                                     ),
                                                     Padding(
                                                       padding: const EdgeInsets.all(8.0),
-                                                      child: Text(cliente['nombre']),
+                                                      child: Text(cliente['nombre'],
+                                                        style: TextStyle(
+                                                          fontWeight: FontWeight.bold,
+                                                          fontSize: 16,
+                                                          color: _isDarkMode ? Colors.white : Colors.black87, //Cambia el color en modo oscuro o claro
+                                                        ),
+                                                      ),
                                                     ),
                                                     Padding(
                                                       padding: const EdgeInsets.all(8.0),
-                                                      child: Text(cliente['telefono']),
+                                                      child: Text(cliente['telefono'],
+                                                        style: TextStyle(
+                                                          fontWeight: FontWeight.bold,
+                                                          fontSize: 16,
+                                                          color: _isDarkMode ? Colors.white : Colors.black87, //Cambia el color en modo oscuro o claro
+                                                        ),
+                                                      ),
                                                     ),
                                                   ],
                                                 );
@@ -644,23 +745,24 @@ class _GraficaActivosInactivosPageState extends State<GraficaActivosInactivosPag
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
                             ),
+                            color: _isDarkMode ? Color.fromRGBO(30, 30, 30, 1) : Colors.white, // Cambiar color según el modo
                             child: Padding(
                               padding: const EdgeInsets.all(16.0),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.center,
                                 children: [
-                                  const Text(
+                                  Text(
                                     'Distribución de Clientes Activos/Inactivos',
                                     style: TextStyle(
                                       fontSize: 18,
                                       fontWeight: FontWeight.bold,
-                                      color: Colors.black87,
+                                      color: _isDarkMode ? Colors.white : Colors.black87, // Cambiar texto según el modo
                                     ),
                                   ),
                                   const SizedBox(height: 20),
                                   Expanded(
                                     child: RepaintBoundary(
-                                      key: _chartKey, // Asegúrate de que este key esté asociado al gráfico
+                                      key: _chartKey,
                                       child: SfCircularChart(
                                         legend: Legend(
                                           isVisible: true,

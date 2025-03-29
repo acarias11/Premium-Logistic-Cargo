@@ -9,7 +9,8 @@ import 'package:plc_pruebas/pages/reports/quejas_page.dart';
 import 'package:plc_pruebas/pages/reports/send_email.dart';
 import 'package:sidebarx/sidebarx.dart';
 import 'package:plc_pruebas/widgets/sidebar.dart';
-//import 'package:plc_pruebas/pages/reports/rcasilleros_page.dart';
+import 'package:plc_pruebas/pages/provider/theme_provider.dart';
+import 'package:provider/provider.dart';
 
 class ReportesPage extends StatefulWidget {
   const ReportesPage({super.key});
@@ -24,9 +25,21 @@ class _ReportesPageState extends State<ReportesPage> {
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final _isDarkMode = themeProvider.isDarkMode;
+
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: const Color.fromARGB(255, 10, 50, 110),
+        backgroundColor: _isDarkMode ? Colors.black : Color.fromARGB(255, 10, 50, 110),
+        actions: [
+          IconButton(
+            icon: Icon(_isDarkMode ? Icons.nightlight_round : Icons.wb_sunny),
+            onPressed: () {
+              themeProvider.toggleTheme(); // Alterna el estado global del tema
+            },
+            color: Colors.white,
+          ),
+        ],
       ),
       drawer: Sidebar(selectedIndex: 5, controller: _sidebarXController),
       body: Container(
@@ -34,7 +47,9 @@ class _ReportesPageState extends State<ReportesPage> {
         height: double.infinity,
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [const Color.fromARGB(255, 10, 50, 110), const Color.fromARGB(255, 10, 50, 110)],
+            colors: _isDarkMode
+                ? [const Color.fromARGB(255, 0, 0, 0), const Color.fromARGB(255, 0, 0, 0)]
+                : [const Color.fromARGB(255, 10, 50, 110), const Color.fromARGB(255, 10, 50, 110)],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
@@ -87,11 +102,16 @@ class _ReportesPageState extends State<ReportesPage> {
   }
 
   Widget _buildStyledButton(BuildContext context, String title, IconData icon, Widget? page) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final _isDarkMode = themeProvider.isDarkMode; 
+    
     return Container(
       width: 200,
       height: 200,
       decoration: BoxDecoration(
-        color: const Color.fromARGB(255, 9, 77, 205), // Fondo azul oscuro
+        color: _isDarkMode
+            ? const Color.fromRGBO(30, 30, 30, 1)
+            : const Color.fromARGB(255, 9, 77, 205), // Fondo azul oscuro
         borderRadius: BorderRadius.circular(15.0), // Bordes redondeados
         boxShadow: [
           BoxShadow(

@@ -13,11 +13,18 @@ import 'package:plc_pruebas/pages/signUp_page.dart';
 import 'package:plc_pruebas/pages/warehouse_page.dart';
 import 'package:plc_pruebas/pages/prueba_sidebar.dart';
 import 'package:plc_pruebas/pages/splash_page.dart';
+import 'package:provider/provider.dart';
+import 'package:plc_pruebas/pages/provider/theme_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  runApp(const MyApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (_) => ThemeProvider(),
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {

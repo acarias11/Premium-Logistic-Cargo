@@ -3,6 +3,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 import 'package:month_picker_dialog/month_picker_dialog.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:provider/provider.dart';
+import 'package:plc_pruebas/pages/provider/theme_provider.dart';
 
 class PromPesoPage extends StatefulWidget {
   const PromPesoPage({super.key});
@@ -95,14 +97,39 @@ class _PromPesoPageState extends State<PromPesoPage> {
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final _isDarkMode = themeProvider.isDarkMode;
+
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: const Color.fromARGB(255, 10, 50, 110),
+        backgroundColor: _isDarkMode
+            ? const Color.fromARGB(255, 0, 0, 0)
+            : const Color.fromARGB(255, 10, 50, 110),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.picture_as_pdf),
+            onPressed: () {
+              // Aquí puedes agregar la funcionalidad para generar el PDF
+            },
+            color: Colors.white,
+          ),
+          IconButton(
+            icon: Icon(_isDarkMode ? Icons.nightlight_round : Icons.wb_sunny),
+            onPressed: () {
+              setState(() {
+                themeProvider.toggleTheme(); // Alterna el estado global del tema
+              });
+            },
+            color: Colors.white,
+          ),
+        ],
       ),
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [const Color.fromARGB(255, 10, 50, 110), const Color.fromARGB(255, 10, 50, 110)],
+            colors: _isDarkMode
+                ? [const Color.fromARGB(255, 0, 0, 0), const Color.fromARGB(255, 0, 0, 0)]
+                : [const Color.fromARGB(255, 10, 50, 110), const Color.fromARGB(255, 10, 50, 110)],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
@@ -117,6 +144,7 @@ class _PromPesoPageState extends State<PromPesoPage> {
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
+              color: _isDarkMode ? Color.fromRGBO(30, 30, 30, 1) : Colors.white,
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Row(
@@ -124,16 +152,16 @@ class _PromPesoPageState extends State<PromPesoPage> {
                   children: [
                     Text(
                       'Promedios de Peso por Categoría',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
-                        color: Colors.black87,
+                        color: _isDarkMode ? Colors.white : Colors.black87,
                       ),
                     ),
                     ElevatedButton(
                       onPressed: () => _selectMonth(context),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue,
+                        backgroundColor: _isDarkMode ? Colors.grey.shade800 : Colors.blue,
                         foregroundColor: Colors.white,
                       ),
                       child: Text(
@@ -157,6 +185,7 @@ class _PromPesoPageState extends State<PromPesoPage> {
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
+                      color: _isDarkMode ? Color.fromRGBO(30, 30, 30, 1) : Colors.white,
                       child: Padding(
                         padding: const EdgeInsets.all(16.0),
                         child: Column(
@@ -167,7 +196,9 @@ class _PromPesoPageState extends State<PromPesoPage> {
                               style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
-                                color: Colors.blue.shade900,
+                                color: _isDarkMode
+                                    ? Colors.orange.shade300
+                                    : Colors.orange.shade700,
                               ),
                             ),
                             const SizedBox(height: 10),
@@ -188,17 +219,18 @@ class _PromPesoPageState extends State<PromPesoPage> {
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
+                      color: _isDarkMode ? Color.fromRGBO(30, 30, 30, 1) : Colors.white,
                       child: Padding(
                         padding: const EdgeInsets.all(16.0),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            const Text(
+                            Text(
                               'Distribución de Promedios',
                               style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
-                                color: Colors.black87,
+                                color: _isDarkMode ? Colors.white : Colors.black87,
                               ),
                             ),
                             const SizedBox(height: 20),
@@ -220,20 +252,15 @@ class _PromPesoPageState extends State<PromPesoPage> {
   }
 
   Widget _buildTable(String title, double average) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final _isDarkMode = themeProvider.isDarkMode;
+
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0), // Add padding
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: _isDarkMode ? Colors.grey.shade800 : Colors.orange.shade100,
           borderRadius: BorderRadius.circular(10),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.withOpacity(0.3),
-              spreadRadius: 2,
-              blurRadius: 5,
-              offset: const Offset(0, 3),
-            ),
-          ],
         ),
         child: Column(
           children: [
@@ -244,7 +271,7 @@ class _PromPesoPageState extends State<PromPesoPage> {
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: Colors.blue.shade900,
+                  color: _isDarkMode ? Colors.grey.shade300 : Colors.blue.shade900,
                 ),
               ),
             ),
@@ -260,11 +287,18 @@ class _PromPesoPageState extends State<PromPesoPage> {
                 leading: const Icon(Icons.calendar_today, color: Colors.blue),
                 title: Text(
                   DateFormat.yMMM().format(_selectedMonth),
-                  style: const TextStyle(fontSize: 16),
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: _isDarkMode ? Colors.grey.shade300 : Colors.black87,
+                  ),
                 ),
                 trailing: Text(
                   '${average.toStringAsFixed(2)} kg',
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: _isDarkMode ? Colors.grey.shade300 : Colors.black87,
+                  ),
                 ),
               ),
             ),
@@ -275,39 +309,54 @@ class _PromPesoPageState extends State<PromPesoPage> {
   }
 
   Widget _buildChart() {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final _isDarkMode = themeProvider.isDarkMode;
+
     return SizedBox(
-      width: 300, // Set a fixed width
-      height: 300, // Set a fixed height
+      width: 300,
+      height: 300,
       child: PieChart(
         PieChartData(
           sections: [
             PieChartSectionData(
               value: avgPeso,
-              color: Colors.blueAccent,
+              color: _isDarkMode ? Colors.blue.shade700 : Colors.blueAccent,
               title: 'Cargas',
               radius: 120,
+              titleStyle: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
             ),
             PieChartSectionData(
               value: avgWarehouse,
-              color: Colors.greenAccent,
+              color: _isDarkMode ? Colors.green.shade700 : Colors.greenAccent,
               title: 'Warehouse',
               radius: 120,
+              titleStyle: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
             ),
             PieChartSectionData(
               value: avgPaquetes,
-              color: Colors.orangeAccent,
+              color: _isDarkMode ? Colors.orange.shade700 : Colors.orangeAccent,
               title: 'Paquetes',
               radius: 120,
+              titleStyle: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
             ),
           ],
-          borderData: FlBorderData(
-            show: false,
-          ),
+          borderData: FlBorderData(show: false),
           sectionsSpace: 0,
           centerSpaceRadius: 50,
         ),
       ),
     );
   }
-
 }

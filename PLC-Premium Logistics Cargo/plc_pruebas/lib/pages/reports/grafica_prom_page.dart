@@ -7,8 +7,11 @@ import 'dart:ui' show ImageByteFormat;
 import 'package:flutter/rendering.dart' show RenderRepaintBoundary;
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
+import 'package:plc_pruebas/pages/provider/theme_provider.dart' show ThemeProvider;
 import 'package:printing/printing.dart';
 import 'package:flutter/services.dart' show rootBundle, ByteData, Uint8List;
+import 'package:provider/provider.dart';
+import 'package:plc_pruebas/pages/provider/theme_provider.dart';
 
 class GraficaPromPage extends StatefulWidget {
   const GraficaPromPage({super.key});
@@ -49,7 +52,7 @@ class _GraficaPromPageState extends State<GraficaPromPage> {
   }
 
   Future<void> generatePdf() async {
-    try {
+    try {      
       final chartImage = await _captureChart();
       final pdf = pw.Document();
       final formattedDate = DateFormat('dd/MM/yyyy').format(DateTime.now());
@@ -247,13 +250,27 @@ class _GraficaPromPageState extends State<GraficaPromPage> {
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final _isDarkMode = themeProvider.isDarkMode;
+
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: const Color.fromARGB(255, 10, 50, 110),
+        backgroundColor: _isDarkMode
+            ? const Color.fromARGB(255, 0, 0, 0)
+            : const Color.fromARGB(255, 10, 50, 110),
         actions: [
           IconButton(
             icon: const Icon(Icons.picture_as_pdf),
             onPressed: generatePdf,
+            color: Colors.white,
+          ),
+          IconButton(
+            icon: Icon(_isDarkMode ? Icons.nightlight_round : Icons.wb_sunny),
+            onPressed: () {
+              setState(() {
+                themeProvider.toggleTheme(); // Alterna el estado global del tema
+              });
+            },
             color: Colors.white,
           ),
         ],
@@ -261,7 +278,9 @@ class _GraficaPromPageState extends State<GraficaPromPage> {
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [const Color.fromARGB(255, 10, 50, 110), const Color.fromARGB(255, 10, 50, 110)],
+            colors: _isDarkMode
+                ? [const Color.fromARGB(255, 0, 0, 0), const Color.fromARGB(255, 0, 0, 0)]
+                : [const Color.fromARGB(255, 10, 50, 110), const Color.fromARGB(255, 10, 50, 110)],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
@@ -280,6 +299,7 @@ class _GraficaPromPageState extends State<GraficaPromPage> {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
+                    color: _isDarkMode ? Color.fromRGBO(30, 30, 30, 1) : Colors.white,
                     child: Padding(
                       padding: const EdgeInsets.all(16.0),
                       child: Row(
@@ -287,16 +307,16 @@ class _GraficaPromPageState extends State<GraficaPromPage> {
                         children: [
                           Text(
                             'Promedio de Clientes por Modalidad',
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
-                              color: Colors.black87,
+                              color: _isDarkMode ? Colors.white : Colors.black87,
                             ),
                           ),
                           ElevatedButton(
                             onPressed: () => _selectMonth(context),
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.blue,
+                              backgroundColor: _isDarkMode ? Colors.grey.shade800 : Colors.blue,
                               foregroundColor: Colors.white,
                             ),
                             child: Text(
@@ -312,7 +332,7 @@ class _GraficaPromPageState extends State<GraficaPromPage> {
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Data Table Section (moved to the left)
+                        // Data Table Section
                         Expanded(
                           flex: 1,
                           child: Card(
@@ -320,6 +340,7 @@ class _GraficaPromPageState extends State<GraficaPromPage> {
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
                             ),
+                            color: _isDarkMode ? Color.fromRGBO(30, 30, 30, 1) : Colors.white,
                             child: Padding(
                               padding: const EdgeInsets.all(16.0),
                               child: Column(
@@ -330,7 +351,7 @@ class _GraficaPromPageState extends State<GraficaPromPage> {
                                     style: TextStyle(
                                       fontSize: 18,
                                       fontWeight: FontWeight.bold,
-                                      color: Colors.blue.shade900,
+                                      color: _isDarkMode ? Colors.orange.shade300 : Colors.orange.shade700,
                                     ),
                                   ),
                                   const SizedBox(height: 10),
@@ -340,17 +361,31 @@ class _GraficaPromPageState extends State<GraficaPromPage> {
                                       itemBuilder: (context, index) {
                                         final data = _chartData[index];
                                         return Container(
+                                          margin: const EdgeInsets.symmetric(vertical: 4.0),
                                           decoration: BoxDecoration(
-                                            border: Border(
-                                              bottom: BorderSide(
-                                                color: Colors.grey.shade200,
-                                              ),
-                                            ),
+                                            color: _isDarkMode
+                                                ? Colors.grey.shade800
+                                                : Colors.orange.shade100,
+                                            borderRadius: BorderRadius.circular(8.0),
                                           ),
                                           child: ListTile(
                                             leading: Icon(Icons.circle, color: data.color),
-                                            title: Text(data.mode),
-                                            trailing: Text('${data.average.toStringAsFixed(1)}%'),
+                                            title: Text(
+                                              data.mode,
+                                              style: TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 16,
+                                                color: _isDarkMode ? Colors.white : Colors.black87,
+                                              ),
+                                            ),
+                                            trailing: Text(
+                                              '${data.average.toStringAsFixed(1)}%',
+                                              style: TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 16,
+                                                color: _isDarkMode ? Colors.white : Colors.black87,
+                                              ),
+                                            ),
                                           ),
                                         );
                                       },
@@ -362,7 +397,7 @@ class _GraficaPromPageState extends State<GraficaPromPage> {
                           ),
                         ),
                         const SizedBox(width: 20),
-                        // Chart Section (moved to the right)
+                        // Chart Section
                         Expanded(
                           flex: 2,
                           child: Card(
@@ -370,17 +405,18 @@ class _GraficaPromPageState extends State<GraficaPromPage> {
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
                             ),
+                            color: _isDarkMode ? Color.fromRGBO(30, 30, 30, 1) : Colors.white,
                             child: Padding(
                               padding: const EdgeInsets.all(16.0),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.center,
                                 children: [
-                                  const Text(
+                                  Text(
                                     'Distribución de Clientes por Modalidad',
                                     style: TextStyle(
                                       fontSize: 18,
                                       fontWeight: FontWeight.bold,
-                                      color: Colors.black87,
+                                      color: _isDarkMode ? Colors.white : Colors.black87,
                                     ),
                                   ),
                                   const SizedBox(height: 20),
@@ -398,7 +434,7 @@ class _GraficaPromPageState extends State<GraficaPromPage> {
                                               value: data.average,
                                               title: '${data.average.toStringAsFixed(1)}%',
                                               radius: 120,
-                                              titleStyle: const TextStyle(
+                                              titleStyle: TextStyle(
                                                 fontSize: 16,
                                                 fontWeight: FontWeight.bold,
                                                 color: Colors.white,

@@ -10,6 +10,8 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import 'package:flutter/services.dart' show ByteData, Uint8List, rootBundle;
+import 'package:plc_pruebas/pages/provider/theme_provider.dart';
+import 'package:provider/provider.dart';
 
 class GraficaCasillerosMensuales extends StatefulWidget {
   const GraficaCasillerosMensuales({super.key});
@@ -241,13 +243,25 @@ class _GraficaCasillerosMensualesState
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    bool _isDarkMode = themeProvider.isDarkMode;    
+
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: const Color.fromARGB(255, 10, 50, 110),
+        backgroundColor: _isDarkMode? const Color.fromARGB(255, 0, 0, 0) : const Color.fromARGB(255, 10, 50, 110),
         actions: [
           IconButton(
             icon: const Icon(Icons.picture_as_pdf),
             onPressed: generatePdf,
+            color: Colors.white,
+          ),
+          IconButton(
+            icon: Icon(_isDarkMode ? Icons.nightlight_round : Icons.wb_sunny),
+            onPressed: () {
+              setState(() {
+                themeProvider.toggleTheme(); // Alterna el estado global del tema
+              });
+            },
             color: Colors.white,
           ),
         ],
@@ -255,7 +269,7 @@ class _GraficaCasillerosMensualesState
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [const Color.fromARGB(255, 10, 50, 110), const Color.fromARGB(255, 10, 50, 110)],
+            colors: _isDarkMode ? [const Color.fromARGB(255, 0, 0, 0),const Color.fromARGB(255, 0, 0, 0)]: [const Color.fromARGB(255, 10, 50, 110), const Color.fromARGB(255, 10, 50, 110)],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
@@ -270,6 +284,7 @@ class _GraficaCasillerosMensualesState
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
+              color: _isDarkMode ? Color.fromRGBO(30, 30, 30, 1) : Colors.white, // Cambia el color donde se selecciona el mes
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Row(
@@ -277,17 +292,18 @@ class _GraficaCasillerosMensualesState
                   children: [
                     Text(
                       'Clientes registrados en el mes seleccionado',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
-                        color: Colors.black87,
+                        color: _isDarkMode ? Colors.white : Colors.black87,
                       ),
                     ),
                     ElevatedButton(
                       onPressed: () => _selectMonth(context),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue,
+                        backgroundColor: _isDarkMode ? Colors.grey.shade800 : Colors.blue, //cambiar el boton
                         foregroundColor: Colors.white,
+                        iconSize: 20,
                       ),
                       child: Text(
                           'Seleccionar Mes: ${DateFormat.yMMM('es').format(_selectedMonth)}'),
@@ -310,6 +326,7 @@ class _GraficaCasillerosMensualesState
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
+                      color: _isDarkMode ? Color.fromRGBO(30, 30, 30, 1) : Colors.white, // Cambia el color de la tabla
                       child: Padding(
                         padding: const EdgeInsets.all(16.0),
                         child: Column(
@@ -318,20 +335,20 @@ class _GraficaCasillerosMensualesState
                             Text(
                               'Clientes por Día',
                               style: TextStyle(
-                                fontSize: 18,
+                                fontSize: 20,
                                 fontWeight: FontWeight.bold,
-                                color: Colors.orange.shade700,
+                                color: _isDarkMode ? Colors.grey.shade300 : Colors.orange.shade700,
                               ),
                             ),
                             const SizedBox(height: 10),
                             Expanded(
                               child: _chartData.isEmpty
-                                  ? const Center(
+                                  ? Center(
                                       child: Text(
                                         'No hay datos disponibles',
                                         style: TextStyle(
-                                          fontSize: 16,
-                                          color: Colors.grey,
+                                          fontSize: 18,
+                                          color: _isDarkMode ? Colors.grey.shade300 : Colors.black,
                                         ),
                                       ),
                                     )
@@ -349,12 +366,30 @@ class _GraficaCasillerosMensualesState
                                               );
                                               final formattedDate =
                                                   DateFormat('dd MMM yyyy', 'es').format(date);
-                                              return ListTile(
-                                                title: Text(formattedDate),
-                                                trailing: Text(
-                                                  '${data.value.toInt()} clientes',
-                                                  style: const TextStyle(
-                                                    fontWeight: FontWeight.bold,
+                                              return Container(
+                                                margin: const EdgeInsets.symmetric(vertical: 4.0),
+                                                decoration: BoxDecoration(
+                                                  color: _isDarkMode
+                                                      ? Colors.grey.shade800
+                                                      : Colors.orange.shade100,
+                                                  borderRadius: BorderRadius.circular(8.0),
+                                                ),
+                                                child: ListTile(
+                                                  title: Text(
+                                                    formattedDate,
+                                                    style: TextStyle(
+                                                      fontWeight: FontWeight.bold,
+                                                      fontSize: 18,
+                                                      color: _isDarkMode ? Colors.grey.shade300 : Colors.black,
+                                                    ),
+                                                  ),
+                                                  trailing: Text(
+                                                    '${data.value.toInt()} clientes',
+                                                    style: TextStyle(
+                                                      fontWeight: FontWeight.bold,
+                                                      fontSize: 18,
+                                                      color: _isDarkMode ? Colors.grey.shade300 : Colors.black,
+                                                    ),
                                                   ),
                                                 ),
                                               );
@@ -364,20 +399,29 @@ class _GraficaCasillerosMensualesState
                                         // Fila para el total
                                         Padding(
                                           padding: const EdgeInsets.symmetric(vertical: 8.0),
-                                          child: ListTile(
-                                            tileColor: Colors.orange.shade100,
-                                            title: const Text(
-                                              'Total de Clientes',
-                                              style: TextStyle(
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 16,
-                                              ),
+                                          child: Container(
+                                            decoration: BoxDecoration(
+                                              color: _isDarkMode
+                                                  ? Colors.grey.shade800
+                                                  : Colors.deepOrange.shade200,
+                                              borderRadius: BorderRadius.circular(8.0),
                                             ),
-                                            trailing: Text(
-                                              '${_chartData.fold<int>(0, (sum, item) => sum + item.value.toInt())} clientes',
-                                              style: const TextStyle(
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 16,
+                                            child: ListTile(
+                                              title: Text(
+                                                'Total de Clientes',
+                                                style: TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 18,
+                                                  color: _isDarkMode ? Colors.grey.shade300 : Colors.black,
+                                                ),
+                                              ),
+                                              trailing: Text(
+                                                '${_chartData.fold<int>(0, (sum, item) => sum + item.value.toInt())} clientes',
+                                                style: TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 18,
+                                                  color: _isDarkMode ? Colors.grey.shade300 : Colors.black,
+                                                ),
                                               ),
                                             ),
                                           ),
@@ -399,6 +443,7 @@ class _GraficaCasillerosMensualesState
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
+                      color: _isDarkMode ? Color.fromRGBO(30, 30, 30, 1) : Colors.white,
                       child: Padding(
                         padding: const EdgeInsets.all(16.0),
                         child: _buildChart(),
@@ -415,18 +460,21 @@ class _GraficaCasillerosMensualesState
   }
 
   Widget _buildChart() {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final _isDarkMode = themeProvider.isDarkMode;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Título del gráfico
-        const Padding(
-          padding: EdgeInsets.only(bottom: 8.0),
+        Padding(
+          padding: const EdgeInsets.only(bottom: 8.0),
           child: Text(
             'Clientes Registrados por Día',
             style: TextStyle(
-              fontSize: 18,
+              fontSize: 20,
               fontWeight: FontWeight.bold,
-              color: Colors.black87,
+              color: _isDarkMode ? Colors.grey.shade300 : Colors.black87,
             ),
           ),
         ),
@@ -447,15 +495,15 @@ class _GraficaCasillerosMensualesState
                       final day = _chartData[group.x.toInt()].label;
                       return BarTooltipItem(
                         'Día $day\n',
-                        const TextStyle(
-                          color: Colors.white,
+                        TextStyle(
+                          color: _isDarkMode ? Colors.white : Colors.black87,
                           fontWeight: FontWeight.bold,
                         ),
                         children: <TextSpan>[
                           TextSpan(
                             text: '${rod.toY.toInt()} clientes',
-                            style: const TextStyle(
-                              color: Colors.yellow,
+                            style: TextStyle(
+                              color: _isDarkMode ? Colors.yellow : Colors.orange.shade700,
                               fontWeight: FontWeight.w500,
                               fontSize: 16,
                             ),
@@ -475,45 +523,70 @@ class _GraficaCasillerosMensualesState
                         if (index >= 0 && index < _chartData.length) {
                           return Text(
                             'Día ${_chartData[index].label}',
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 12,
+                              color: _isDarkMode ? Colors.grey.shade300 : Colors.black87,
                             ),
                           );
                         }
-                        return const SizedBox.shrink(); // No mostrar nada para valores fuera de rango
+                        return const SizedBox.shrink();
                       },
                     ),
                   ),
                   leftTitles: AxisTitles(
                     sideTitles: SideTitles(
                       showTitles: true,
+                      interval: 1, // Asegura que solo se muestren números enteros
                       getTitlesWidget: (double value, TitleMeta meta) {
-                        // Mostrar solo números enteros
-                        if (value % 1 == 0) {
+                        if (value % 1 == 0) { // Solo muestra números enteros
                           return Text(
                             value.toInt().toString(),
-                            style: const TextStyle(fontSize: 12),
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: _isDarkMode ? Colors.grey.shade300 : Colors.black87,
+                            ),
                           );
                         }
-                        return const SizedBox.shrink(); // No mostrar nada para valores no enteros
+                        return const SizedBox.shrink();
                       },
                     ),
-                    axisNameWidget: const Padding(
-                      padding: EdgeInsets.only(right: 6.0),
-                      child: RotatedBox(
-                        quarterTurns: 1,
-                        child: Text(
-                          'C\nL\nI\nE\nN\nT\nE\nS',
+                  ),
+                  rightTitles: AxisTitles(
+                    sideTitles: SideTitles(showTitles: false),
+                  ),
+                  topTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true, // Los títulos superiores "existen"
+                      getTitlesWidget: (double value, TitleMeta meta) {
+                        return Text(
+                          '', // Texto vacío
                           style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black87,
+                            fontSize: 0, // Tamaño de fuente 0 para que no sea visible
+                            color: Colors.transparent, // Color transparente
                           ),
-                        ),
-                      ),
+                        );
+                      },
                     ),
                   ),
+                ),
+                gridData: FlGridData(
+                  show: true,
+                  drawHorizontalLine: true,
+                  horizontalInterval: 1, // Asegura que las líneas horizontales estén en números enteros
+                  getDrawingHorizontalLine: (value) {
+                    if (value % 1 == 0) { // Solo dibuja líneas en números enteros
+                      return FlLine(
+                        color: _isDarkMode ? Colors.grey.shade800 : Colors.grey.shade300,
+                        strokeWidth: 1,
+                      );
+                    }
+                    return FlLine(
+                      color: Colors.transparent, // No dibuja líneas para valores no enteros
+                      strokeWidth: 0,
+                    );
+                  },
+                  drawVerticalLine: false, // Opcional: deshabilita las líneas verticales
                 ),
                 borderData: FlBorderData(show: false),
                 barGroups: _chartData
@@ -526,19 +599,18 @@ class _GraficaCasillerosMensualesState
                               BarChartRodData(
                                 toY: data.value,
                                 color: index == touchedIndex
-                                    ? Colors.orange
-                                    : Colors.blue.shade700,
+                                    ? (_isDarkMode ? Colors.orange : Colors.blue.shade700)
+                                    : (_isDarkMode ? Colors.grey.shade600 : Colors.blue.shade300),
                                 width: 16,
                                 borderRadius: BorderRadius.circular(4),
                                 backDrawRodData: BackgroundBarChartRodData(
                                   show: true,
                                   toY: _chartData.isNotEmpty
-                                      ? _chartData
-                                              .map((e) => e.value)
-                                              .reduce((a, b) => a > b ? a : b) +
-                                          1
+                                      ? _chartData.map((e) => e.value).reduce((a, b) => a > b ? a : b) + 1
                                       : 1,
-                                  color: Colors.blue.withOpacity(0.2),
+                                  color: _isDarkMode
+                                      ? Colors.grey.shade800
+                                      : Colors.blue.withOpacity(0.2),
                                 ),
                               ),
                             ],
@@ -551,15 +623,18 @@ class _GraficaCasillerosMensualesState
           ),
         ),
         // Leyenda
-        const Padding(
-          padding: EdgeInsets.only(top: 8.0),
+        Padding(
+          padding: const EdgeInsets.only(top: 8.0),
           child: Row(
             children: [
-              Icon(Icons.square, color: Colors.blue, size: 16),
-              SizedBox(width: 4),
+              Icon(Icons.square, color: _isDarkMode ? Colors.grey.shade600 : Colors.blue, size: 16),
+              const SizedBox(width: 4),
               Text(
                 'Clientes registrados',
-                style: TextStyle(fontSize: 14, color: Colors.black87),
+                style: TextStyle(
+                  fontSize: 14,
+                  color: _isDarkMode ? Colors.grey.shade300 : Colors.black87,
+                ),
               ),
             ],
           ),
